@@ -1,0 +1,341 @@
+{
+  "_meta": {
+    "description": "Structured evidence map derived directly from Richard Best's master CV (Richard_Best_Ultimate_CV_FINAL_CORRECTED.docx). Every entry below is a paraphrase or direct extract of a claim actually present in the CV. This file is the single source of truth the matching/scoring/explanation engines are permitted to cite as candidate evidence. Nothing here may be invented, embellished, or inferred beyond what the CV states.",
+    "cv_source_file": "Richard_Best_Ultimate_CV_FINAL_CORRECTED.docx",
+    "candidate_name": "Richard Best",
+    "positioning": "Cybersecurity & AI Training Specialist / AI Consultant / Technical Trainer",
+    "current_location": "Burton upon Trent, UK (stated); open to worldwide relocation & travel",
+    "msc_data_analytics_status": "IN_PROGRESS",
+    "last_verified_against_cv": "2026-08-11"
+  },
+  "evidence_categories": {
+    "ai_red_teaming": [
+      {
+        "id": "ev_ai_redteam_01",
+        "text": "Led AI red-teaming exercises on a proprietary corporate AI model, stress-testing jailbreak resilience and model robustness for enterprise use.",
+        "employer": "Soteria",
+        "role": "Cybersecurity Trainer & Consultant",
+        "location": "Doha, Qatar",
+        "dates": "Jan 2023 - Jan 2025"
+      }
+    ],
+    "adversarial_llm_testing": [
+      {
+        "id": "ev_adv_llm_01",
+        "text": "Led red-teaming exercises on a proprietary enterprise LLM to stress-test jailbreak resilience and model robustness.",
+        "employer": "Soteria",
+        "source": "Professional summary"
+      }
+    ],
+    "llm_security": [
+      {
+        "id": "ev_llm_sec_01",
+        "text": "Core expertise listed: AI Red-Teaming | Adversarial LLM Testing | LLM Security.",
+        "source": "Core Expertise section"
+      }
+    ],
+    "cybersecurity_training": [
+      {
+        "id": "ev_cyber_train_01",
+        "text": "Delivered cybersecurity training to 100+ military officer candidates in cohorts of approximately 20-25, covering penetration testing, GRC, web services, OSINT and prompt engineering in a high-accountability environment.",
+        "employer": "Soteria",
+        "role": "Cybersecurity Trainer & Consultant",
+        "location": "Doha, Qatar",
+        "dates": "Jan 2023 - Jan 2025"
+      },
+      {
+        "id": "ev_cyber_train_02",
+        "text": "Three-month secondment to a partner technical university in Azerbaijan, delivering OSINT fundamentals, introductory cybersecurity and prompt engineering.",
+        "employer": "Soteria",
+        "location": "Azerbaijan"
+      }
+    ],
+    "penetration_testing_instruction": [
+      {
+        "id": "ev_pentest_instr_01",
+        "text": "Covered penetration testing as part of cybersecurity training delivered to 100+ military officer candidates.",
+        "employer": "Soteria"
+      }
+    ],
+    "grc_instruction": [
+      {
+        "id": "ev_grc_01",
+        "text": "Covered GRC (governance, risk & compliance) as part of cybersecurity training delivered to military officer candidates.",
+        "employer": "Soteria"
+      }
+    ],
+    "osint": [
+      {
+        "id": "ev_osint_01",
+        "text": "Covered OSINT as part of cybersecurity training delivered to 100+ military officer candidates.",
+        "employer": "Soteria"
+      },
+      {
+        "id": "ev_osint_02",
+        "text": "Delivered OSINT fundamentals during a three-month secondment to a partner technical university in Azerbaijan.",
+        "employer": "Soteria"
+      }
+    ],
+    "ctf_facilitation": [
+      {
+        "id": "ev_ctf_01",
+        "text": "Facilitated Capture the Flag (CTF) exercises and adapted training programmes to learner ability, organisational compliance requirements and operational security standards.",
+        "employer": "Soteria"
+      }
+    ],
+    "prompt_engineering": [
+      {
+        "id": "ev_prompt_eng_01",
+        "text": "Covered prompt engineering as part of cybersecurity training delivered to military officer candidates.",
+        "employer": "Soteria"
+      },
+      {
+        "id": "ev_prompt_eng_02",
+        "text": "Delivered prompt engineering instruction during the Azerbaijan university secondment.",
+        "employer": "Soteria"
+      },
+      {
+        "id": "ev_prompt_eng_03",
+        "text": "Core expertise: Prompt Engineering.",
+        "source": "Core Expertise section"
+      }
+    ],
+    "ai_training": [
+      {
+        "id": "ev_ai_train_01",
+        "text": "Designed and deployed a custom AI course for Paris University of International Education (PUIE), adopted and hosted by the institution with approximately 30 students enrolled under an accessibility-first learning model.",
+        "employer": "The AI-Ecosystem",
+        "role": "Founder & AI Consultant",
+        "location": "Remote - UK",
+        "dates": "Jan 2026 - Present"
+      }
+    ],
+    "ai_curriculum_development": [
+      {
+        "id": "ev_ai_curriculum_01",
+        "text": "Designed an AI course adopted and hosted by Paris University of International Education (PUIE).",
+        "source": "Professional summary / The AI-Ecosystem role"
+      }
+    ],
+    "university_ai_course_adoption": [
+      {
+        "id": "ev_uni_adopt_01",
+        "text": "AI course adopted and hosted by Paris University of International Education (PUIE) with ~30 students enrolled.",
+        "employer": "The AI-Ecosystem"
+      }
+    ],
+    "ai_consulting": [
+      {
+        "id": "ev_ai_consult_01",
+        "text": "Founder & AI Consultant at The AI-Ecosystem (Jan 2026 - Present), remote - UK.",
+        "employer": "The AI-Ecosystem"
+      },
+      {
+        "id": "ev_ai_consult_02",
+        "text": "Founder & Consultant at Best Clients, an independent consulting practice focused on applied AI services, workflow improvement and direct client delivery (Jan 2026 - May 2026, operated concurrently with The AI-Ecosystem).",
+        "employer": "Best Clients"
+      },
+      {
+        "id": "ev_ai_consult_03",
+        "text": "Provided tailored AI-workflow consulting to Kstar Thai Boxing to support client acquisition and business operations.",
+        "employer": "Best Clients"
+      }
+    ],
+    "agentic_ai": [
+      {
+        "id": "ev_agentic_01",
+        "text": "Developed an AI DJ mixer prototype capable of ingesting a music library, auto-sequencing tracks and generating a mixed set as a practical demonstration of agentic AI workflows.",
+        "employer": "The AI-Ecosystem"
+      },
+      {
+        "id": "ev_agentic_02",
+        "text": "Core expertise: Agentic AI | Multi-Model AI Workflows.",
+        "source": "Core Expertise section"
+      }
+    ],
+    "multi_model_ai_prototyping": [
+      {
+        "id": "ev_prototype_01",
+        "text": "Built SpeakSell, a proof-of-concept multi-model AI interface enabling users with limited literacy to interact with AI-powered web services through voice commands and visual navigation; built and validated independently on personal devices.",
+        "employer": "The AI-Ecosystem"
+      },
+      {
+        "id": "ev_prototype_02",
+        "text": "Architected a resident-services application concept for Skytree Residence covering guest access, maintenance tracking, payment notifications, announcements, AI-assisted resident support and staff management.",
+        "employer": "The AI-Ecosystem"
+      }
+    ],
+    "instructional_design": [
+      {
+        "id": "ev_instr_design_01",
+        "text": "Core expertise: Instructional Design | Technical Training | Adult Learning | Curriculum Development.",
+        "source": "Core Expertise section"
+      },
+      {
+        "id": "ev_instr_design_02",
+        "text": "Designed and delivered cross-departmental training programmes for supply-chain and administrative personnel at a major international oil and gas joint venture.",
+        "employer": "Tengizchevroil",
+        "role": "Training Specialist",
+        "location": "Atyrau, Kazakhstan",
+        "dates": "Jan 2012 - Dec 2013"
+      }
+    ],
+    "adult_learning": [
+      {
+        "id": "ev_adult_learning_01",
+        "text": "Combines practical AI experimentation with instructional design, adult learning expertise and cross-cultural delivery.",
+        "source": "Professional summary"
+      }
+    ],
+    "international_training": [
+      {
+        "id": "ev_intl_01",
+        "text": "Extensive international experience delivering technical education, curriculum development and consulting across military, corporate, university and specialist environments in the Middle East, Central Asia and Southeast Asia.",
+        "source": "Professional summary"
+      },
+      {
+        "id": "ev_intl_02",
+        "text": "Delivered cybersecurity training to 100+ military officer candidates in Doha, Qatar.",
+        "employer": "Soteria"
+      },
+      {
+        "id": "ev_intl_03",
+        "text": "Three-month secondment to a partner technical university in Azerbaijan.",
+        "employer": "Soteria"
+      },
+      {
+        "id": "ev_intl_04",
+        "text": "Delivered business English and industry-specific IELTS training (Levels 4-7) to oil and gas professionals in Aksai, Western Kazakhstan.",
+        "employer": "Language Solutions Kazakhstan",
+        "dates": "Apr 2017 - Feb 2018"
+      },
+      {
+        "id": "ev_intl_05",
+        "text": "Delivered English-language instruction to Thai Royal Air Force and Intelligence Services personnel in Bangkok, Thailand.",
+        "employer": "Independent / Contract",
+        "dates": "2016"
+      },
+      {
+        "id": "ev_intl_06",
+        "text": "Delivered professional English training to nurses and doctors at Nawaloka Hospital, Colombo, Sri Lanka.",
+        "dates": "2015"
+      },
+      {
+        "id": "ev_intl_07",
+        "text": "Designed and delivered cross-departmental training programmes at Tengizchevroil, a major international oil and gas joint venture, Atyrau, Kazakhstan.",
+        "dates": "Jan 2012 - Dec 2013"
+      },
+      {
+        "id": "ev_intl_08",
+        "text": "Delivered soft-skills and corporate/business training to senior management at SABIC, Saudi Arabia.",
+        "employer": "Language Solutions / SABIC",
+        "dates": "Sep 2007 - Dec 2009"
+      },
+      {
+        "id": "ev_intl_09",
+        "text": "Delivered technical English training to aircraft engineers, technicians and pilots on the Eurofighter Typhoon programme in Riyadh, Saudi Arabia, in a security-sensitive technical environment.",
+        "employer": "British Aerospace / The Arab Development Institute",
+        "dates": "Feb 2007 - Aug 2007"
+      }
+    ],
+    "security_sensitive_environments": [
+      {
+        "id": "ev_secure_env_01",
+        "text": "Delivered cybersecurity training to military officer candidates in a high-accountability environment (Qatar).",
+        "employer": "Soteria"
+      },
+      {
+        "id": "ev_secure_env_02",
+        "text": "Delivered technical English training to aircraft engineers, technicians and pilots on the Eurofighter Typhoon programme in a security-sensitive technical environment.",
+        "employer": "British Aerospace / The Arab Development Institute"
+      },
+      {
+        "id": "ev_secure_env_03",
+        "text": "Adapted training programmes to organisational compliance requirements and operational security standards.",
+        "employer": "Soteria"
+      }
+    ],
+    "cross_cultural_communication": [
+      {
+        "id": "ev_cross_cultural_01",
+        "text": "Core expertise: Cross-Cultural Communication | Public Speaking | Client Consulting.",
+        "source": "Core Expertise section"
+      },
+      {
+        "id": "ev_cross_cultural_02",
+        "text": "Delivery across military, corporate, university and specialist environments in the Middle East, Central Asia and Southeast Asia.",
+        "source": "Professional summary"
+      }
+    ],
+    "client_consulting": [
+      {
+        "id": "ev_client_consult_01",
+        "text": "Established an independent consulting practice focused on applied AI services, workflow improvement and direct client delivery.",
+        "employer": "Best Clients"
+      },
+      {
+        "id": "ev_client_consult_02",
+        "text": "Provided tailored consulting to Kstar Thai Boxing, applying AI workflow design to support client acquisition and business operations.",
+        "employer": "Best Clients"
+      }
+    ],
+    "linux_python_sql_data": [
+      {
+        "id": "ev_tech_01",
+        "text": "Core expertise: Linux | Python, SQL & Data Analysis (MSc coursework).",
+        "source": "Core Expertise section"
+      },
+      {
+        "id": "ev_tech_02",
+        "text": "MSc Data Analytics, University of Cumbria, 2024-2027 (in progress, expected 2027).",
+        "source": "Education"
+      }
+    ],
+    "public_speaking": [
+      {
+        "id": "ev_public_speaking_01",
+        "text": "Core expertise: Public Speaking.",
+        "source": "Core Expertise section"
+      }
+    ]
+  },
+  "employment_history": [
+    {"employer": "The AI-Ecosystem", "role": "Founder & AI Consultant", "location": "Remote - UK", "dates": "Jan 2026 - Present"},
+    {"employer": "Best Clients", "role": "Founder & Consultant", "location": "Remote - UK", "dates": "Jan 2026 - May 2026"},
+    {"employer": "Soteria", "role": "Cybersecurity Trainer & Consultant", "location": "Doha, Qatar", "dates": "Jan 2023 - Jan 2025"},
+    {"employer": "Self-Employed (Independent PPE Supplier)", "role": "Independent PPE Supplier", "location": "Thailand", "dates": "2020 - 2022"},
+    {"employer": "Language Solutions Kazakhstan", "role": "English Language Teacher", "location": "Aksai, Western Kazakhstan", "dates": "Apr 2017 - Feb 2018"},
+    {"employer": "Independent / Contract", "role": "English Classroom & Consultancy", "location": "Bangkok, Thailand", "dates": "2016"},
+    {"employer": "Nawaloka Hospital", "role": "English Consultant", "location": "Colombo, Sri Lanka", "dates": "2015"},
+    {"employer": "Tengizchevroil", "role": "Training Specialist", "location": "Atyrau, Kazakhstan", "dates": "Jan 2012 - Dec 2013"},
+    {"employer": "Language Solutions / SABIC", "role": "Corporate Trainer - Soft Skills & Business Training", "location": "Saudi Arabia", "dates": "Sep 2007 - Dec 2009"},
+    {"employer": "British Aerospace / The Arab Development Institute", "role": "Technical English Trainer", "location": "Riyadh, Saudi Arabia", "dates": "Feb 2007 - Aug 2007"},
+    {"employer": "Walsall Council, UK", "role": "Manager, WS2 Sports Park", "location": "UK", "dates": "2003"},
+    {"employer": "Walsall Community Health Trust, UK", "role": "Addictive Behaviour Counsellor", "location": "UK", "dates": "1997"}
+  ],
+  "education": [
+    {"qualification": "MSc Data Analytics", "institution": "University of Cumbria", "dates": "2024 - 2027", "status": "IN_PROGRESS", "note": "Must never be represented as completed."},
+    {"qualification": "BA TESOL", "institution": "Siam Technological College", "dates": "2016 - 2018", "status": "COMPLETE"}
+  ],
+  "certifications": [
+    {"name": "Google Cybersecurity Professional Certificate", "issuer": "Coursera", "year": 2024},
+    {"name": "AWS Generative AI Applications Professional Certificate", "issuer": "Amazon Web Services (Coursera)", "year": null},
+    {"name": "TEFL Certified", "issuer": null, "year": null}
+  ],
+  "explicit_non_evidence": {
+    "_comment": "Domains NOT supported by the CV. The matching engine must treat these as MANDATORY_MISMATCH or PREFERRED_REQUIREMENT_GAP triggers, never as inferred experience.",
+    "unsupported_domains": [
+      "production software engineering / professional coding experience",
+      "deep Kubernetes / cloud infrastructure engineering",
+      "formal ML research or peer-reviewed publication history",
+      "SOC operations / security operations center analyst experience",
+      "active security clearance (US, UK, or otherwise)",
+      "US citizenship or US work authorization",
+      "medical licence or qualification",
+      "completed master's degree (MSc is in progress, not complete)",
+      "PhD (none held or in progress)",
+      "languages other than English at a professional working level (no other language evidenced in CV)",
+      "senior engineering-management or production-engineering team leadership"
+    ]
+  }
+}

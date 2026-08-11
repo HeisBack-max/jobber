@@ -1,0 +1,96 @@
+# Remote Job Intelligence - candidate profile & preference configuration.
+# This file is the authoritative, editable source for Richard's preferences.
+# Factual claims about experience/qualifications live in cv_evidence_map.json,
+# which is derived from the master CV and must not be edited to invent evidence.
+
+candidate:
+  name: Richard Best
+  email: bestrichardanthonyspencer@gmail.com
+  positioning: "Cybersecurity & AI Training Specialist / AI Consultant / Technical Trainer"
+  cv_evidence_map: config/cv_evidence_map.json
+
+preferences:
+  remote_required: true
+  remote_first: true
+
+  # Countries Richard must not be required to live in, relocate to, or
+  # travel to on a regular/material basis as a condition of the work.
+  excluded_required_work_countries:
+    - US
+    - TH
+
+  excluded_relocation_countries:
+    - US
+    - TH
+
+  excluded_regular_travel_countries:
+    - US
+    - TH
+
+  # Richard is open to relocating or travelling to countries OTHER than
+  # the excluded set above.
+  allow_relocation: true
+  allow_travel: true
+
+  # Hybrid/onsite roles outside the excluded countries are collected only
+  # as exceptional, lower-priority opportunities; they must never appear
+  # in the main remote feed.
+  allow_hybrid_in_main_feed: false
+  allow_onsite_in_main_feed: false
+  collect_exceptional_nonremote_roles: true
+
+  # Occasional, non-material international travel does not disqualify an
+  # opportunity. This threshold is used by the geography engine to decide
+  # when travel_frequency language crosses into "regular/material".
+  occasional_travel_max_per_year: 4
+
+  remote_priority:
+    - REMOTE_WORLDWIDE
+    - REMOTE_ANYWHERE_WITH_MINOR_TIMEZONE_LIMIT
+    - REMOTE_UK
+    - REMOTE_EUROPE
+    - REMOTE_EMEA
+    - REMOTE_APAC
+    - REMOTE_ASIA
+    - REMOTE_MIDDLE_EAST
+    - REMOTE_WITH_OCCASIONAL_TRAVEL
+    - PRIMARILY_REMOTE_RARE_OFFICE
+    - HYBRID_NON_EXCLUDED
+    - ONSITE_NON_EXCLUDED
+
+role_preferences:
+  preferred_families:
+    - ai_training
+    - cybersecurity_training
+    - ai_security
+    - ai_red_team
+    - ai_evaluation
+    - technical_training
+    - ai_consulting
+    - ai_enablement
+    - technical_instructional_design
+    - customer_education
+    - google_vertex_ai
+    - responsible_ai
+  roles_config: config/roles.yaml
+
+scoring:
+  minimum_review_score: 70
+  minimum_digest_score: 75
+  exceptional_score: 90
+  scoring_config: config/scoring.yaml
+
+sources:
+  sources_config: config/sources.yaml
+  strategic_companies_config: config/strategic_companies.yaml
+  search_queries_config: config/search_queries.yaml
+
+digest:
+  max_opportunities: 20
+
+privacy:
+  # Only what is operationally necessary is persisted. No government ID,
+  # no financial data, no unrelated personal data beyond what appears in
+  # the CV/profile above.
+  store_recruiter_contacts: true
+  store_application_notes: true

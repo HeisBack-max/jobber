@@ -1,0 +1,80 @@
+# Company / source registry for the MVP ATS collectors. This list is
+# separate from config/strategic_companies.yaml: this file is the set of
+# boards the Greenhouse/Lever/Ashby collectors will actually poll. Every
+# entry here should have a verification_status of VERIFIED before being
+# relied upon in a production run (see scripts/verify_boards.py).
+#
+# collection_status values: critical | high_priority | normal |
+# exploratory | muted | blacklisted
+
+companies:
+  - name: Anthropic
+    ats: greenhouse
+    board_token: anthropic
+    collection_status: critical
+    strategic_themes: [ai_security, ai_evaluation, trust_and_safety]
+    career_url: https://www.anthropic.com/careers
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Mistral AI
+    ats: lever
+    board_token: mistral
+    collection_status: critical
+    strategic_themes: [ai_training, ai_security]
+    career_url: https://mistral.ai/careers
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Cohere
+    ats: greenhouse
+    board_token: cohere
+    collection_status: critical
+    strategic_themes: [ai_training, ai_consulting]
+    career_url: https://cohere.com/careers
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Databricks
+    ats: greenhouse
+    board_token: databricks
+    collection_status: critical
+    strategic_themes: [ai_training, technical_training]
+    career_url: https://www.databricks.com/company/careers
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: ElevenLabs
+    ats: ashby
+    board_token: elevenlabs
+    collection_status: critical
+    strategic_themes: [ai_training]
+    career_url: https://elevenlabs.io/careers
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Scale AI
+    ats: greenhouse
+    board_token: scaleai
+    collection_status: critical
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://scale.com/careers
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+# Additional boards may be appended here as they are manually verified via
+# `python scripts/verify_boards.py`. Do not add a company without first
+# confirming a board_token resolves - a wrong token silently returns 404
+# and would look like "zero jobs" rather than "misconfigured source".

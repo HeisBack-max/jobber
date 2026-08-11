@@ -1,0 +1,186 @@
+# Strategic company / source watchlist.
+#
+# `ats` + `board_token` are only filled in where the collector adapter can
+# verify a live, working public board today. Verification status:
+#   VERIFIED       - board_token confirmed reachable via the adapter as of
+#                     last_checked (see scripts/verify_boards.py)
+#   UNVERIFIED     - company is on the watchlist but no public Greenhouse/
+#                     Lever/Ashby board has been confirmed yet; requires
+#                     manual research or a future non-ATS collector
+#                     (career-site HTML / search discovery)
+#   NO_PUBLIC_ATS  - company does not expose jobs through Greenhouse,
+#                     Lever, or Ashby; needs a dedicated career-site or
+#                     search-discovery collector (future work)
+#
+# Company nationality/HQ NEVER determines candidate eligibility - that is
+# decided per-vacancy by the geography engine. This registry only decides
+# *which employers get deliberately, proactively checked* every run.
+
+tiers:
+  critical:
+    description: "Tier 1 - checked every run, monitored for exceptional matches"
+    companies:
+      - name: OpenAI
+        watch_priority: critical
+        strategic_themes: [ai_evaluation, ai_security, trust_and_safety, ai_deployment, customer_enablement, technical_success]
+        career_url: https://openai.com/careers/
+        ats: null
+        board_token: null
+        verification_status: UNVERIFIED
+        notes: "No confirmed public Greenhouse/Lever/Ashby board as of verification date; careers site appears to run a custom ATS. Requires a dedicated career-site collector (future work). Monitor via search discovery in the interim."
+      - name: Google
+        watch_priority: critical
+        strategic_themes: [google_vertex_ai, ai_training, ai_consulting]
+        career_url: https://www.google.com/about/careers/applications/
+        ats: null
+        board_token: null
+        verification_status: NO_PUBLIC_ATS
+        notes: "Google Careers runs a proprietary careers platform, not Greenhouse/Lever/Ashby. Requires search-discovery collector."
+      - name: Google DeepMind
+        watch_priority: critical
+        strategic_themes: [google_vertex_ai, ai_evaluation, ai_security]
+        career_url: https://deepmind.google/about/careers/
+        ats: null
+        board_token: null
+        verification_status: NO_PUBLIC_ATS
+      - name: Anthropic
+        watch_priority: critical
+        strategic_themes: [ai_security, ai_evaluation, trust_and_safety]
+        career_url: https://www.anthropic.com/careers
+        ats: greenhouse
+        board_token: anthropic
+        verification_status: UNVERIFIED
+        notes: "Historically Greenhouse-hosted; token must be reconfirmed by scripts/verify_boards.py before relying on it. Anthropic must NEVER receive a company-wide remote classification - evaluate every vacancy's individual location/travel language."
+      - name: NVIDIA
+        watch_priority: critical
+        strategic_themes: [ai_training, ai_consulting]
+        career_url: https://www.nvidia.com/en-us/about-nvidia/careers/
+        ats: null
+        board_token: null
+        verification_status: NO_PUBLIC_ATS
+      - name: Microsoft
+        watch_priority: critical
+        strategic_themes: [google_vertex_ai, ai_training, responsible_ai]
+        career_url: https://careers.microsoft.com/
+        ats: null
+        board_token: null
+        verification_status: NO_PUBLIC_ATS
+      - name: Amazon
+        watch_priority: critical
+        strategic_themes: [ai_training, ai_consulting]
+        career_url: https://www.amazon.jobs/
+        ats: null
+        board_token: null
+        verification_status: NO_PUBLIC_ATS
+      - name: Meta
+        watch_priority: critical
+        strategic_themes: [ai_training, responsible_ai]
+        career_url: https://www.metacareers.com/
+        ats: null
+        board_token: null
+        verification_status: NO_PUBLIC_ATS
+      - name: Mistral AI
+        watch_priority: critical
+        strategic_themes: [ai_training, ai_security]
+        career_url: https://mistral.ai/careers
+        ats: lever
+        board_token: mistral
+        verification_status: UNVERIFIED
+      - name: Cohere
+        watch_priority: critical
+        strategic_themes: [ai_training, ai_consulting]
+        career_url: https://cohere.com/careers
+        ats: greenhouse
+        board_token: cohere
+        verification_status: UNVERIFIED
+      - name: Databricks
+        watch_priority: critical
+        strategic_themes: [ai_training, technical_training]
+        career_url: https://www.databricks.com/company/careers
+        ats: greenhouse
+        board_token: databricks
+        verification_status: UNVERIFIED
+      - name: Hugging Face
+        watch_priority: critical
+        strategic_themes: [ai_training, ai_security]
+        career_url: https://huggingface.co/join
+        ats: null
+        board_token: null
+        verification_status: UNVERIFIED
+      - name: ElevenLabs
+        watch_priority: critical
+        strategic_themes: [ai_training]
+        career_url: https://elevenlabs.io/careers
+        ats: ashby
+        board_token: elevenlabs
+        verification_status: UNVERIFIED
+      - name: Scale AI
+        watch_priority: critical
+        strategic_themes: [ai_evaluation, gig_project_work]
+        career_url: https://scale.com/careers
+        ats: greenhouse
+        board_token: scaleai
+        verification_status: UNVERIFIED
+
+  high_priority:
+    description: "Tier 2"
+    companies:
+      - {name: Salesforce, strategic_themes: [ai_consulting], notes: "Agentforce"}
+      - {name: IBM, strategic_themes: [ai_consulting], notes: "watsonx"}
+      - {name: SAP, strategic_themes: [ai_consulting]}
+      - {name: ServiceNow, strategic_themes: [ai_consulting]}
+      - {name: Oracle, strategic_themes: [ai_consulting]}
+      - {name: AMD, strategic_themes: [ai_training]}
+      - {name: Palantir, strategic_themes: [ai_security]}
+      - {name: Snowflake, strategic_themes: [ai_consulting]}
+      - {name: n8n, strategic_themes: [ai_consulting, agentic_ai]}
+      - {name: Helsing, strategic_themes: [ai_security]}
+      - {name: DeepL, strategic_themes: [ai_training]}
+      - {name: Synthesia, strategic_themes: [ai_training]}
+      - {name: Wayve, strategic_themes: [ai_training]}
+      - {name: Stability AI, strategic_themes: [ai_training]}
+      - {name: Black Forest Labs, strategic_themes: [ai_training]}
+      - {name: Aleph Alpha, strategic_themes: [ai_security]}
+      - {name: Quantexa, strategic_themes: [ai_consulting]}
+      - {name: Isomorphic Labs, strategic_themes: [ai_training]}
+      - {name: Owkin, strategic_themes: [ai_training]}
+    all_verification_status: UNVERIFIED
+
+  middle_east:
+    description: "Middle East strategic targets"
+    companies:
+      - {name: G42, strategic_themes: [ai_training, ai_security]}
+      - {name: Core42, strategic_themes: [ai_training]}
+      - {name: Presight AI, strategic_themes: [ai_training]}
+      - {name: HUMAIN, strategic_themes: [ai_training]}
+    all_verification_status: UNVERIFIED
+
+  asia:
+    description: "Asia-Pacific strategic targets (outside Thailand)"
+    companies:
+      - {name: Sakana AI, strategic_themes: [ai_training]}
+      - {name: Preferred Networks, strategic_themes: [ai_training]}
+      - {name: NAVER / HyperCLOVA, strategic_themes: [ai_training]}
+      - {name: Rebellions, strategic_themes: [ai_training]}
+      - {name: FuriosaAI, strategic_themes: [ai_training]}
+      - {name: Upstage, strategic_themes: [ai_training]}
+      - {name: Sarvam AI, strategic_themes: [ai_training]}
+      - {name: Qure.ai, strategic_themes: [ai_training]}
+      - {name: Alibaba / Qwen, strategic_themes: [ai_training]}
+      - {name: ByteDance / Seed, strategic_themes: [ai_training]}
+      - {name: Huawei AI, strategic_themes: [ai_training]}
+      - {name: Tencent / Hunyuan, strategic_themes: [ai_training]}
+      - {name: Baidu / ERNIE, strategic_themes: [ai_training]}
+    all_verification_status: UNVERIFIED
+
+  research_experimental:
+    description: "Research / experimental"
+    companies:
+      - {name: DeepSeek, strategic_themes: [ai_training]}
+    all_verification_status: UNVERIFIED
+
+# Companies default to `board_token: null / verification_status: UNVERIFIED`
+# unless independently reconfirmed. scripts/verify_boards.py performs a
+# live HTTP check against each configured (ats, board_token) pair and
+# updates last_checked / source_health without ever assuming a historical
+# API is still current.

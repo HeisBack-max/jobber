@@ -1,0 +1,52 @@
+# Configurable search-discovery query families (Milestone 6 / future
+# search-engine discovery collector). Queries are grouped by theme so new
+# ones can be added without touching application code. `recency_days`
+# hints the discovery collector to prefer date-filtered search where the
+# backing search API supports it.
+
+query_families:
+  ai_training:
+    recency_days: 14
+    queries:
+      - '"AI trainer" remote'
+      - '"generative AI trainer" remote'
+      - '"AI enablement" remote jobs'
+      - '"AI adoption" remote'
+      - '"technical trainer" AI remote'
+      - '"AI curriculum" remote'
+      - '"AI education specialist" remote'
+      - '"customer education" AI remote'
+
+  cybersecurity:
+    recency_days: 14
+    queries:
+      - '"AI security trainer" remote'
+      - '"cybersecurity trainer" remote'
+      - '"LLM security" remote'
+      - '"AI red team" remote'
+      - '"AI evaluator" remote'
+      - '"instructional designer" cybersecurity remote'
+      - '"AI safety evaluator" remote'
+
+  google_ecosystem:
+    recency_days: 21
+    queries:
+      - '"Vertex AI" trainer remote'
+      - '"Vertex AI" consultant remote'
+      - '"Gemini" enablement remote'
+      - '"Google Cloud AI" trainer'
+
+  responsible_ai:
+    recency_days: 21
+    queries:
+      - '"responsible AI" training remote'
+      - '"AI governance" training remote'
+      - '"AI risk" education remote'
+
+  gigs:
+    recency_days: 7
+    queries:
+      - '"AI evaluator" freelance remote'
+      - '"LLM red team" contract remote'
+      - '"AI model evaluation" project remote'
+      - '"prompt evaluation" freelance'

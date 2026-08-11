@@ -1,0 +1,84 @@
+# Explainable scoring weights. Every weight here is surfaced in the
+# analysis explanation - never hard-code a magic number in application
+# code that isn't traceable back to this file.
+
+career_scoring:
+  weights:
+    remote_suitability: 25
+    experience_relevance: 25
+    interview_plausibility: 15
+    skills_alignment: 10
+    training_communication_advantage: 10
+    ai_cyber_intersection: 5
+    compensation: 5
+    freshness: 5
+  strategic_company_bonus_max: 3
+
+gig_scoring:
+  weights:
+    geographic_compatibility: 25
+    professional_relevance: 20
+    compensation: 20
+    flexibility: 15
+    ai_cyber_career_value: 10
+    source_reliability: 5
+    time_commitment_compatibility: 5
+
+remote_scoring_scale:
+  REMOTE_WORLDWIDE: 25
+  REMOTE_ANYWHERE_WITH_MINOR_TIMEZONE_LIMIT: 22
+  REMOTE_UK: 18
+  REMOTE_EUROPE: 18
+  REMOTE_EMEA: 18
+  REMOTE_APAC: 18
+  REMOTE_ASIA: 18
+  REMOTE_MIDDLE_EAST: 18
+  REMOTE_WITH_OCCASIONAL_TRAVEL: 14
+  HYBRID: 5
+  ONSITE: 0
+  REMOTE_US_ONLY: 0
+  REMOTE_THAILAND_ONLY: 0
+  REMOTE_CANADA_ONLY: 18
+  REMOTE_SPECIFIC_COUNTRIES: 18
+  UNCLEAR: 9
+
+freshness_scoring:
+  # (max_age_days, score) evaluated in order; first match wins.
+  bands:
+    - {max_age_days: 1, score: 5}
+    - {max_age_days: 3, score: 4}
+    - {max_age_days: 7, score: 3}
+    - {max_age_days: 14, score: 2}
+    - {max_age_days: 30, score: 1}
+    - {max_age_days: null, score: 0}
+
+recommendation_thresholds:
+  # Evaluated top-down; first threshold the overall_score meets/exceeds wins.
+  bands:
+    - {min_score: 90, label: EXCEPTIONAL_MATCH}
+    - {min_score: 80, label: STRONG_APPLY}
+    - {min_score: 70, label: WORTH_REVIEWING}
+    - {min_score: 60, label: STRETCH_OPPORTUNITY}
+    - {min_score: 50, label: LOW_PRIORITY}
+    - {min_score: 0, label: IGNORE}
+  overrides:
+    geographic_ineligible: INELIGIBLE
+    excluded_travel_requirement: EXCLUDED_TRAVEL_REQUIREMENT
+
+confidence_scoring:
+  base: 100
+  deductions:
+    full_description_unavailable: 20
+    remote_rules_unclear: 15
+    geography_ambiguous: 15
+    publication_date_unavailable: 10
+    salary_data_unreliable: 5
+    aggregator_only_source: 10
+    page_parsing_incomplete: 15
+    location_information_conflicting: 15
+  floor: 5
+
+cost_control:
+  daily_llm_budget_usd: 5.00
+  stage2_semantic_prescore_min_to_advance: 0.35
+  stage4_deep_analysis_min_score: 85

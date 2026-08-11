@@ -1,0 +1,225 @@
+# Role taxonomy used for semantic matching. Titles are examples for
+# matching, not an exhaustive allowlist - the matcher also uses
+# transferable-skills matching against config/cv_evidence_map.json.
+
+role_families:
+  ai_training:
+    tier: A
+    label: "AI Training / AI Enablement"
+    example_titles:
+      - AI Training Specialist
+      - Generative AI Trainer
+      - AI Trainer
+      - AI Technical Trainer
+      - AI Learning Specialist
+      - AI Enablement Specialist
+      - AI Adoption Trainer
+      - AI Education Specialist
+      - AI Instructor
+      - AI Lecturer
+      - AI Curriculum Developer
+      - AI Learning Designer
+    evidence_categories: [ai_training, ai_curriculum_development, university_ai_course_adoption, instructional_design, adult_learning]
+
+  cybersecurity_training:
+    tier: A
+    label: "Cybersecurity Training"
+    example_titles:
+      - Cybersecurity Trainer
+      - Cyber Security Trainer
+      - Cybersecurity Instructor
+      - Cybersecurity Training Specialist
+      - Security Awareness Trainer
+      - Cybersecurity Education Specialist
+      - Technical Cybersecurity Instructor
+      - Cybersecurity Curriculum Developer
+    evidence_categories: [cybersecurity_training, penetration_testing_instruction, grc_instruction, osint, ctf_facilitation, security_sensitive_environments]
+
+  ai_security:
+    tier: A
+    label: "AI Security / LLM Security"
+    example_titles:
+      - AI Security Trainer
+      - AI Security Specialist
+      - LLM Security Specialist
+      - AI Red Team Specialist
+      - AI Red Teamer
+      - Generative AI Red Team
+      - LLM Red Team
+      - Adversarial AI Specialist
+    evidence_categories: [ai_red_teaming, adversarial_llm_testing, llm_security, prompt_engineering]
+
+  ai_evaluation:
+    tier: A
+    label: "AI Model Evaluation"
+    example_titles:
+      - AI Safety Evaluator
+      - AI Model Evaluator
+      - LLM Evaluator
+      - AI Security Evaluator
+    evidence_categories: [ai_red_teaming, adversarial_llm_testing, llm_security]
+
+  prompt_engineering:
+    tier: A
+    label: "Prompt Engineering"
+    example_titles:
+      - Prompt Engineering Trainer
+      - Prompt Engineering Specialist
+      - Prompt Engineer
+    evidence_categories: [prompt_engineering, agentic_ai]
+
+  technical_training:
+    tier: B
+    label: "Technical Training (general)"
+    example_titles:
+      - Technical Trainer
+      - Technical Instructor
+      - Technical Learning Specialist
+      - Technical Enablement Specialist
+      - Product Trainer
+      - Solutions Trainer
+      - Learning Consultant
+      - Technical Learning Consultant
+      - Training Consultant
+    evidence_categories: [instructional_design, adult_learning, international_training]
+
+  technical_instructional_design:
+    tier: B
+    label: "Instructional Design"
+    example_titles:
+      - Technical Instructional Designer
+      - Technology Learning Experience Designer
+      - Digital Learning Specialist
+      - Technical Curriculum Developer
+      - Training Content Developer
+    evidence_categories: [instructional_design, adult_learning, ai_curriculum_development]
+
+  ai_consulting:
+    tier: B
+    label: "AI Consulting"
+    example_titles:
+      - AI Consultant
+      - Generative AI Consultant
+      - Applied AI Consultant
+      - AI Adoption Consultant
+      - AI Transformation Consultant
+      - AI Enablement Consultant
+      - AI Implementation Consultant
+      - AI Workflow Consultant
+      - AI Solutions Consultant
+    evidence_categories: [ai_consulting, agentic_ai, multi_model_ai_prototyping, client_consulting]
+
+  cybersecurity_consulting:
+    tier: B
+    label: "Cybersecurity Consulting / GRC / OSINT training"
+    example_titles:
+      - Cybersecurity Consultant
+      - GRC Trainer
+      - Security Awareness Specialist
+      - Security Education Specialist
+      - OSINT Trainer
+      - OSINT Instructor
+    evidence_categories: [grc_instruction, osint, cybersecurity_training]
+
+  customer_education:
+    tier: C
+    label: "Customer Education / Enablement / Success"
+    example_titles:
+      - Developer Advocate - AI
+      - Developer Education
+      - Technical Evangelist
+      - AI Community Education
+      - Customer Success - AI Platform
+      - Customer Enablement - AI
+      - Solutions Consultant
+      - Presales Consultant - AI
+      - Technical Customer Success
+      - Technical Onboarding Specialist
+      - Customer Education Specialist
+      - Customer Training Specialist
+    evidence_categories: [ai_training, ai_consulting, cross_cultural_communication, instructional_design]
+
+  google_vertex_ai:
+    tier: dedicated_channel
+    label: "Google / DeepMind / Vertex AI / Gemini ecosystem"
+    example_titles:
+      - Vertex AI Trainer
+      - Vertex AI Consultant
+      - Google Cloud AI Trainer
+      - Gemini Enablement Specialist
+      - AI Customer Engineering
+      - Google Cloud Learning Consultant
+    evidence_categories: [ai_training, ai_consulting, instructional_design]
+
+  responsible_ai:
+    tier: C
+    label: "Responsible AI / AI Governance / AI Risk"
+    example_titles:
+      - Learning & Development Consultant
+      - Corporate Learning Consultant
+      - AI Literacy Lead
+      - Responsible AI Training
+      - Responsible AI Specialist
+      - AI Governance Training
+      - AI Governance Specialist
+      - AI Risk Training
+      - AI Risk Consultant
+      - AI Compliance Training
+    evidence_categories: [ai_training, cybersecurity_training, grc_instruction]
+
+  university_academic:
+    tier: C
+    label: "University / Academic Instruction"
+    example_titles:
+      - Cybersecurity Programme Instructor
+      - Cybersecurity Bootcamp Instructor
+      - University Lecturer - Cybersecurity
+      - University Lecturer - Artificial Intelligence
+      - Adjunct Instructor - AI
+      - Adjunct Instructor - Cybersecurity
+      - Online Faculty - Cybersecurity
+      - Online Faculty - Artificial Intelligence
+    evidence_categories: [ai_training, cybersecurity_training, university_ai_course_adoption, international_training]
+
+emerging_categories:
+  # Discovered opportunistically via semantic matching even when the
+  # exact title was never searched for.
+  - Enterprise AI Adoption
+  - AI Enablement
+  - AI Literacy
+  - Generative AI Training
+  - Responsible AI Education
+  - AI Governance Training
+  - AI Security Education
+  - Human-AI Interaction Training
+  - AI Risk Education
+  - AI Evaluation
+  - LLM Safety Evaluation
+  - Trust & Safety - AI
+  - AI Workforce Transformation
+  - AI Learning Experience Design
+  - AI Deployment
+  - AI Technical Success
+  - AI Customer Success
+  - AI Solutions Enablement
+
+negative_matching:
+  # MANDATORY_MISMATCH: fatal, unless the CV supports it.
+  mandatory_mismatch_signals:
+    - "8+ years of full-time software engineering"
+    - "production Kubernetes"
+    - "active US security clearance"
+    - "US citizenship required"
+    - "medical licence required"
+    - "PhD required"
+    - "completed master's degree required"
+    - "deep SOC operations experience"
+    - "senior cloud architecture experience"
+    - "professional ML research / publication history required"
+    - "language requirement not supported by CV"
+  # PREFERRED_REQUIREMENT_GAP: notable but non-fatal.
+  preferred_gap_signals:
+    - "preferred vendor certification"
+    - "nice to have: cloud certification"
+    - "familiarity with proprietary LMS"
+    - "preferred: additional language"
