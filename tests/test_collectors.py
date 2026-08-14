@@ -9,6 +9,7 @@ from jobintel.collectors.ashby import AshbySource
 from jobintel.collectors.base import SourceError
 from jobintel.collectors.greenhouse import GreenhouseSource
 from jobintel.collectors.lever import LeverSource
+from jobintel.collectors.remotive import RemotiveSource
 
 
 @pytest.mark.asyncio
@@ -92,6 +93,62 @@ async def test_ashby_discover_parses_jobs(httpx_mock):
     assert jobs[0].source == "ashby"
     assert jobs[0].job_title == "AI Security Specialist"
     assert jobs[0].location_raw == "Remote - UK"
+
+
+@pytest.mark.asyncio
+async def test_remotive_discover_parses_jobs_with_per_job_company(httpx_mock):
+    """Remotive is a multi-employer aggregator: company_name comes from
+    each job in the payload, not from a fixed source-level company."""
+    httpx_mock.add_response(
+        url="https://remotive.com/api/remote-jobs?limit=100&search=cybersecurity",
+        json={
+            "jobs": [
+                {
+                    "id": 987654,
+                    "url": "https://remotive.com/remote-jobs/cybersecurity/987654",
+                    "title": "Remote Cybersecurity Trainer",
+                    "company_name": "Acme Security Co",
+                    "candidate_required_location": "Worldwide",
+                    "publication_date": "2026-08-01T00:00:00",
+                    "salary": "$50,000 - $70,000",
+                    "description": "<p>Train our global customers on secure AI usage.</p>",
+                }
+            ]
+        },
+    )
+    source = RemotiveSource("Remotive - Cybersecurity", "cybersecurity")
+    jobs = await source.discover()
+    assert len(jobs) == 1
+    assert jobs[0].source == "remotive"
+    assert jobs[0].company_name == "Acme Security Co"
+    assert jobs[0].job_title == "Remote Cybersecurity Trainer"
+    assert jobs[0].location_raw == "Worldwide"
+
+    details = await source.fetch_details(jobs[0])
+    assert details.salary_raw == "$50,000 - $70,000"
+    assert "secure AI usage" in details.description_html
+
+
+@pytest.mark.asyncio
+async def test_remotive_unfiltered_search_omits_search_param(httpx_mock):
+    httpx_mock.add_response(
+        url="https://remotive.com/api/remote-jobs?limit=100",
+        json={"jobs": []},
+    )
+    source = RemotiveSource("Remotive - All", "")
+    jobs = await source.discover()
+    assert jobs == []
+
+
+@pytest.mark.asyncio
+async def test_remotive_500_raises_source_error(httpx_mock):
+    httpx_mock.add_response(
+        url="https://remotive.com/api/remote-jobs?limit=100&search=nonsense",
+        status_code=500,
+    )
+    source = RemotiveSource("Remotive - Broken", "nonsense")
+    with pytest.raises(SourceError):
+        await source.discover()
 
 
 @pytest.mark.asyncio

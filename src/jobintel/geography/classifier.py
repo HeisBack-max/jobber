@@ -40,6 +40,16 @@ WORLDWIDE_RE = re.compile(
     re.I,
 )
 
+# Aggregator boards (Remotive, RemoteOK, We Work Remotely, ...) stamp their
+# structured location field as a bare "Worldwide"/"Anywhere"/"Global" with
+# no surrounding "remote" phrase. WORLDWIDE_RE requires that compound
+# phrasing, so it never fires on this field shape. Matched against
+# location_raw only (never the full description) to avoid false positives
+# from prose like "we serve customers worldwide".
+BARE_WORLDWIDE_LOCATION_RE = re.compile(
+    r"^\s*(fully\s+)?(remote[\s\-,]*)?(worldwide|anywhere|global)\s*$", re.I
+)
+
 US_ONLY_RE = re.compile(
     r"remote\s*[-–—(]*\s*(united states|usa|u\.s\.a?\.?|us)\s*only\)?|"
     r"remote\s*\(\s*(united states|usa|us)\s*\)|"
@@ -160,6 +170,7 @@ def classify_geography(location_raw: str | None, description_text: str | None) -
     us_hits = _matches(US_ONLY_RE, text)
     th_hits = _matches(TH_ONLY_RE, text)
     worldwide_hits = _matches(WORLDWIDE_RE, text)
+    bare_worldwide_location = bool(BARE_WORLDWIDE_LOCATION_RE.match(location_raw.strip()))
 
     if us_hits:
         evidence.append(f"US-only residency language detected: \"{us_hits[0].strip()}\"")
@@ -189,8 +200,9 @@ def classify_geography(location_raw: str | None, description_text: str | None) -
             travel_destinations=travel_destinations,
         )
 
-    if worldwide_hits:
-        evidence.append(f"Worldwide/anywhere remote language detected: \"{worldwide_hits[0].strip()}\"")
+    if worldwide_hits or bare_worldwide_location:
+        hit_text = worldwide_hits[0].strip() if worldwide_hits else location_raw.strip()
+        evidence.append(f"Worldwide/anywhere remote language detected: \"{hit_text}\"")
         return GeographicEvidence(
             classification=RemoteClassification.REMOTE_WORLDWIDE,
             eligible=EligibilityStatus.YES,

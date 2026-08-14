@@ -13,12 +13,18 @@ from jobintel.collectors.ashby import AshbySource
 from jobintel.collectors.base import JobSource
 from jobintel.collectors.greenhouse import GreenhouseSource
 from jobintel.collectors.lever import LeverSource
+from jobintel.collectors.remotive import RemotiveSource
 from jobintel.settings import load_sources
 
 _ADAPTER_BUILDERS = {
     "greenhouse": lambda name, token: GreenhouseSource(name, token),
     "lever": lambda name, token: LeverSource(name, token),
     "ashby": lambda name, token: AshbySource(name, token),
+    # For "remotive", board_token is a free-text search query (e.g.
+    # "cybersecurity"), not a board/company identifier - Remotive is a
+    # multi-employer aggregator, so `name` here is just the saved-search
+    # label shown in Source Health, not an employer.
+    "remotive": lambda name, token: RemotiveSource(name, token),
 }
 
 
