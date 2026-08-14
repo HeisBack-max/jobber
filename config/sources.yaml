@@ -14,10 +14,10 @@ companies:
     collection_status: critical
     strategic_themes: [ai_security, ai_evaluation, trust_and_safety]
     career_url: https://www.anthropic.com/careers
-    verification_status: UNVERIFIED
-    last_successful_check: null
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-14"
     last_changed: null
-    source_health: UNKNOWN
+    source_health: HEALTHY
 
   - name: Mistral AI
     ats: lever
@@ -25,21 +25,23 @@ companies:
     collection_status: critical
     strategic_themes: [ai_training, ai_security]
     career_url: https://mistral.ai/careers
-    verification_status: UNVERIFIED
-    last_successful_check: null
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-14"
     last_changed: null
-    source_health: UNKNOWN
+    source_health: HEALTHY
+    notes: "API responds 200 with a valid (currently empty) list - 0 open roles on this board right now is a legitimate result, not a broken token. Recheck periodically rather than assuming misconfiguration."
 
   - name: Cohere
-    ats: greenhouse
+    ats: ashby
     board_token: cohere
     collection_status: critical
     strategic_themes: [ai_training, ai_consulting]
     career_url: https://cohere.com/careers
-    verification_status: UNVERIFIED
-    last_successful_check: null
-    last_changed: null
-    source_health: UNKNOWN
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-14"
+    last_changed: "2026-08-14"
+    source_health: HEALTHY
+    notes: "Corrected from an earlier greenhouse:cohere entry, which 404'd. That token belonged to a different, unrelated company (Cohere Health, a healthcare startup) - the AI company Cohere is on Ashby, not Greenhouse."
 
   - name: Databricks
     ats: greenhouse
@@ -47,10 +49,10 @@ companies:
     collection_status: critical
     strategic_themes: [ai_training, technical_training]
     career_url: https://www.databricks.com/company/careers
-    verification_status: UNVERIFIED
-    last_successful_check: null
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-14"
     last_changed: null
-    source_health: UNKNOWN
+    source_health: HEALTHY
 
   - name: ElevenLabs
     ats: ashby
@@ -58,10 +60,10 @@ companies:
     collection_status: critical
     strategic_themes: [ai_training]
     career_url: https://elevenlabs.io/careers
-    verification_status: UNVERIFIED
-    last_successful_check: null
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-14"
     last_changed: null
-    source_health: UNKNOWN
+    source_health: HEALTHY
 
   - name: Scale AI
     ats: greenhouse
@@ -69,10 +71,10 @@ companies:
     collection_status: critical
     strategic_themes: [ai_evaluation, gig_project_work]
     career_url: https://scale.com/careers
-    verification_status: UNVERIFIED
-    last_successful_check: null
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-14"
     last_changed: null
-    source_health: UNKNOWN
+    source_health: HEALTHY
 
 # Additional boards may be appended here as they are manually verified via
 # `python scripts/verify_boards.py`. Do not add a company without first

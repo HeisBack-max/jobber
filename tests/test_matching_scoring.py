@@ -17,6 +17,56 @@ def test_ai_trainer_matches_tier_a_role_family():
     assert result.tier == "A"
 
 
+def test_generic_enablement_title_does_not_false_match_ai_training():
+    """Regression test: a business role that merely shares the word
+    "enablement" with "AI Enablement Specialist" (e.g. GTM/sales/partner
+    enablement at an AI company, where the company boilerplate mentions
+    "AI" regardless of the role) must not be scored as a Tier-A AI
+    training match (spec §51 false-positive protection)."""
+    desc = (
+        "ABOUT ACME AI\nAcme AI is an AI research and product company. "
+        "We launched in 2023 with the first human-like AI voice model. "
+        "This role drives GTM enablement for our expansion sales teams, "
+        "building playbooks and onboarding new account executives."
+    )
+    result = match_role_family("GTM Enablement - Expansion", desc)
+    assert result.role_family != "ai_training"
+
+
+def test_ai_security_title_still_matches_despite_stricter_gate():
+    result = match_role_family(
+        "AI Security Enablement Lead",
+        "Lead LLM red-teaming and adversarial testing for enterprise AI security.",
+    )
+    assert result.role_family == "ai_security"
+    assert result.tier == "A"
+
+
+def test_unrelated_engineer_title_does_not_false_match_prompt_engineering():
+    """Regression test: sharing only the word "Engineer" with "Prompt
+    Engineer" produced a deceptively high fuzzy title ratio (0.84) for a
+    completely unrelated facilities role - the anchor gate must require
+    the real anchor term in the title, not accept a high fuzzy ratio as
+    a substitute (spec §51)."""
+    result = match_role_family(
+        "AV Engineer", "Install and maintain audio-visual equipment in conference rooms."
+    )
+    assert result.role_family is None
+
+
+def test_tax_role_does_not_match_any_family():
+    """Regression test: token_set_ratio's character-level fuzzy component
+    can score moderately even between titles with zero shared words
+    (observed 0.51 for "International Indirect Tax, VAT/GST" vs.
+    "Technical Instructional Designer"). The title floor must reject it."""
+    result = match_role_family(
+        "International Indirect Tax, VAT/GST",
+        "About Acme AI. Acme's mission is to build safe AI systems. "
+        "Manage indirect tax compliance across multiple jurisdictions.",
+    )
+    assert result.role_family is None
+
+
 def test_irrelevant_software_engineer_flagged_mandatory_mismatch():
     mismatches = find_mismatches(fx.IRRELEVANT_SOFTWARE_ENGINEER[1])
     assert mismatches.mandatory_mismatches, "expected an unsupported-experience mismatch to be detected"
