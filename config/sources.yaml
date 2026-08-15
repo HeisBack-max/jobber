@@ -76,6 +76,56 @@ companies:
     last_changed: null
     source_health: HEALTHY
 
+  # Remotive is a multi-employer remote-job aggregator, not a single
+  # company's ATS board - it exists to reach genuinely worldwide-remote
+  # and SE-Asia-friendly postings that the big-lab ATS boards above never
+  # carry, since those are US/EU corporate roles almost exclusively.
+  # `board_token` here is Remotive's own `search` query param, not a
+  # board/company identifier - each entry below is a saved search.
+  - name: Remotive - AI Training & Enablement
+    ats: remotive
+    board_token: "AI training"
+    collection_status: normal
+    strategic_themes: [ai_training, ai_enablement]
+    career_url: https://remotive.com/remote-jobs
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Remotive - Cybersecurity
+    ats: remotive
+    board_token: "cybersecurity"
+    collection_status: normal
+    strategic_themes: [cybersecurity_training, ai_security]
+    career_url: https://remotive.com/remote-jobs
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Remotive - Instructional Design & Curriculum
+    ats: remotive
+    board_token: "instructional design"
+    collection_status: normal
+    strategic_themes: [technical_instructional_design, customer_education]
+    career_url: https://remotive.com/remote-jobs
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
+  - name: Remotive - AI Consulting
+    ats: remotive
+    board_token: "AI consultant"
+    collection_status: normal
+    strategic_themes: [ai_consulting]
+    career_url: https://remotive.com/remote-jobs
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    last_changed: null
+    source_health: UNKNOWN
+
 # Additional boards may be appended here as they are manually verified via
 # `python scripts/verify_boards.py`. Do not add a company without first
 # confirming a board_token resolves - a wrong token silently returns 404

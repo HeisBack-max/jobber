@@ -140,3 +140,27 @@ def test_low_paid_gig_still_geographically_worldwide():
     ev = classify_geography(*fx.LOW_PAID_GENERIC_ANNOTATION_GIG)
     assert ev.classification == RemoteClassification.REMOTE_WORLDWIDE
     assert ev.eligible == EligibilityStatus.YES
+
+
+def test_bare_worldwide_location_field_is_recognized():
+    """Aggregator boards (Remotive, RemoteOK, WWR) stamp their structured
+    location field as a bare "Worldwide" with no surrounding "remote"
+    phrase - this must classify the same as compound "remote worldwide"
+    phrasing, not fall through to UNCLEAR."""
+    ev = classify_geography("Worldwide", "We are a fully distributed team building developer tools.")
+    assert ev.classification == RemoteClassification.REMOTE_WORLDWIDE
+    assert ev.eligible == EligibilityStatus.YES
+    assert ev.confidence >= 0.8
+
+
+def test_bare_anywhere_location_field_is_recognized():
+    ev = classify_geography("Anywhere", "")
+    assert ev.classification == RemoteClassification.REMOTE_WORLDWIDE
+
+
+def test_worldwide_mentioned_only_in_description_prose_is_not_misread():
+    """The bare-location shortcut only applies to the structured location
+    field - it must not fire on marketing prose like "customers worldwide"
+    inside the description, which carries no residency signal at all."""
+    ev = classify_geography("San Francisco, CA", "We serve customers worldwide from our SF headquarters.")
+    assert ev.classification != RemoteClassification.REMOTE_WORLDWIDE
