@@ -15,7 +15,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from jobintel.collectors.base import JobSource, SourceError, build_http_client
 from jobintel.models.enums import CollectionMethod
-from jobintel.models.schemas import RawJob
+from jobintel.models.schemas import RawJob, RawJobDetails
 
 logger = structlog.get_logger()
 
@@ -69,6 +69,35 @@ class AshbySource(JobSource):
             )
         logger.info("ashby.discover", company=self.company_name, count=len(raw_jobs))
         return raw_jobs
+
+    async def fetch_details(self, job: RawJob) -> RawJobDetails:
+        # The list response already includes full description and
+        # (when requested) compensation per job - no second request needed.
+        payload = job.raw_payload
+        return RawJobDetails(
+            raw_job=job,
+            description_html=payload.get("descriptionHtml"),
+            description_text=payload.get("descriptionPlain"),
+            salary_raw=_format_compensation(payload.get("compensation")),
+            published_at=_parse_dt(payload.get("publishedAt")) or job.updated_at,
+            raw_payload=payload,
+        )
+
+
+def _format_compensation(compensation: dict | None) -> str | None:
+    if not compensation:
+        return None
+    summary = compensation.get("compensationTierSummary") or compensation.get("scrapeableCompensationSalarySummary")
+    if summary:
+        return summary
+    components = compensation.get("summaryComponents") or []
+    parts = []
+    for comp in components:
+        lo, hi = comp.get("minValue"), comp.get("maxValue")
+        currency = comp.get("currencyCode", "")
+        if lo is not None or hi is not None:
+            parts.append(f"{currency} {lo}-{hi}".strip())
+    return "; ".join(parts) if parts else None
 
 
 def _parse_dt(value: str | None) -> datetime | None:

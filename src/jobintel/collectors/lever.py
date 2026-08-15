@@ -15,7 +15,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from jobintel.collectors.base import JobSource, SourceError, build_http_client
 from jobintel.models.enums import CollectionMethod
-from jobintel.models.schemas import RawJob
+from jobintel.models.schemas import RawJob, RawJobDetails
 
 logger = structlog.get_logger()
 
@@ -70,6 +70,31 @@ class LeverSource(JobSource):
             )
         logger.info("lever.discover", company=self.company_name, count=len(raw_jobs))
         return raw_jobs
+
+    async def fetch_details(self, job: RawJob) -> RawJobDetails:
+        # mode=json list responses already include full description and
+        # salary fields per posting - no second request required.
+        payload = job.raw_payload
+        salary_raw = _format_salary_range(payload.get("salaryRange"))
+        return RawJobDetails(
+            raw_job=job,
+            description_html=payload.get("description"),
+            description_text=payload.get("descriptionPlain"),
+            salary_raw=salary_raw,
+            published_at=job.updated_at,
+            raw_payload=payload,
+        )
+
+
+def _format_salary_range(salary_range: dict | None) -> str | None:
+    if not salary_range:
+        return None
+    lo, hi = salary_range.get("min"), salary_range.get("max")
+    currency = salary_range.get("currency", "")
+    interval = salary_range.get("interval", "")
+    if lo is None and hi is None:
+        return None
+    return f"{currency} {lo}-{hi} {interval}".strip()
 
 
 def _epoch_ms_to_dt(value: int | None) -> datetime | None:

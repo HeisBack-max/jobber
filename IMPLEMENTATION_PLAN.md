@@ -160,3 +160,65 @@ just exercise code paths.
    This is the most likely area for Richard to notice "missing"
    opportunities; it's surfaced honestly in source health rather than
    papered over.
+
+## 7. Bugs found and fixed against real collected data (2026-08-14)
+
+The first live run against real Greenhouse/Lever/Ashby traffic (once the
+sandbox's network policy allowlisted the three ATS hosts) surfaced two
+classes of bug that the mocked/fixture-based test suite had not caught,
+because the fixtures were hand-written with realistic-looking but
+synthetic descriptions - they never exercised the actual shape of a real
+`fetch_details()` payload.
+
+1. **Every collected job had an empty description.** `JobSource.fetch_details()`'s
+   default implementation (`jobintel/collectors/base.py`) never extracted
+   `description_html`/`description_text` from the raw payload - it just
+   echoed `raw_payload` back. None of the three adapters overrode it, so
+   `job_description_clean` was `""` for all 1,424 jobs on the first real
+   run, which meant the geography classifier had almost nothing to work
+   with beyond the structured `location_raw` field (e.g. "Sydney,
+   Australia" alone, with no "remote worldwide" language to key off) -
+   1,423 of 1,424 jobs came back `UNCLEAR`. Fixed by adding real
+   `fetch_details()` overrides to all three collectors (the list
+   responses already contain the full description - no second request
+   needed) and by unescaping Greenhouse's doubly-HTML-entity-escaped
+   `content` field before parsing. Regression tests added in
+   `tests/test_collectors.py` and `tests/test_clean.py`.
+2. **`config/sources.yaml` had Cohere on the wrong ATS entirely.**
+   `greenhouse:cohere` 404'd - that token belongs to an unrelated
+   healthcare company ("Cohere Health"). The AI company Cohere is on
+   Ashby (`ashby:cohere`, confirmed live). Fixed in both
+   `config/sources.yaml` and `config/strategic_companies.yaml`.
+3. **Role-family matching produced false positives on generic business
+   titles.** Once real descriptions were flowing, generic titles sharing
+   a single word with an example title (most commonly "Enablement" -
+   present in `ai_training`'s, `technical_training`'s, *and*
+   `customer_education`'s example titles) fuzzy-matched across totally
+   unrelated roles: "GTM Enablement - Expansion" scored as a Tier-A
+   `ai_training` STRONG_APPLY; "International Indirect Tax, VAT/GST"
+   matched `technical_instructional_design`; "AV Engineer" matched
+   `prompt_engineering` purely off the shared word "Engineer". Fixed in
+   `jobintel/matching/role_matcher.py` with three changes: (a) a hard
+   minimum title-fuzzy-ratio floor before a family is even a candidate,
+   (b) stripping generic stopwords from *both* the job title and the
+   example titles before fuzzy comparison (not just from keyword
+   extraction, which is what let "enablement" alone drive a high ratio),
+   and (c) a literal-anchor-term requirement (no fuzzy-ratio fallback) for
+   the AI/cybersecurity-specific families, plus a tie-break penalty so
+   the catch-all `ai_training` family doesn't out-rank a more specific
+   sibling family (e.g. `ai_security`) on a coincidental shared word.
+   Regression tests added in `tests/test_matching_scoring.py` for each
+   specific failure observed.
+
+This remains an inherently imprecise, keyword/fuzzy-matching-based MVP
+approach (per §2's explicit scope decision to defer embedding-based
+semantic retrieval) - it is now dramatically more conservative about
+false positives than before, but borderline Tier B/C matches on
+business-adjacent titles at AI companies (e.g. a marketing or technical
+support role) will still sometimes surface for human review rather than
+being filtered out entirely. That is an intentional trade-off consistent
+with spec §51's guidance to distinguish `MANDATORY_MISMATCH` from
+softer, reviewable fit - not a bug to keep chasing indefinitely with more
+regex special-casing. The Stage 3 LLM refinement pass (which requires
+`ANTHROPIC_API_KEY`, not configured in this session) is the intended
+mechanism for catching this class of residual imprecision going forward.

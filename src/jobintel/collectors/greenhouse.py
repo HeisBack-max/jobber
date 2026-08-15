@@ -15,7 +15,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from jobintel.collectors.base import JobSource, SourceError, build_http_client
 from jobintel.models.enums import CollectionMethod
-from jobintel.models.schemas import RawJob
+from jobintel.models.schemas import RawJob, RawJobDetails
 
 logger = structlog.get_logger()
 
@@ -69,6 +69,19 @@ class GreenhouseSource(JobSource):
             )
         logger.info("greenhouse.discover", company=self.company_name, count=len(raw_jobs))
         return raw_jobs
+
+    async def fetch_details(self, job: RawJob) -> RawJobDetails:
+        # The ?content=true list response already includes everything we
+        # need per job (full HTML description, first_published,
+        # application_deadline) - no second request required.
+        payload = job.raw_payload
+        return RawJobDetails(
+            raw_job=job,
+            description_html=payload.get("content"),
+            published_at=_parse_dt(payload.get("first_published")) or job.updated_at,
+            application_deadline=_parse_dt(payload.get("application_deadline")),
+            raw_payload=payload,
+        )
 
 
 def _parse_dt(value: str | None) -> datetime | None:

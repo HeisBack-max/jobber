@@ -49,8 +49,8 @@ tiers:
         career_url: https://www.anthropic.com/careers
         ats: greenhouse
         board_token: anthropic
-        verification_status: UNVERIFIED
-        notes: "Historically Greenhouse-hosted; token must be reconfirmed by scripts/verify_boards.py before relying on it. Anthropic must NEVER receive a company-wide remote classification - evaluate every vacancy's individual location/travel language."
+        verification_status: VERIFIED
+        notes: "Confirmed live 2026-08-14 (426 open postings). Anthropic must NEVER receive a company-wide remote classification - evaluate every vacancy's individual location/travel language."
       - name: NVIDIA
         watch_priority: critical
         strategic_themes: [ai_training, ai_consulting]
@@ -85,21 +85,23 @@ tiers:
         career_url: https://mistral.ai/careers
         ats: lever
         board_token: mistral
-        verification_status: UNVERIFIED
+        verification_status: VERIFIED
+        notes: "Board token confirmed live 2026-08-14 (returns 200 with valid JSON); 0 open postings at check time, which is a legitimate empty state, not a broken token."
       - name: Cohere
         watch_priority: critical
         strategic_themes: [ai_training, ai_consulting]
         career_url: https://cohere.com/careers
-        ats: greenhouse
+        ats: ashby
         board_token: cohere
-        verification_status: UNVERIFIED
+        verification_status: VERIFIED
+        notes: "Corrected 2026-08-14: previously misconfigured as greenhouse:cohere, which 404'd - that token belongs to an unrelated healthcare company (Cohere Health). The AI company Cohere is on Ashby."
       - name: Databricks
         watch_priority: critical
         strategic_themes: [ai_training, technical_training]
         career_url: https://www.databricks.com/company/careers
         ats: greenhouse
         board_token: databricks
-        verification_status: UNVERIFIED
+        verification_status: VERIFIED
       - name: Hugging Face
         watch_priority: critical
         strategic_themes: [ai_training, ai_security]
@@ -113,14 +115,14 @@ tiers:
         career_url: https://elevenlabs.io/careers
         ats: ashby
         board_token: elevenlabs
-        verification_status: UNVERIFIED
+        verification_status: VERIFIED
       - name: Scale AI
         watch_priority: critical
         strategic_themes: [ai_evaluation, gig_project_work]
         career_url: https://scale.com/careers
         ats: greenhouse
         board_token: scaleai
-        verification_status: UNVERIFIED
+        verification_status: VERIFIED
 
   high_priority:
     description: "Tier 2"

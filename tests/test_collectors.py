@@ -152,6 +152,76 @@ async def test_remotive_500_raises_source_error(httpx_mock):
 
 
 @pytest.mark.asyncio
+async def test_greenhouse_fetch_details_extracts_description_from_list_payload():
+    """Regression test: fetch_details() must actually populate the
+    description from the ?content=true list response - the base class's
+    default fetch_details() only echoes raw_payload and leaves
+    description_html/description_text empty, which silently starved the
+    geography/matching engines of any text to work with in production."""
+    from jobintel.models.enums import CollectionMethod
+    from jobintel.models.schemas import RawJob
+
+    raw_job = RawJob(
+        source="greenhouse", source_job_id="111", source_url="https://boards.greenhouse.io/acme/jobs/111",
+        company_name="Acme", job_title="AI Trainer", location_raw="Sydney, Australia",
+        collection_method=CollectionMethod.ATS,
+        raw_payload={
+            "id": 111,
+            "content": "&lt;div&gt;&lt;p&gt;Remote worldwide role. Work from anywhere.&lt;/p&gt;&lt;/div&gt;",
+            "first_published": "2026-08-01T00:00:00Z",
+        },
+    )
+    source = GreenhouseSource("Acme", "acme")
+    details = await source.fetch_details(raw_job)
+    assert details.description_html
+    assert "Remote worldwide" in details.description_html or "&lt;" in details.description_html
+    assert details.published_at is not None
+
+
+@pytest.mark.asyncio
+async def test_lever_fetch_details_extracts_description_and_salary():
+    from jobintel.models.enums import CollectionMethod
+    from jobintel.models.schemas import RawJob
+
+    raw_job = RawJob(
+        source="lever", source_job_id="abc-123", source_url="https://jobs.lever.co/acme/abc-123",
+        company_name="Acme", job_title="AI Trainer",
+        collection_method=CollectionMethod.ATS,
+        raw_payload={
+            "id": "abc-123",
+            "descriptionPlain": "Remote worldwide AI training role.",
+            "salaryRange": {"min": 80000, "max": 100000, "currency": "USD", "interval": "year"},
+        },
+    )
+    source = LeverSource("Acme", "acme")
+    details = await source.fetch_details(raw_job)
+    assert details.description_text == "Remote worldwide AI training role."
+    assert details.salary_raw and "80000" in details.salary_raw
+
+
+@pytest.mark.asyncio
+async def test_ashby_fetch_details_extracts_description():
+    from jobintel.models.enums import CollectionMethod
+    from jobintel.models.schemas import RawJob
+
+    raw_job = RawJob(
+        source="ashby", source_job_id="job-1", source_url="https://jobs.ashbyhq.com/acme/job-1",
+        company_name="Acme", job_title="AI Security Specialist",
+        collection_method=CollectionMethod.ATS,
+        raw_payload={
+            "id": "job-1",
+            "descriptionPlain": "Remote UK AI security role.",
+            "descriptionHtml": "<p>Remote UK AI security role.</p>",
+            "publishedAt": "2026-08-09T08:00:00.000Z",
+        },
+    )
+    source = AshbySource("Acme", "acme")
+    details = await source.fetch_details(raw_job)
+    assert details.description_text == "Remote UK AI security role."
+    assert details.published_at is not None
+
+
+@pytest.mark.asyncio
 async def test_source_error_does_not_propagate_as_unhandled_exception(httpx_mock):
     """One broken source must never abort a whole run (spec §57) - this
     is enforced at the orchestration layer in jobintel.pipeline, which
