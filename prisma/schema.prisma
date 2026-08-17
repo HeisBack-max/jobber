@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Hotel {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  tagline      String
+  address      String
+  city         String
+  country      String
+  phone        String
+  email        String
+  website      String?
+  checkInTime  String   @default("14:00")
+  checkOutTime String   @default("12:00")
+  wifiName     String
+  wifiPassword String
+  currency     String   @default("USD")
+  timezone     String   @default("Asia/Phnom_Penh")
+  createdAt    DateTime @default(now())
+
+  rooms               Room[]
+  guests              Guest[]
+  stays               Stay[]
+  serviceRequests     ServiceRequest[]
+  housekeepingTasks   HousekeepingTask[]
+  maintenanceIssues   MaintenanceIssue[]
+  guestFeedback       GuestFeedback[]
+  reviewRequests      ReviewRequest[]
+  localRecommendations LocalRecommendation[]
+  directLeads         DirectBookingLead[]
+  incidents           Incident[]
+  marketingContent    MarketingContent[]
+  users               User[]
+  settings            HotelSetting[]
+}
+
+model Room {
+  id            String     @id @default(cuid())
+  hotelId       String
+  hotel         Hotel      @relation(fields: [hotelId], references: [id])
+  number        String
+  floor         Int
+  type          String     @default("standard")
+  status        String     @default("VACANT_CLEAN")
+  maxGuests     Int        @default(2)
+  pricePerNight Float
+  amenities     String     @default("")
+  notes         String     @default("")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  stays             Stay[]
+  housekeepingTasks HousekeepingTask[]
+  maintenanceIssues MaintenanceIssue[]
+  serviceRequests   ServiceRequest[]
+
+  @@unique([hotelId, number])
+}
+
+model Guest {
+  id            String   @id @default(cuid())
+  hotelId       String
+  hotel         Hotel    @relation(fields: [hotelId], references: [id])
+  firstName     String
+  lastName      String
+  email         String?
+  phone         String?
+  nationality   String?
+  language      String   @default("en")
+  isRepeat      Boolean  @default(false)
+  totalVisits   Int      @default(1)
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+
+  stays          Stay[]
+  feedback       GuestFeedback[]
+  serviceRequests ServiceRequest[]
+  reviewRequests ReviewRequest[]
+  directLeads    DirectBookingLead[]
+}
+
+model Stay {
+  id         String   @id @default(cuid())
+  hotelId    String
+  hotel      Hotel    @relation(fields: [hotelId], references: [id])
+  guestId    String
+  guest      Guest    @relation(fields: [guestId], references: [id])
+  roomId     String
+  room       Room     @relation(fields: [roomId], references: [id])
+  checkIn    DateTime
+  checkOut   DateTime
+  status     String   @default("RESERVED")
+  adults     Int      @default(1)
+  children   Int      @default(0)
+  source     String   @default("direct")
+  ratePerNight Float
+  notes      String   @default("")
+  guestToken String   @unique @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  serviceRequests ServiceRequest[]
+  feedback        GuestFeedback[]
+  reviewRequest   ReviewRequest?
+}
+
+model ServiceRequest {
+  id          String   @id @default(cuid())
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  stayId      String?
+  stay        Stay?    @relation(fields: [stayId], references: [id])
+  guestId     String?
+  guest       Guest?   @relation(fields: [guestId], references: [id])
+  roomId      String?
+  room        Room?    @relation(fields: [roomId], references: [id])
+  type        String
+  category    String
+  description String
+  priority    String   @default("NORMAL")
+  status      String   @default("NEW")
+  assignedTo  String   @default("")
+  notes       String   @default("")
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HousekeepingTask {
+  id               String   @id @default(cuid())
+  hotelId          String
+  hotel            Hotel    @relation(fields: [hotelId], references: [id])
+  roomId           String
+  room             Room     @relation(fields: [roomId], references: [id])
+  type             String
+  status           String   @default("PENDING")
+  priority         String   @default("NORMAL")
+  assignedTo       String   @default("")
+  notes            String   @default("")
+  scheduledFor     DateTime?
+  completedAt      DateTime?
+  guestInstruction String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model MaintenanceIssue {
+  id          String   @id @default(cuid())
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  roomId      String?
+  room        Room?    @relation(fields: [roomId], references: [id])
+  category    String
+  description String
+  severity    String   @default("MEDIUM")
+  status      String   @default("OPEN")
+  reportedBy  String   @default("")
+  assignedTo  String   @default("")
+  notes       String   @default("")
+  isRecurring Boolean  @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GuestFeedback {
+  id              String   @id @default(cuid())
+  hotelId         String
+  hotel           Hotel    @relation(fields: [hotelId], references: [id])
+  stayId          String?
+  stay            Stay?    @relation(fields: [stayId], references: [id])
+  guestId         String?
+  guest           Guest?   @relation(fields: [guestId], references: [id])
+  sentiment       String
+  rating          Int?
+  comment         String   @default("")
+  category        String   @default("")
+  isResolved      Boolean  @default(false)
+  isRecoveryCase  Boolean  @default(false)
+  recoveryNotes   String   @default("")
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model ReviewRequest {
+  id          String   @id @default(cuid())
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  guestId     String
+  guest       Guest    @relation(fields: [guestId], references: [id])
+  stayId      String?  @unique
+  stay        Stay?    @relation(fields: [stayId], references: [id])
+  platform    String
+  status      String   @default("CANDIDATE")
+  sentAt      DateTime?
+  reviewedAt  DateTime?
+  rating      Int?
+  platformUrl String   @default("")
+  createdAt   DateTime @default(now())
+}
+
+model LocalRecommendation {
+  id          String   @id @default(cuid())
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  category    String
+  name        String
+  description String
+  distance    String   @default("")
+  transport   String   @default("")
+  address     String   @default("")
+  hours       String   @default("")
+  priceRange  String   @default("")
+  hotelNote   String   @default("")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model DirectBookingLead {
+  id        String   @id @default(cuid())
+  hotelId   String
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  guestId   String?
+  guest     Guest?   @relation(fields: [guestId], references: [id])
+  name      String
+  email     String   @default("")
+  phone     String   @default("")
+  checkIn   DateTime?
+  checkOut  DateTime?
+  adults    Int      @default(1)
+  message   String   @default("")
+  status    String   @default("NEW")
+  source    String   @default("")
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Incident {
+  id          String   @id @default(cuid())
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  type        String
+  severity    String
+  description String
+  roomNumber  String   @default("")
+  guestName   String   @default("")
+  actionTaken String   @default("")
+  owner       String   @default("")
+  isResolved  Boolean  @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model MarketingContent {
+  id          String   @id @default(cuid())
+  hotelId     String
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  type        String
+  platform    String   @default("")
+  title       String
+  content     String
+  status      String   @default("idea")
+  publishDate DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model User {
+  id         String   @id @default(cuid())
+  hotelId    String
+  hotel      Hotel    @relation(fields: [hotelId], references: [id])
+  name       String
+  email      String   @unique
+  role       String   @default("STAFF")
+  department String   @default("")
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model HotelSetting {
+  id        String   @id @default(cuid())
+  hotelId   String
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([hotelId, key])
+}
