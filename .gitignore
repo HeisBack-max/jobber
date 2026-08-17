@@ -16,17 +16,3 @@ data/logs/
 
 .env
 .DS_Store
-
-# Next.js
-.next/
-out/
-next-env.d.ts
-tsconfig.tsbuildinfo
-
-# Node
-node_modules/
-package-lock.json
-
-# Hotel database (local only)
-hotel.db
-hotel.db-journal
