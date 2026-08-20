@@ -3,15 +3,7 @@ import { buildReels, setGrid, spinTo, showWins, clearWins } from './game.js';
 import { setAccent, burst } from './particles.js';
 import { TERMS_HTML } from './legal.js';
 import { hostArt } from './hosts.js';
-
-// 40 paylines mirrored client-side only for drawing win lines (display only).
-const PAYLINES = [
-  [0,0,0,0,0],[1,1,1,1,1],[2,2,2,2,2],[3,3,3,3,3],[0,1,2,1,0],[1,2,3,2,1],[3,2,1,2,3],[2,1,0,1,2],
-  [0,0,1,0,0],[1,1,2,1,1],[2,2,3,2,2],[1,1,0,1,1],[2,2,1,2,2],[3,3,2,3,3],[0,1,1,1,0],[3,2,2,2,3],
-  [0,1,0,1,0],[1,2,1,2,1],[2,3,2,3,2],[1,0,1,0,1],[2,1,2,1,2],[3,2,3,2,3],[0,2,0,2,0],[1,3,1,3,1],
-  [3,1,3,1,3],[0,0,2,0,0],[3,3,1,3,3],[0,1,2,3,3],[3,2,1,0,0],[0,0,1,2,3],[3,3,2,1,0],[1,0,0,0,1],
-  [2,3,3,3,2],[0,2,3,2,0],[3,1,0,1,3],[1,2,2,2,1],[2,1,1,1,2],[0,3,0,3,0],[3,0,3,0,3],[2,0,2,0,2],
-];
+import { symUse } from './symbols.js';
 
 const $ = (id) => document.getElementById(id);
 const api = async (path, body) => {
@@ -51,12 +43,18 @@ function applyTheme(gameId) {
   const root = document.documentElement.style;
   for (const [k, v] of Object.entries(p)) root.setProperty('--' + k, v);
   setAccent(p.accent);
-  $('brandCrest').textContent = cfg.symbols.WILD.glyph;
   $('brandName').innerHTML = `${cfg.theme.name.toUpperCase()}<small>SOCIAL · FOR FUN ONLY</small>`;
   $('gameTitle').textContent = cfg.theme.tagline.toUpperCase();
-  $('machine').querySelector('.laurel').textContent = cfg.symbols.SCATTER.glyph;
   document.getElementById('skyline').className = 'skyline scenery-' + cfg.theme.scenery;
+  document.getElementById('skylineFar').className = 'skyline far scenery-' + cfg.theme.scenery;
   $('freeSpinFlag').textContent = `FREE SPIN ×${cfg.freeSpinMultiplier}`;
+}
+
+// Paint sprite-backed art that can only render once the sprite is injected.
+function paintSpriteRefs() {
+  $('brandCrest').innerHTML = symUse('WILD');
+  const laurel = $('machine').querySelector('.laurel');
+  if (laurel) laurel.innerHTML = symUse('SCATTER');
 }
 
 // ---------------------------------------------------------------- HUD
@@ -190,6 +188,7 @@ function afterAuth(user, isNew) {
   state.gameId = user.lastGame || 'roma-elite';
   applyTheme(state.gameId);
   buildReels(state.configs[state.gameId]);
+  paintSpriteRefs();
   // idle grid
   const cfg = state.configs[state.gameId];
   setGrid(idleGrid(cfg));
@@ -263,7 +262,7 @@ async function doSpin() {
     setUser(r.user);
 
     if (r.spin.totalWin > 0) {
-      showWins(r.spin.lineWins, r.spin.scatter, PAYLINES);
+      showWins(r.spin.lineWins, r.spin.scatter);
       presentWin(r.spin);
     } else {
       $('winText').textContent = wasFree ? 'Free spin — no win this time.' : 'No win — spin again!';
@@ -342,7 +341,8 @@ function renderGameCards() {
     const cfg = state.configs[g.id];
     const card = document.createElement('div');
     card.className = 'game-card' + (g.id === state.gameId ? ' active' : '');
-    card.innerHTML = `<div class="gc-crest">${cfg.symbols.PALACE ? cfg.symbols.PALACE.glyph : cfg.symbols.EMPEROR.glyph}</div>
+    // Card art is a static swatch (the live sprite belongs to the active game only).
+    card.innerHTML = `<div class="gc-crest" style="--c1:${cfg.theme.palette.accent};--c2:${cfg.theme.palette.accent2}"></div>
       <div class="gc-name">${g.name}</div><div class="gc-tag">${g.tagline}</div>`;
     card.onclick = () => switchGame(g.id);
     el.appendChild(card);
@@ -354,6 +354,7 @@ function switchGame(id) {
   state.gameId = id;
   applyTheme(id);
   buildReels(state.configs[id]);
+  paintSpriteRefs();
   setGrid(idleGrid(state.configs[id]));
   const tiers = state.configs[id].betTiers;
   if (!tiers.includes(state.bet)) state.bet = state.configs[id].defaultBet;
@@ -372,7 +373,7 @@ function renderPaytable() {
     const s = cfg.symbols[id]; const p = cfg.paytable[id];
     const row = document.createElement('div');
     row.className = 'pt-row';
-    row.innerHTML = `<span class="g">${s.glyph}</span><div class="info">
+    row.innerHTML = `<span class="g">${symUse(id)}</span><div class="info">
       <div class="nm">${s.name}${id === 'WILD' ? ' · Wild' : ''}</div>
       <div class="pay">3: ${p[3]} · 4: ${p[4]} · 5: ${p[5]}</div></div>`;
     grid.appendChild(row);
@@ -380,7 +381,7 @@ function renderPaytable() {
   const sc = cfg.symbols.SCATTER;
   const scatterRow = document.createElement('div');
   scatterRow.className = 'pt-row pt-special';
-  scatterRow.innerHTML = `<span class="g">${sc.glyph}</span><div class="info">
+  scatterRow.innerHTML = `<span class="g">${symUse('SCATTER')}</span><div class="info">
     <div class="nm">${sc.name} · Scatter</div>
     <div class="pay">3+ anywhere pays on total bet &amp; awards ${cfg.scatterFreeSpins[3]}–${cfg.scatterFreeSpins[5]} free spins (×${cfg.freeSpinMultiplier})</div></div>`;
   grid.appendChild(scatterRow);

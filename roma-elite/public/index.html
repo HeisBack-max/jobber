@@ -12,14 +12,19 @@
 <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-  <div id="scenery"><div class="skyline" id="skyline"></div></div>
+  <div id="scenery">
+    <div class="haze"></div>
+    <div class="skyline far" id="skylineFar"></div>
+    <div class="skyline" id="skyline"></div>
+    <div class="ground"></div>
+  </div>
   <canvas id="particles"></canvas>
 
   <div id="app">
     <!-- ===================== TOP BAR (game view) ===================== -->
     <header class="topbar hidden" id="topbar">
       <div class="brand">
-        <span class="crest" id="brandCrest">🏛️</span>
+        <span class="crest" id="brandCrest"></span>
         <span class="name" id="brandName">ROMA ELITE<small>SOCIAL · FOR FUN ONLY</small></span>
       </div>
       <div class="spacer"></div>
@@ -35,7 +40,8 @@
     <main class="stage hidden" id="stage">
       <div class="game-title" id="gameTitle">GLORY OF THE EMPIRE</div>
       <div class="machine" id="machine">
-        <span class="laurel">🏛️</span>
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <span class="laurel"></span>
         <div class="freespin-flag hidden" id="freeSpinFlag">FREE SPIN ×2</div>
         <div class="reel-window">
           <div class="reels" id="reels"></div>

@@ -7,6 +7,8 @@ let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
 const ambient = [];
 const bursts = [];
 let accent = '#e8c15a';
+// Respect the OS "reduce motion" setting: skip ambient drift and win bursts.
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function resize() {
   W = canvas.width = innerWidth * dpr;
@@ -21,7 +23,9 @@ function rand(a, b) { return a + Math.random() * (b - a); }
 
 function seedAmbient() {
   ambient.length = 0;
-  const count = Math.round((innerWidth * innerHeight) / 42000);
+  if (reduceMotion) return;
+  // Scale with viewport but cap so large displays don't pay a huge per-frame cost.
+  const count = Math.min(90, Math.round((innerWidth * innerHeight) / 42000));
   for (let i = 0; i < count; i++) {
     ambient.push({
       x: rand(0, W), y: rand(0, H), r: rand(0.6, 2.4) * dpr,
@@ -36,7 +40,10 @@ export function setAccent(color) { accent = color; }
 
 // Emit a burst of `n` particles from normalized screen point (nx, ny in 0..1).
 export function burst(nx, ny, n = 40, kind = 'gold') {
+  if (reduceMotion) return;
   const cx = nx * W, cy = ny * H;
+  const room = Math.max(0, MAX_BURST - bursts.length);
+  n = Math.min(n, room);
   for (let i = 0; i < n; i++) {
     const ang = rand(0, Math.PI * 2);
     const spd = rand(1, 7) * dpr;
@@ -48,7 +55,15 @@ export function burst(nx, ny, n = 40, kind = 'gold') {
   }
 }
 
+const MAX_BURST = 320;      // hard cap on live burst particles
+let running = true;
+document.addEventListener('visibilitychange', () => {
+  running = !document.hidden;
+  if (running) requestAnimationFrame(tick);
+});
+
 function tick() {
+  if (!running) return;
   ctx.clearRect(0, 0, W, H);
 
   // ambient

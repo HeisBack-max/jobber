@@ -52,9 +52,22 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 #particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
 /* Silhouette skyline drawn with CSS for each scenery type */
-.skyline { position: absolute; left: 0; right: 0; bottom: 0; height: 34vh; z-index: 0; opacity: 0.5;
+/* Atmospheric haze band behind the skyline */
+.haze { position: absolute; left: 0; right: 0; bottom: 18vh; height: 34vh; pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent) 12%, transparent) 60%, transparent);
+  filter: blur(22px); opacity: 0.75; }
+/* Ground plane fading to black anchors the scene */
+.ground { position: absolute; left: 0; right: 0; bottom: 0; height: 22vh; pointer-events: none;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg0) 92%, #000) 55%, #000); }
+
+.skyline { position: absolute; left: 0; right: 0; bottom: 0; height: 34vh; z-index: 0; opacity: 0.55;
   background-repeat: repeat-x; background-position: center bottom; background-size: auto 100%;
-  pointer-events: none; filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 30%, transparent)); }
+  pointer-events: none; filter: drop-shadow(0 0 20px color-mix(in srgb, var(--accent) 30%, transparent));
+  animation: drift 48s linear infinite alternate; }
+/* Far layer: smaller, dimmer, slower — parallax depth */
+.skyline.far { height: 24vh; opacity: 0.26; filter: blur(1.4px); animation-duration: 90s;
+  transform: translateX(-3%); }
+@keyframes drift { from { transform: translateX(-2%); } to { transform: translateX(2%); } }
 
 /* Roman: columns + colosseum arches */
 .scenery-colosseum {
@@ -145,7 +158,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); }
-.brand .crest { font-size: 26px; }
+.brand .crest { width: 34px; height: 34px; display: block; }
+.brand .crest svg { width: 100%; height: 100%; }
 .brand .name { font-size: 18px; letter-spacing: 0.1em; color: var(--accent); }
 .brand .name small { display: block; font-size: 9px; letter-spacing: 0.22em; opacity: 0.7; font-family: var(--font-ui); }
 .topbar .spacer { flex: 1; }
@@ -166,43 +180,102 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   color: var(--accent); opacity: 0.85; text-transform: uppercase; }
 
 .machine {
-  position: relative; padding: 18px; border-radius: 22px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--bg1) 70%, #000), rgba(0,0,0,0.6));
-  border: 2px solid transparent;
-  background-origin: border-box;
-  box-shadow: var(--shadow), inset 0 1px 0 color-mix(in srgb, var(--accent) 26%, transparent);
+  position: relative; padding: 20px; border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg1) 78%, #000), rgba(0,0,0,0.72));
+  box-shadow:
+    var(--shadow),
+    0 0 60px color-mix(in srgb, var(--accent) 16%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--accent) 34%, transparent),
+    inset 0 -18px 40px rgba(0,0,0,0.5);
 }
-.machine::before { /* ornate gold frame */
-  content: ''; position: absolute; inset: 6px; border-radius: 16px; pointer-events: none;
-  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  box-shadow: inset 0 0 24px color-mix(in srgb, var(--accent) 18%, transparent);
+/* Ornate double gold frame */
+.machine::before {
+  content: ''; position: absolute; inset: 5px; border-radius: 19px; pointer-events: none;
+  border: 2.5px solid transparent;
+  background: linear-gradient(160deg, #fff6d2, var(--accent) 22%, var(--accent2) 50%, #6b4508 72%, var(--accent) 100%) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 30%, transparent);
 }
-.machine .laurel { position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-  font-size: 26px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
+.machine::after {
+  content: ''; position: absolute; inset: 12px; border-radius: 14px; pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+/* Corner flourishes */
+.machine .corner { position: absolute; width: 22px; height: 22px; pointer-events: none;
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); }
+.machine .corner.tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+.machine .corner.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; border-radius: 0 12px 0 0; }
+.machine .corner.bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; border-radius: 0 0 0 12px; }
+.machine .corner.br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
 
-.reel-window { position: relative; display: inline-block; }
-.reels { display: grid; grid-template-columns: repeat(5, var(--cell, 84px)); gap: 8px; position: relative; }
+.machine .laurel { position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  width: 46px; height: 46px; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.7)); z-index: 5; }
+.machine .laurel svg { width: 100%; height: 100%; }
+
+.reel-window { position: relative; display: inline-block; border-radius: 12px;
+  background: rgba(0,0,0,0.55); padding: 4px;
+  box-shadow: inset 0 4px 18px rgba(0,0,0,0.7); }
+.reels { display: grid; grid-template-columns: repeat(5, var(--cell, 84px)); gap: 6px; position: relative; }
 .reel { position: relative; width: var(--cell, 84px); height: calc(4 * var(--cell, 84px));
   overflow: hidden; border-radius: 10px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25));
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
-.reel-strip { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; will-change: transform; }
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0.15) 18%, rgba(0,0,0,0.15) 82%, rgba(0,0,0,0.75)),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg1) 45%, #000), #05060a);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 24px rgba(0,0,0,0.6);
+}
+.reel-strip { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column;
+  will-change: transform; backface-visibility: hidden; }
 .cell {
   height: var(--cell, 84px); width: var(--cell, 84px); display: grid; place-items: center;
-  font-size: calc(var(--cell, 84px) * 0.52); position: relative; flex: 0 0 auto;
-  background: var(--tile); border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 9px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  position: relative; flex: 0 0 auto;
+  background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.28));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 9px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
 }
-.cell.win {
-  animation: pop 0.5s ease infinite alternate;
-  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--win) 40%, transparent), var(--tile));
-  border-color: var(--win); box-shadow: 0 0 18px color-mix(in srgb, var(--win) 65%, transparent), inset 0 0 12px color-mix(in srgb, var(--win) 30%, transparent); z-index: 3;
-}
-.cell.dim { opacity: 0.32; }
-@keyframes pop { from { transform: scale(1); } to { transform: scale(1.08); } }
+.cell .sym { width: 96%; height: 96%; display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
 
-.reel.spinning .reel-strip { animation: reelblur 0.4s linear infinite; }
-@keyframes reelblur { from { filter: blur(0.4px); } to { filter: blur(1.4px); } }
+/* Tier hierarchy — premiums and specials sit on a richer, warmer well. */
+.cell.tier-premium { background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 16%, transparent), rgba(0,0,0,0.34));
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent); }
+.cell.tier-medium { background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(0,0,0,0.3)); }
+.cell.tier-wild, .cell.tier-scatter {
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 26%, transparent), rgba(0,0,0,0.36));
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent); }
+.cell.tier-wild .sym, .cell.tier-scatter .sym {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 70%, transparent)); }
+
+/* Land pop — staggered per row for a satisfying settle. */
+.reel.landed .cell { animation: land 0.34s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+.reel.landed .cell:nth-child(2) { animation-delay: 0.03s; }
+.reel.landed .cell:nth-child(3) { animation-delay: 0.06s; }
+.reel.landed .cell:nth-child(4) { animation-delay: 0.09s; }
+@keyframes land { 0% { transform: translateY(-7%) scale(0.94); } 100% { transform: none; } }
+
+.cell.win {
+  animation: winpulse 0.72s ease-in-out infinite alternate;
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--win) 45%, transparent), rgba(0,0,0,0.25));
+  border-color: var(--win);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--win) 70%, transparent),
+              inset 0 0 16px color-mix(in srgb, var(--win) 35%, transparent);
+  z-index: 3;
+}
+.cell.win .sym { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--win) 85%, transparent)); }
+.cell.dim { opacity: 0.28; filter: saturate(0.5); }
+@keyframes winpulse { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+/* Motion blur while the reel is in flight */
+.reel.spinning .reel-strip { filter: blur(1.1px); }
+.reel.anticipate { box-shadow: inset 0 0 0 2px var(--win), inset 0 0 30px color-mix(in srgb, var(--win) 40%, transparent);
+  animation: antic 0.4s ease-in-out infinite alternate; }
+@keyframes antic { from { filter: brightness(1); } to { filter: brightness(1.35); } }
+
+/* win line strokes */
+.wl-glow { filter: blur(2px); }
 
 /* win line overlay — sized to exactly cover the reel grid */
 #winlines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
@@ -261,7 +334,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* ---------------------------------------------------------------- Paytable */
 .paytable-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-top: 8px; }
 .pt-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.05); }
-.pt-row .g { font-size: 26px; }
+.pt-row .g { width: 44px; height: 44px; flex: 0 0 44px; display: block; }
+.pt-row .g svg { width: 100%; height: 100%; }
 .pt-row .info { flex: 1; }
 .pt-row .nm { font-weight: 700; font-size: 13px; }
 .pt-row .pay { font-size: 11px; opacity: 0.75; font-variant-numeric: tabular-nums; }
@@ -273,7 +347,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   border: 1px solid var(--tile-edge); background: rgba(0,0,0,0.3); transition: transform 0.12s ease, border-color 0.2s ease; }
 .game-card:hover { transform: translateY(-3px); border-color: var(--accent); }
 .game-card.active { border-color: var(--accent); box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 35%, transparent); }
-.game-card .gc-crest { font-size: 34px; }
+.game-card .gc-crest { width: 54px; height: 54px; margin: 0 auto; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, var(--c1, #e8c15a), var(--c2, #b8860b) 60%, #3a2410);
+  box-shadow: inset 0 2px 6px rgba(255,255,255,0.45), 0 6px 16px rgba(0,0,0,0.5); }
 .game-card .gc-name { font-family: var(--font-display); color: var(--accent); margin-top: 6px; letter-spacing: 0.06em; }
 .game-card .gc-tag { font-size: 12px; opacity: 0.7; font-style: italic; }
 
@@ -324,3 +400,13 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   .spinbtn { width: 82px; height: 82px; }
 }
 @media (min-width: 641px) { :root { --cell: 84px; } }
+
+/* Accessibility: honour the OS reduced-motion preference. Reels still settle
+   (the game needs the state change) but ambient/idle motion is switched off. */
+@media (prefers-reduced-motion: reduce) {
+  #scenery::before, .skyline, .bonus-burst, .bonus-kicker,
+  .freespin-flag, .spinbtn.spinning, .reel.anticipate { animation: none !important; }
+  .cell.win { animation: none !important; }
+  .reel.landed .cell { animation-duration: 0.01ms !important; }
+  .winbanner.show { animation-duration: 0.3s !important; }
+}
