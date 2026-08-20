@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Roma Elite — Social Slots (Free to Play)</title>
+<meta name="description" content="Roma Elite — an original, free-to-play, entertainment-only slot experience. Virtual coins only. No real money. 18+." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏛️%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="scenery"><div class="skyline" id="skyline"></div></div>
+  <canvas id="particles"></canvas>
+
+  <div id="app">
+    <!-- ===================== TOP BAR (game view) ===================== -->
+    <header class="topbar hidden" id="topbar">
+      <div class="brand">
+        <span class="crest" id="brandCrest">🏛️</span>
+        <span class="name" id="brandName">ROMA ELITE<small>SOCIAL · FOR FUN ONLY</small></span>
+      </div>
+      <div class="spacer"></div>
+      <div class="stat stat--coins"><span class="ic">🪙</span><div><div class="val" id="statCoins">0</div><div class="lbl">Coins</div></div></div>
+      <div class="stat stat--free"><span class="ic">🎁</span><div><div class="val" id="statFree">0</div><div class="lbl">Free Spins</div></div></div>
+      <div class="stat stat--rank"><span class="ic">🎖️</span><div><div class="val" id="statRank">—</div><div class="lbl">Rank</div></div></div>
+      <button class="iconbtn" id="btnGames" title="Choose game">🎰</button>
+      <button class="iconbtn" id="btnPaytable" title="Paytable">📜</button>
+      <button class="iconbtn" id="btnMenu" title="Menu">☰</button>
+    </header>
+
+    <!-- ===================== GAME STAGE ===================== -->
+    <main class="stage hidden" id="stage">
+      <div class="game-title" id="gameTitle">GLORY OF THE EMPIRE</div>
+      <div class="machine" id="machine">
+        <span class="laurel">🏛️</span>
+        <div class="freespin-flag hidden" id="freeSpinFlag">FREE SPIN ×2</div>
+        <div class="reel-window">
+          <div class="reels" id="reels"></div>
+          <svg id="winlines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="winbanner" id="winBanner"><div class="kind" id="winKind">WIN</div><div class="amt" id="winAmt">0</div></div>
+      </div>
+      <div class="winline-text" id="winText">Press SPIN to begin — your welcome free spins are ready.</div>
+      <div class="controls">
+        <div class="bet">
+          <div class="lbl">Bet</div>
+          <button id="betDown">−</button>
+          <div class="val" id="betVal">200</div>
+          <button id="betUp">+</button>
+        </div>
+        <button class="spinbtn" id="spinBtn">SPIN<span class="sub" id="spinSub">FREE ×100</span></button>
+        <button class="btn btn--ghost autobtn" id="autoBtn">AUTO</button>
+      </div>
+      <div class="footer-legal">
+        Entertainment only · Virtual coins have no cash value · Nothing of value can be won · 18+ ·
+        <a id="footerTerms">Terms</a> · <a id="footerResp">Responsible Play</a>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================== AGE GATE ===================== -->
+  <div class="overlay" id="ageGate">
+    <div class="panel">
+      <div class="crest">🏛️</div>
+      <h1>Roma Elite</h1>
+      <div class="tagline">Glory of the Empire — Social Slots</div>
+      <p>This is a <strong>free-to-play, entertainment-only</strong> game. You play with
+      virtual coins that <strong>have no monetary value</strong> and <strong>cannot be
+      exchanged, cashed out, or won as real money or prizes.</strong></p>
+      <div class="legal-banner">
+        <strong>You must be 18 or older</strong> to enter. This game is intended for an adult
+        audience for amusement purposes only. It does not offer real-money gambling and no
+        opportunity to win real money or anything of value.
+      </div>
+      <div class="btn-row" style="margin-top:18px">
+        <button class="btn btn--gold" id="ageYes">I am 18+ · Enter</button>
+        <button class="btn btn--ghost" id="ageNo">Exit</button>
+      </div>
+      <p class="muted" style="margin-top:14px">By entering you agree to the
+        <a class="footer-legal" style="opacity:1"><a id="ageTerms" style="color:var(--accent);cursor:pointer;text-decoration:underline">Terms &amp; Conditions</a></a>.</p>
+    </div>
+  </div>
+
+  <!-- ===================== AUTH / ONBOARDING ===================== -->
+  <div class="overlay hidden" id="authGate">
+    <div class="panel">
+      <div class="crest" id="authCrest">🎁</div>
+      <h1 id="authTitle">Claim 100 Free Spins</h1>
+      <div class="tagline">Free to play · Just for fun · No payment, ever</div>
+      <p>Create a free account and <strong>100 welcome free spins</strong> plus a stack of
+      virtual coins are added instantly — no deposit, no card, no catch.</p>
+
+      <div class="tab-row" id="authTabs">
+        <button data-tab="quick" class="active">Instant Play</button>
+        <button data-tab="register">Choose Username</button>
+        <button data-tab="login">Log In</button>
+      </div>
+
+      <div id="tabQuick">
+        <p class="muted">We'll generate a username and password for you. You can play right away.</p>
+        <button class="btn btn--gold btn--block" id="quickPlay" style="margin-top:12px">🎁 Claim &amp; Play Free</button>
+      </div>
+
+      <div id="tabRegister" class="hidden">
+        <div class="field"><label>Username</label><input id="regUser" maxlength="20" placeholder="LegionMaximus" /></div>
+        <div class="field"><label>Password</label><input id="regPass" type="password" placeholder="at least 6 characters" /></div>
+        <button class="btn btn--gold btn--block" id="registerBtn">Create Free Account</button>
+      </div>
+
+      <div id="tabLogin" class="hidden">
+        <div class="field"><label>Username</label><input id="loginUser" maxlength="20" /></div>
+        <div class="field"><label>Password</label><input id="loginPass" type="password" /></div>
+        <button class="btn btn--gold btn--block" id="loginBtn">Log In</button>
+      </div>
+
+      <div class="form-error" id="authError"></div>
+      <div class="legal-banner">
+        <strong>For fun only.</strong> Virtual coins are not money and cannot be redeemed for cash,
+        goods, or prizes of any kind. No real-money wagering. 18+.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CREDENTIALS (auto-generated) ===================== -->
+  <div class="overlay hidden" id="credsGate">
+    <div class="panel">
+      <div class="crest">✅</div>
+      <h2>Account Ready</h2>
+      <p class="muted">Save these — it's your login. (You can also just keep playing on this device.)</p>
+      <div class="creds">
+        <div class="cred"><b>Username</b><span id="credUser">—</span></div>
+        <div class="cred"><b>Password</b><span id="credPass">—</span></div>
+      </div>
+      <button class="btn btn--gold btn--block" id="credsContinue">Continue</button>
+    </div>
+  </div>
+
+  <!-- ===================== WELCOME / CONGRATS ===================== -->
+  <div class="overlay hidden" id="welcomeGate">
+    <div class="panel">
+      <div class="crest">🏛️</div>
+      <h1 id="welcomeTitle">Congratulations</h1>
+      <p style="font-size:20px;margin:8px 0"><strong id="welcomeSpins">100</strong> free spins have been added.</p>
+      <div class="tagline">Good luck, Legionnaire!</div>
+      <button class="btn btn--gold btn--block" id="welcomeStart" style="margin-top:12px">Enter the Colosseum</button>
+      <p class="muted" style="margin-top:12px">Remember: this is for entertainment only. Coins have no cash value.</p>
+    </div>
+  </div>
+
+  <!-- ===================== GAME SWITCHER ===================== -->
+  <div class="overlay hidden" id="gamesGate">
+    <div class="panel panel--wide">
+      <button class="close-x" data-close="gamesGate">✕</button>
+      <div class="crest">🎰</div>
+      <h2>Choose Your Game</h2>
+      <div class="game-cards" id="gameCards"></div>
+      <p class="muted" style="margin-top:14px">Both games are original, free-to-play, and share your coin balance.</p>
+    </div>
+  </div>
+
+  <!-- ===================== PAYTABLE ===================== -->
+  <div class="overlay hidden" id="paytableGate">
+    <div class="panel panel--wide">
+      <button class="close-x" data-close="paytableGate">✕</button>
+      <div class="crest">📜</div>
+      <h2 id="ptTitle">Paytable</h2>
+      <p class="muted">Payouts show 3 / 4 / 5 in a row × line bet · 5 reels · 4 rows · 40 lines</p>
+      <div class="paytable-grid" id="ptGrid"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MENU ===================== -->
+  <div class="overlay hidden" id="menuGate">
+    <div class="panel">
+      <button class="close-x" data-close="menuGate">✕</button>
+      <div class="crest">☰</div>
+      <h2 id="menuUser">Menu</h2>
+      <div class="paytable-grid" style="grid-template-columns:1fr">
+        <div class="pt-row"><span class="g">🪙</span><div class="info"><div class="nm">Coins</div><div class="pay" id="menuCoins">—</div></div></div>
+        <div class="pt-row"><span class="g">🎖️</span><div class="info"><div class="nm">Empire Rank</div><div class="pay" id="menuRank">—</div></div></div>
+        <div class="pt-row"><span class="g">♻️</span><div class="info"><div class="nm">Lifetime Spins</div><div class="pay" id="menuSpins">—</div></div></div>
+        <div class="pt-row"><span class="g">🏆</span><div class="info"><div class="nm">Biggest Win</div><div class="pay" id="menuBig">—</div></div></div>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn--ghost" id="menuTopup">🪙 Free Top-Up</button>
+        <button class="btn btn--ghost" id="menuMagic">🔗 Get Magic Link</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn--ghost" id="menuResp">Responsible Play</button>
+        <button class="btn btn--ghost" id="menuTermsBtn">Terms</button>
+      </div>
+      <div class="rule"></div>
+      <button class="btn btn--ghost btn--block" id="menuLogout">Log Out</button>
+    </div>
+  </div>
+
+  <!-- ===================== TERMS ===================== -->
+  <div class="overlay hidden" id="termsGate">
+    <div class="panel panel--wide">
+      <button class="close-x" data-close="termsGate">✕</button>
+      <div class="crest">⚖️</div>
+      <h2>Terms &amp; Responsible Play</h2>
+      <div id="termsBody" style="text-align:left"></div>
+      <button class="btn btn--gold btn--block" data-close="termsGate" style="margin-top:14px">Close</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

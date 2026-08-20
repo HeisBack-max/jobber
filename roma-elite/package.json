@@ -1,0 +1,17 @@
+{
+  "name": "roma-elite",
+  "version": "1.0.0",
+  "description": "Roma Elite — an original, social (virtual-currency-only) Ancient Roman themed slot experience. No real money, age-gated, honest onboarding.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}

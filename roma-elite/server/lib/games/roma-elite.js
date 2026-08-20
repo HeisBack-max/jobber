@@ -1,0 +1,64 @@
+// Roma Elite — original Ancient Roman themed game definition.
+// Virtual currency only. All art, payouts and mechanics are original.
+import { strip, STARTING_COINS, WELCOME_FREE_SPINS, BET_TIERS, DEFAULT_BET } from './shared.js';
+
+export default {
+  id: 'roma-elite',
+  theme: {
+    name: 'Roma Elite',
+    tagline: 'Glory of the Empire',
+    // Visual direction consumed by the frontend (marble, gold, imperial).
+    palette: {
+      bg0: '#1a0e08', bg1: '#2c1810', accent: '#e8c15a', accent2: '#b8860b',
+      marble: '#f2ead9', crimson: '#7a1f1f', ink: '#f7edd6',
+    },
+    scenery: 'colosseum',
+    freeSpinName: 'Colosseum Free Games',
+  },
+  symbols: {
+    EMPEROR:   { id: 'EMPEROR',   name: 'The Emperor',      tier: 'premium', glyph: '👑' },
+    EMPRESS:   { id: 'EMPRESS',   name: 'The Empress',      tier: 'premium', glyph: '🏛️' },
+    COMMANDER: { id: 'COMMANDER', name: 'Legion Commander', tier: 'premium', glyph: '🎖️' },
+    EAGLE:     { id: 'EAGLE',     name: 'Roman Eagle',      tier: 'premium', glyph: '🦅' },
+    CHARIOT:   { id: 'CHARIOT',   name: 'War Chariot',      tier: 'medium',  glyph: '🐎' },
+    LAUREL:    { id: 'LAUREL',    name: 'Golden Laurel',    tier: 'medium',  glyph: '🌿' },
+    TREASURY:  { id: 'TREASURY',  name: 'Treasury Chest',   tier: 'medium',  glyph: '💰' },
+    SHIELD:    { id: 'SHIELD',    name: 'Legion Shield',    tier: 'low',     glyph: '🛡️' },
+    AMPHORA:   { id: 'AMPHORA',   name: 'Wine Amphora',     tier: 'low',     glyph: '🏺' },
+    COIN:      { id: 'COIN',      name: 'Denarius',         tier: 'low',     glyph: '🪙' },
+    WILD:      { id: 'WILD',      name: 'SPQR Standard',    tier: 'wild',    glyph: '🏵️' },
+    SCATTER:   { id: 'SCATTER',   name: 'Colosseum',        tier: 'scatter', glyph: '🏟️' },
+  },
+  paytable: {
+    EMPEROR:   { 3: 60,  4: 240, 5: 1200 },
+    EMPRESS:   { 3: 46,  4: 175, 5: 800 },
+    COMMANDER: { 3: 35,  4: 130, 5: 580 },
+    EAGLE:     { 3: 29,  4: 92,  5: 400 },
+    CHARIOT:   { 3: 17,  4: 52,  5: 220 },
+    LAUREL:    { 3: 15,  4: 40,  5: 160 },
+    TREASURY:  { 3: 12,  4: 35,  5: 130 },
+    SHIELD:    { 3: 9,   4: 23,  5: 87 },
+    AMPHORA:   { 3: 6,   4: 17,  5: 64 },
+    COIN:      { 3: 6,   4: 15,  5: 46 },
+    WILD:      { 3: 72,  4: 290, 5: 1450 },
+  },
+  scatterPay: { 3: 2, 4: 8, 5: 40 },
+  scatterFreeSpins: { 3: 6, 4: 10, 5: 15 },
+  freeSpinMultiplier: 2,
+  reelStrips: [
+    strip({ COIN: 5, AMPHORA: 5, SHIELD: 5, TREASURY: 4, LAUREL: 4, CHARIOT: 4,
+            EAGLE: 3, COMMANDER: 3, EMPRESS: 2, EMPEROR: 2, WILD: 2, SCATTER: 1 }),
+    strip({ COIN: 5, AMPHORA: 5, SHIELD: 5, TREASURY: 4, LAUREL: 4, CHARIOT: 4,
+            EAGLE: 3, COMMANDER: 3, EMPRESS: 2, EMPEROR: 2, WILD: 2, SCATTER: 1 }),
+    strip({ COIN: 6, AMPHORA: 5, SHIELD: 5, TREASURY: 4, LAUREL: 4, CHARIOT: 3,
+            EAGLE: 3, COMMANDER: 3, EMPRESS: 2, EMPEROR: 2, WILD: 3, SCATTER: 1 }),
+    strip({ COIN: 6, AMPHORA: 5, SHIELD: 5, TREASURY: 4, LAUREL: 4, CHARIOT: 4,
+            EAGLE: 3, COMMANDER: 2, EMPRESS: 2, EMPEROR: 2, WILD: 2, SCATTER: 1 }),
+    strip({ COIN: 6, AMPHORA: 6, SHIELD: 5, TREASURY: 5, LAUREL: 4, CHARIOT: 4,
+            EAGLE: 3, COMMANDER: 2, EMPRESS: 2, EMPEROR: 1, WILD: 2, SCATTER: 1 }),
+  ],
+  betTiers: BET_TIERS,
+  defaultBet: DEFAULT_BET,
+  startingCoins: STARTING_COINS,
+  welcomeFreeSpins: WELCOME_FREE_SPINS,
+};

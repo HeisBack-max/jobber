@@ -1,0 +1,5 @@
+# Runtime data (virtual-coin accounts) — never commit
+/data/
+node_modules/
+*.log
+.DS_Store
