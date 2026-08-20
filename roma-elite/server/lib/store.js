@@ -9,7 +9,7 @@ const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'roma-elite.json');
 
 function emptyDb() {
-  return { users: {}, byUsername: {}, tokens: {}, sessions: {} };
+  return { users: {}, byUsername: {}, byTelegram: {}, tokens: {}, sessions: {} };
 }
 
 let db = emptyDb();
@@ -69,6 +69,18 @@ export function updateUser(user) {
   db.users[user.id] = user;
   scheduleSave();
   return user;
+}
+
+// --- Telegram linkage -------------------------------------------------------
+// Maps a Telegram chat id to a player, so a returning user in the bot gets their
+// existing account back instead of a duplicate one.
+export function linkTelegram(telegramId, userId) {
+  db.byTelegram[String(telegramId)] = userId;
+  scheduleSave();
+}
+export function getUserByTelegram(telegramId) {
+  const id = db.byTelegram[String(telegramId)];
+  return id ? db.users[id] || null : null;
 }
 
 // --- Magic-link tokens ------------------------------------------------------

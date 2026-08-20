@@ -176,6 +176,43 @@ async function handleApi(req, res, url) {
     return send(res, 200, { user: auth.publicUser(user) });
   }
 
+  // --- Bot-facing provisioning ---------------------------------------------
+  // Called by the Telegram bot (server-to-server) to mint an account and a
+  // one-tap magic-login link for a chat. Guarded by a shared secret, NOT by a
+  // browser session. No payment is involved: accounts here are free, exactly as
+  // they are on the website.
+  if (route === '/api/bot/provision' && method === 'POST') {
+    const secret = process.env.BOT_API_SECRET;
+    if (!secret) return send(res, 503, { error: 'bot provisioning is not configured' });
+    if (req.headers['x-bot-secret'] !== secret) return send(res, 401, { error: 'bad bot secret' });
+
+    const body = await readBody(req);
+    const telegramId = String(body.telegramId || '').trim();
+    if (!telegramId) return send(res, 400, { error: 'telegramId is required' });
+
+    // Returning player in the bot keeps their existing account.
+    let user = store.getUserByTelegram(telegramId);
+    let plainPassword = null;
+    if (!user) {
+      const created = auth.provisionUser({ source: 'telegram' });
+      user = created.user;
+      plainPassword = created.plainPassword;
+      user.ageConfirmed = false; // still gated in the browser
+      store.updateUser(user);
+      store.linkTelegram(telegramId, user.id);
+    }
+    const token = auth.issueMagicToken(user.id);
+    return send(res, 200, {
+      user: auth.publicUser(user),
+      username: user.username,
+      // Only present the first time; we never store or re-derive the plaintext.
+      password: plainPassword,
+      token,
+      path: `/play?token=${token}`,
+      returning: plainPassword === null,
+    });
+  }
+
   // Everything below requires a session
   const user = currentUser(req);
 

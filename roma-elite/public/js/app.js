@@ -92,7 +92,11 @@ async function boot() {
     try {
       const r = await api('/magic', { token });
       history.replaceState({}, '', location.pathname);
-      afterAuth(r.user, false);
+      // A magic link authenticates, but it must NOT bypass the 18+ gate: the
+      // server refuses to spin until age is confirmed, so send them through it.
+      state.user = r.user;
+      if (ageOk && r.user.ageConfirmed) { afterAuth(r.user, false); }
+      else { hide('authGate'); show('ageGate'); }
       return;
     } catch (e) { toast(e.message); }
   }

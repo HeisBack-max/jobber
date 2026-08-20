@@ -19,3 +19,7 @@ data/logs/
 
 # Build artifacts — regenerate with: cd roma-elite && npm run build
 *.zip
+
+# Build artifacts
+RomaElite.zip
+*.zip
