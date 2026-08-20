@@ -215,9 +215,17 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   width: 46px; height: 46px; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.7)); z-index: 5; }
 .machine .laurel svg { width: 100%; height: 100%; }
 
+/* 3D stage: the reel bank sits in perspective so the drum reads as a real object. */
 .reel-window { position: relative; display: inline-block; border-radius: 12px;
   background: rgba(0,0,0,0.55); padding: 4px;
+  perspective: 1100px; perspective-origin: 50% 45%;
   box-shadow: inset 0 4px 18px rgba(0,0,0,0.7); }
+/* Specular sweep across the "glass" in front of the reels. */
+.reel-window::after {
+  content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none; z-index: 5;
+  background: linear-gradient(112deg, transparent 34%, rgba(255,255,255,0.10) 44%,
+    rgba(255,255,255,0.16) 50%, rgba(255,255,255,0.06) 56%, transparent 66%);
+}
 .reels { display: grid; grid-template-columns: repeat(5, var(--cell, 84px)); gap: 6px; position: relative; }
 .reel { position: relative; width: var(--cell, 84px); height: calc(4 * var(--cell, 84px));
   overflow: hidden; border-radius: 10px;
@@ -225,6 +233,16 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
     linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0.15) 18%, rgba(0,0,0,0.15) 82%, rgba(0,0,0,0.75)),
     linear-gradient(180deg, color-mix(in srgb, var(--bg1) 45%, #000), #05060a);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 24px rgba(0,0,0,0.6);
+  transform-style: preserve-3d;
+  /* Outer reels angle inward, so the five-reel bank reads as a curved drum face. */
+  transform: rotateY(calc((var(--reel-i) - 2) * 3.2deg)) translateZ(calc(var(--reel-i) * 0px));
+}
+/* Cylinder falloff: the top and bottom rows fall away from the viewer. */
+.reel::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 4; border-radius: 10px;
+  background: linear-gradient(180deg,
+    rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.30) 13%, transparent 30%,
+    transparent 70%, rgba(0,0,0,0.30) 87%, rgba(0,0,0,0.72) 100%);
 }
 .reel-strip { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column;
   will-change: transform; backface-visibility: hidden; }
