@@ -16,3 +16,6 @@ data/logs/
 
 .env
 .DS_Store
+
+# Build artifacts — regenerate with: cd roma-elite && npm run build
+*.zip
