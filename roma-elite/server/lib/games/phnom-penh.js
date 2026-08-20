@@ -21,6 +21,7 @@ export default {
     scenery: 'riverside',
     freeSpinName: 'Riverside Tycoon Bonus',
     bonusHost: 'tycoon',
+    bonusHostName: 'The Riverside Tycoon',
   },
   symbols: {
     PALACE:  { id: 'PALACE',  name: 'Royal Palace',        tier: 'premium', glyph: '🏯' },

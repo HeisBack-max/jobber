@@ -314,9 +314,8 @@ function presentWin(spin) {
 // ---------------------------------------------------------------- bonus winner
 function showBonusWinner(freeSpins) {
   const cfg = state.configs[state.gameId];
-  const scatter = cfg.symbols.SCATTER;
   $('bonusHostArt').innerHTML = hostArt(cfg.theme.bonusHost);
-  $('bonusHostName').textContent = scatter.name;
+  $('bonusHostName').textContent = cfg.theme.bonusHostName || cfg.symbols.SCATTER.name;
   $('bonusSpins').textContent = freeSpins;
   $('bonusMult').textContent = `Line wins pay ×${cfg.freeSpinMultiplier} during the bonus`;
   show('bonusGate');

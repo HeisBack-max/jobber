@@ -1,0 +1,71 @@
+========================================================================
+  ROMA ELITE  —  Social Slots (Free to Play)
+========================================================================
+
+  ENTERTAINMENT ONLY. You play with virtual coins that have NO cash
+  value. There are no real-money deposits, no withdrawals, and nothing
+  of value can be won. 18+. See LEGAL.md.
+
+========================================================================
+  OPTION 1  —  JUST PLAY  (easiest, nothing to install)
+========================================================================
+
+  Open this file in any modern browser:
+
+      dist/RomaElite.html
+
+  Double-click it. That's it.
+
+  * No installation, no Node.js, no internet connection required.
+  * Everything (game, artwork, sounds of the engine) is inside that one
+    file. It works completely offline.
+  * Your coins, free spins and rank are saved in the browser on that
+    device. Clearing site data resets your progress.
+
+========================================================================
+  OPTION 2  —  RUN THE FULL APP  (server version)
+========================================================================
+
+  This runs the real architecture: outcomes are decided server-side and
+  accounts are stored on disk.
+
+  Requires Node.js 20 or newer  (check with:  node --version)
+  There are NO dependencies to install.
+
+  Windows:   double-click  start.bat
+  Mac/Linux: double-click  start.sh
+             (or in a terminal:  ./start.sh)
+
+  Then open:  http://localhost:3000
+
+  To stop the server, press Ctrl+C in the terminal window.
+
+========================================================================
+  WHAT'S INSIDE
+========================================================================
+
+  dist/RomaElite.html   Standalone offline game (Option 1)
+  start.sh / start.bat  Launchers for the server version (Option 2)
+  server/               Game engine + HTTP API
+  public/               Frontend (HTML/CSS/JS, original SVG artwork)
+  test/                 Test suite        ->  npm test
+  scripts/rtp-sim.js    Payout simulator  ->  npm run rtp
+  scripts/build-standalone.js              ->  npm run build
+  README.md             Full documentation
+  LEGAL.md              Terms / compliance notes (template)
+
+========================================================================
+  THE GAMES
+========================================================================
+
+  Two original games share one engine (5 reels x 4 rows, 40 paylines):
+
+    * Roma Elite         - Ancient Roman Empire
+    * Phnom Penh Nights  - original Cambodian city theme
+
+  Land 3+ scatters to trigger the BONUS WINNER free-spins round.
+
+  All artwork, characters, symbols and mechanics are original to this
+  project. No third-party, licensed or copied assets are used.
+
+========================================================================

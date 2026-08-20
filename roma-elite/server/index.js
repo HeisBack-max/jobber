@@ -132,15 +132,18 @@ async function handleApi(req, res, url) {
     const username = (body.username || '').trim();
     const password = (body.password || '').trim();
     if (username) {
+      // Usernames are matched case-insensitively, so `Alice` and `alice` collide.
       if (username.length < 3 || username.length > 20 || !/^[\w]+$/.test(username)) {
         return send(res, 400, { error: 'Username must be 3–20 letters, numbers or underscore.' });
       }
       if (store.getUserByUsername(username)) {
         return send(res, 409, { error: 'That username is taken.' });
       }
-      if (password.length < 6) {
-        return send(res, 400, { error: 'Password must be at least 6 characters.' });
-      }
+    }
+    // Checked outside the username block: a caller may supply only a password,
+    // and that account is just as loginable, so it must meet the same minimum.
+    if (password && password.length < 6) {
+      return send(res, 400, { error: 'Password must be at least 6 characters.' });
     }
     const { user, plainPassword } = auth.provisionUser({
       username: username || undefined,
@@ -150,8 +153,8 @@ async function handleApi(req, res, url) {
     startSession(res, user);
     return send(res, 200, {
       user: auth.publicUser(user),
-      // Only returned when we auto-generated credentials (magic-link style flow).
-      generated: username ? null : { username: user.username, password: plainPassword },
+      // Only set for credentials WE generated — never echo a caller's own password.
+      generated: (username || password) ? null : { username: user.username, password: plainPassword },
     });
   }
 
