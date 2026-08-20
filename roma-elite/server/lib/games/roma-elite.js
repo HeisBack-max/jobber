@@ -14,6 +14,7 @@ export default {
     },
     scenery: 'colosseum',
     freeSpinName: 'Colosseum Free Games',
+    bonusHost: 'emperor',
   },
   symbols: {
     EMPEROR:   { id: 'EMPEROR',   name: 'The Emperor',      tier: 'premium', glyph: '👑' },

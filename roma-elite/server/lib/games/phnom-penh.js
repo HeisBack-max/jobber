@@ -19,7 +19,8 @@ export default {
       marble: '#fff4e0', crimson: '#c1121f', ink: '#fff6e5', jade: '#2a9d8f',
     },
     scenery: 'riverside',
-    freeSpinName: 'Water Festival Free Games',
+    freeSpinName: 'Riverside Tycoon Bonus',
+    bonusHost: 'tycoon',
   },
   symbols: {
     PALACE:  { id: 'PALACE',  name: 'Royal Palace',        tier: 'premium', glyph: '🏯' },
@@ -33,7 +34,8 @@ export default {
     KRAMA:   { id: 'KRAMA',   name: 'Krama Scarf',         tier: 'low',     glyph: '🧣' },
     RIEL:    { id: 'RIEL',    name: 'Riel Coin',           tier: 'low',     glyph: '🪙' },
     WILD:    { id: 'WILD',    name: 'Independence Monument',tier: 'wild',   glyph: '🏛️' },
-    SCATTER: { id: 'SCATTER', name: 'Water Festival',      tier: 'scatter', glyph: '🎆' },
+    // Original fictional bonus host — not based on any real person.
+    SCATTER: { id: 'SCATTER', name: 'The Riverside Tycoon', tier: 'scatter', glyph: '🕴️' },
   },
   paytable: {
     PALACE:  { 3: 60,  4: 240, 5: 1200 },

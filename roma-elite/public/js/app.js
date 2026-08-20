@@ -2,6 +2,7 @@
 import { buildReels, setGrid, spinTo, showWins, clearWins } from './game.js';
 import { setAccent, burst } from './particles.js';
 import { TERMS_HTML } from './legal.js';
+import { hostArt } from './hosts.js';
 
 // 40 paylines mirrored client-side only for drawing win lines (display only).
 const PAYLINES = [
@@ -268,7 +269,7 @@ async function doSpin() {
       $('winText').textContent = wasFree ? 'Free spin — no win this time.' : 'No win — spin again!';
     }
     if (r.spin.scatter.freeSpinsAwarded > 0) {
-      toast(`🏟️ ${r.spin.scatter.freeSpinsAwarded} FREE SPINS triggered!`);
+      await showBonusWinner(r.spin.scatter.freeSpinsAwarded);
     }
   } catch (e) {
     toast(e.message || 'Spin failed');
@@ -309,6 +310,29 @@ function presentWin(spin) {
   const lines = spin.lineWins.length;
   $('winText').textContent = `${lines ? lines + ' line' + (lines > 1 ? 's' : '') : ''}` +
     `${spin.scatter.count >= 3 ? (lines ? ' + ' : '') + 'Scatter' : ''} · +${target.toLocaleString()} coins`;
+}
+
+// ---------------------------------------------------------------- bonus winner
+function showBonusWinner(freeSpins) {
+  const cfg = state.configs[state.gameId];
+  const scatter = cfg.symbols.SCATTER;
+  $('bonusHostArt').innerHTML = hostArt(cfg.theme.bonusHost);
+  $('bonusHostName').textContent = scatter.name;
+  $('bonusSpins').textContent = freeSpins;
+  $('bonusMult').textContent = `Line wins pay ×${cfg.freeSpinMultiplier} during the bonus`;
+  show('bonusGate');
+  // celebratory bursts
+  for (let i = 0; i < 14; i++) setTimeout(() => burst(0.5, 0.4, 24, 'gold'), i * 70);
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return; settled = true;
+      hide('bonusGate'); resolve();
+    };
+    $('bonusStart').onclick = finish;
+    // Auto-advance (esp. for auto-spin) after a beat.
+    setTimeout(finish, state.auto ? 2600 : 6000);
+  });
 }
 
 // ---------------------------------------------------------------- game switch
