@@ -17,6 +17,10 @@ from jobintel.models.schemas import NormalizedJob
 SOURCE_QUALITY_RANK = {
     "official_employer": 1,
     "official_ats": 1,
+    # A gig Richard pasted in himself from a platform this app cannot
+    # collect: first-hand, so better than an aggregator's copy, but it
+    # must not overwrite an employer's own ATS text.
+    "manual_entry": 2,
     "board": 3,
     "aggregator": 4,
     "unknown": 5,

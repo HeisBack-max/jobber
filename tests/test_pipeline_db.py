@@ -7,11 +7,17 @@ from datetime import UTC, datetime
 
 import pytest
 
+from jobintel.collectors.base import JobSource
 from jobintel.models.enums import CollectionMethod
 from jobintel.models.schemas import RawJob
 
 
-class FakeSource:
+class FakeSource(JobSource):
+    """Subclasses the real JobSource interface on purpose: a duck-typed
+    stand-in would silently miss interface additions (source_type /
+    quality_rank provenance), which is exactly the fixture-drift class of
+    bug recorded in IMPLEMENTATION_PLAN.md §7."""
+
     name = "fake:acme"
 
     def __init__(self, jobs):

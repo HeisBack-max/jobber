@@ -21,7 +21,7 @@
   Arabic or Russian proficiency from "delivered training in Saudi
   Arabia/Kazakhstan."
 - **OpenAI/Google/Microsoft/Amazon/Meta do not run public Greenhouse/
-  Lever/Ashby boards.** The spec assumes these are checked "deliberately"
+  Lever/Ashby boards.** *(Partly wrong - corrected 2026-08-22, see §8.)* The spec assumes these are checked "deliberately"
   but does not mandate a specific mechanism. Resolution: they are listed
   in `config/strategic_companies.yaml` with `verification_status:
   NO_PUBLIC_ATS` or `UNVERIFIED` and a `notes` field explaining what
@@ -33,7 +33,7 @@
   `discovery/strategic_watch.py` still surfaces this gap to the
   dashboard/source-health view rather than hiding it.
 - **Outlier AI (and comparable gig marketplaces) require authenticated
-  login.** No public, unauthenticated job-listing API exists. Building a
+  login.** *(Still true; the gig channel was closed a different way - see §8.)* No public, unauthenticated job-listing API exists. Building a
   scraper against an authenticated session would risk ToS violation and
   credential handling outside this app's threat model. Resolution: the
   `gigs/` package defines the `GigSource` interface, the canonical
@@ -78,34 +78,34 @@ Built and tested:
 - CLI (`jobintel collect|evaluate|digest|run|dashboard`)
 - pytest suite covering the required fixture scenarios
 
-Explicitly deferred (documented, not silently dropped - see spec §61
-"Future Phases" for precedent):
+Explicitly deferred at MVP time (documented, not silently dropped - see
+spec §61 "Future Phases" for precedent):
 
 - Live collectors for companies without a public Greenhouse/Lever/Ashby
-  board (OpenAI, Google, Microsoft, Amazon, Meta, etc.) - registry +
-  source-health placeholders exist; a career-site/search-discovery
-  collector is future work.
-- A working Outlier AI (or similar) gig collector (requires authenticated
-  access - out of scope until Richard provides a ToS-compliant path).
-- Embedding-based semantic retrieval (keyword/role-family matching is
-  used for the MVP semantic pre-score, per spec §32 "Use keyword and/or
-  embedding/semantic methods").
-- Notification adapters beyond the interface (email/Telegram/Slack are
-  wired as optional, disabled-by-default stubs behind one interface -
-  spec explicitly says these "must not be required for MVP operation").
-- CV tailoring / cover-letter generation (spec §39: design for it later,
-  don't prioritize now).
+  board (OpenAI, Google, Microsoft, Amazon, Meta, etc.)
+- A working Outlier AI (or similar) gig collector.
+- Embedding-based semantic retrieval.
+- Notification adapters beyond the interface.
+- CV tailoring / cover-letter generation.
+
+**All five were taken off the deferred list in the 2026-08-22 pass -
+four completed, one closed a different way. See §8 for what was built,
+what was verified live, and the two things that remain genuinely
+uncollectable.**
 
 ## 3. Configuration model
 
 See `config/profile.yaml` (candidate + preferences + geography rules),
 `config/roles.yaml` (role taxonomy + negative-matching signals),
-`config/sources.yaml` (ATS board registry actually polled),
-`config/strategic_companies.yaml` (full strategic watchlist incl.
-companies without a working collector yet), `config/search_queries.yaml`
-(future search-discovery queries), `config/scoring.yaml` (every scoring
-weight/threshold), `config/cv_evidence_map.json` (CV-grounded evidence,
-factual authority per the spec's precedence rule).
+`config/sources.yaml` (board registry actually polled, plus muted
+shipped-but-unverified entries), `config/strategic_companies.yaml` (full
+strategic watchlist incl. companies without a working collector yet),
+`config/search_queries.yaml` (search-discovery query families, backend
+toggles, and career-site keyword terms), `config/manual_gigs.yaml` (gigs
+entered by hand for platforms that publish no API),
+`config/scoring.yaml` (every scoring weight/threshold, including the
+`semantic_matching` channel weights), `config/cv_evidence_map.json`
+(CV-grounded evidence, factual authority per the spec's precedence rule).
 
 ## 4. Database schema (implemented in `alembic/versions/0001_initial.py`)
 
@@ -121,7 +121,15 @@ factual authority per the spec's precedence rule).
   preferred_gaps (JSON), strengths/concerns (JSON), reasoning_summary,
   model_used, prompt_version, evaluated_at
 - `gigs` — gig/project-specific fields (hourly rate, duration, weekly
-  hours) + `gig_analysis` for gig_quality_score breakdown
+  hours) + `gig_analysis` for the gig_quality_score breakdown *(the
+  `gig_analysis` table was promised here at MVP time but never created;
+  added in migration 0002 - see §8.4)*
+- `application_materials` — generated CV-tailoring briefs and cover
+  letters, with the cv_evidence_map ids each cites so any claim in a
+  generated document stays auditable back to a line of the real CV
+  (migration 0002)
+- `notification_log` — one row per delivery attempt per channel, which is
+  what makes "alert once per job" true across runs (migration 0002)
 - `application_status` — status history with timestamps + notes +
   recruiter contact fields
 - `feedback` — 👍/👌/👎/🚫 + reason, used for transparent ranking
@@ -132,8 +140,10 @@ factual authority per the spec's precedence rule).
 
 ## 5. Development order followed
 
-Milestones 1→5 implemented fully and tested. Milestone 6 implemented as
-registry + framework (see §1/§2 above for what's live vs. deferred).
+Milestones 1→5 implemented fully and tested. Milestone 6 was implemented
+as registry + framework at MVP time and completed in the 2026-08-22 pass
+(see §8): 75 verified boards, four additional ATS adapters, three
+career-site collectors, and aggregator-backed search discovery.
 Milestone 7 (dashboard) implemented against the real schema. Milestone 8
 (automation) implemented as `scripts/daily_run.py` + APScheduler wiring;
 milestone 9 (tests/README) completed alongside each milestone rather than
@@ -222,3 +232,184 @@ softer, reviewable fit - not a bug to keep chasing indefinitely with more
 regex special-casing. The Stage 3 LLM refinement pass (which requires
 `ANTHROPIC_API_KEY`, not configured in this session) is the intended
 mechanism for catching this class of residual imprecision going forward.
+
+## 8. Completing the deferred work (2026-08-22)
+
+Every item on §2's deferred list was taken off it in this pass. Four were
+built; the fifth (Outlier AI) is still impossible as originally framed
+and was closed a different way. Two things remain genuinely uncollectable
+and are called out at the end rather than papered over.
+
+### 8.1 Employers without a public Greenhouse/Lever/Ashby board
+
+The MVP's assumption here was **partly wrong, and the wrong part was the
+expensive one**. Probing candidate board tokens against the three public
+ATS APIs and then identity-checking every hit found that most of the
+strategic watchlist *does* run a collectable public board - including
+OpenAI, which §1 had recorded as "no confirmed public board; careers site
+appears to run a custom ATS". OpenAI publishes 754 postings through
+Ashby; the board simply is not linked from the careers page navigation.
+
+`config/sources.yaml` went from 6 boards to **75 verified, identity-checked
+boards**, all confirmed live through the real adapters (not curl) by
+`jobintel verify-boards`:
+
+- frontier AI labs (OpenAI, Anthropic, xAI, Perplexity, Mistral, Cohere,
+  Together AI, Cerebras, Sierra, Harvey, Cursor, Replit, LangChain, ...)
+- the strategic watchlist's European/regional targets (Helsing, DeepL,
+  Synthesia, Wayve, Aleph Alpha, Quantexa, Isomorphic Labs, Owkin, n8n,
+  Sarvam, FuriosaAI, Palantir, Snowflake, ...)
+- AI-data / model-training marketplaces (Mercor, Turing, Toloka, Appen,
+  Invisible, Snorkel, Labelbox, Prolific) - which also turned out to be
+  the answer to the gig problem, see §8.4
+- cybersecurity employers that hire trainers (KnowBe4, Immersive Labs,
+  HackerOne, Bugcrowd, Synack, Sophos, Recorded Future, Dragos)
+- learning platforms (Coursera, Udemy, DataCamp, Multiverse, Skillsoft,
+  Docebo, 360Learning)
+- remote-first technology employers (GitLab, Cloudflare, Docker, Zapier,
+  Supabase, Vercel, Mozilla, Remote.com, Handshake)
+
+For the employers that genuinely run their own ATS, four new adapters and
+three career-site collectors were written: `workday`, `smartrecruiters`,
+`workable`, `recruitee`, and `careersite_microsoft` / `careersite_amazon`
+/ `careersite_google`. These are **implemented but not verified live**:
+the environment they were written in blocks those hosts at the
+network-policy layer. Rather than claim coverage that has never answered
+a request, their `config/sources.yaml` entries ship `collection_status:
+muted` - the adapter exists, `jobintel verify-boards` checks it, and it
+starts being polled only when a real 200 promotes it. That distinction is
+now a first-class registry concept rather than a comment.
+
+Identity-checking is part of verification now, not an afterthought. Three
+tokens resolved to entirely different companies than their names suggest:
+`greenhouse:figure` (not Figure AI), `ashby:runway` (a business-planning
+startup, not RunwayML), and the already-known `greenhouse:cohere`
+(Cohere Health). Each was caught by reading a sample posting.
+
+### 8.2 Search discovery
+
+`discovery/search.py` implements aggregator-backed discovery over the
+query families in `config/search_queries.yaml` (Remotive and RemoteOK,
+both public documented APIs). Anything found this way is recorded as
+`source_type=aggregator` with a worse `quality_rank`, which means an
+employer's own posting always overwrites the aggregator copy and an
+aggregator-only job takes the `aggregator_only_source` confidence
+deduction - provenance that previously existed in the schema but was
+hard-coded to `official_ats` everywhere.
+
+Both backends ship **disabled** for the same reason the career-site
+collectors ship muted: unreachable from here, therefore unproven.
+`jobintel verify-search` is the check that promotes them.
+
+### 8.3 Vector-space semantic retrieval
+
+`matching/embeddings.py` adds sparse TF-IDF vectors over word unigrams,
+word bigrams and character 4-grams, compared by cosine similarity and
+fitted on the *profile corpus* (the role taxonomy plus the CV evidence
+map). It is a lexical embedding, not a neural one - no model download, no
+external API, deterministic and offline, so the app still runs with zero
+API keys configured. A neural embedder can be dropped in behind the
+`TextEmbedder` interface without touching anything else.
+
+It is wired in as a third matching channel (weights in
+`config/scoring.yaml` under `semantic_matching`), never as a replacement:
+title similarity still gates entry and the anchor-term rules from §7.3
+still apply, so recall widens without reopening that false-positive
+class. It also powers a real Stage 2 gate - `stage2_semantic_prescore_
+min_to_advance` was a config value nothing read until now.
+
+Character n-grams are what give it reach the keyword matcher structurally
+cannot have: "train"/"trainer"/"training"/"trainings" share n-grams, so a
+posting does not have to inflect words the way the CV does.
+
+### 8.4 Gig work, without scraping a login-only platform
+
+Outlier AI still has no public API and is still not scraped. But the
+premise that this blocked the gig channel was wrong: **the AI-data
+marketplaces publish independent-contractor project work on the very same
+public ATS boards as their staff roles**. Appen's Lever board carries
+"[Croatian] - Voice Recording Specialist: Join our team as an Independent
+Contractor for Project Morava"; Cohere's Ashby board carries part-time
+independent-contractor annotation work.
+
+So the working gig channel is `gigs/classifier.py` - a classifier over
+postings this app already collects legitimately - plus
+`config/manual_gigs.yaml` for anything found on a platform that publishes
+nothing. Gigs now get a `gigs` row, a `gig_analysis` row with the full
+score breakdown (the table §4 promised but never created), the
+`GIG_PROJECT_WORK` opportunity class, and a dashboard feed that shows
+rate, hours, duration and component scores.
+
+### 8.5 Notifications and CV tailoring
+
+Notifications: a real SMTP adapter joins hardened Telegram/Slack
+adapters, all opt-in, all failing soft (a dead channel is a reported
+failure, never an exception that aborts a run). Urgent alerts fire **once
+per job**, tracked in the new `notification_log` table - a notifier that
+re-alerts every morning trains its reader to ignore it. Thresholds moved
+from a hard-coded constant into `config/profile.yaml`.
+
+CV tailoring (`tailoring/`) produces a per-posting brief - which evidence
+to lead with, which requirements the CV does not support, which of the
+posting's terms are safe to mirror - and a cover-letter draft assembled
+only from `cv_evidence_map.json` entries, recording the evidence ids it
+used. An LLM may rewrite the draft for tone; the rewrite is validated
+against the same anti-fabrication rules and **discarded if it invents
+anything** (a completed MSc, a language the CV does not evidence, US work
+authorization, a clearance). The failure mode is plainer prose, never a
+false claim in a document Richard sends under his own name.
+
+### 8.6 What is still genuinely not collected
+
+Two things, both surfaced in the dashboard's Source Health tab rather
+than implied to be covered:
+
+1. **Meta careers** - serves listings through an authenticated GraphQL
+   endpoint with no public JSON search API, and has no public
+   Greenhouse/Lever/Ashby board. This is the one Tier-1 strategic
+   employer with no collectable channel at all.
+2. **Outlier AI and comparable login-only gig marketplaces** - unchanged
+   from §1. Manual entry is the supported route.
+
+Hugging Face was probed under four plausible tokens and has no public
+board either; it stays `UNVERIFIED` rather than being quietly dropped
+from the watchlist.
+
+## 9. Bugs found against real collected data (2026-08-22)
+
+The same lesson as §7, and it landed the same way: a live run over 650
+real postings from four boards surfaced three defects that 138 passing
+tests had not.
+
+1. **Permanent roles classified as gig work.** An Anthropic "Hardware Lab
+   Manager" posting mentions overseeing "contractor work on-site
+   (electricians, cabling crews)"; an accounts-receivable role mentions
+   "as-needed" support. The first version of `gigs/classifier.py` treated
+   any mention of contract work as a strong signal and misclassified
+   both, along with 10 other Anthropic roles. Fixed by splitting signals
+   into *self-referential* (the posting calls **itself** contract or
+   project work) and *supporting* (ambiguous alone), and requiring either
+   a self-referential signal, or an hourly rate plus corroboration. Gig
+   count on the same data went from 42 (10 wrong) to 32 (all correct).
+2. **`employment_type` mis-detected as CONTRACT.** The same "contractor
+   work on-site" phrase made `normalize/normalizer.py` type a permanent
+   role as CONTRACT, because its pattern was a bare `\bcontract(or)?\b`.
+   That fed the gig classifier and would also have shown the wrong
+   employment type on the dashboard card. Now requires self-referential
+   phrasing.
+3. **"team" as a keyword false-anchor.** `_keywords_from_titles` extracted
+   "team" from ai_security's "AI Red Team" example titles, where it then
+   matched the phrase "enterprise teams" in the boilerplate of a pure
+   training posting - enough to hand a Generative AI Trainer role to the
+   AI-security family. Same class as the "enablement" bug in §7.3, one
+   level down in the keyword channel rather than the title channel. Fixed
+   by extending the generic-noun stopword list; regression test in
+   `tests/test_embeddings.py`.
+
+A fourth improvement came out of the same run rather than being a bug:
+the AI-data marketplaces publish large numbers of language-specific
+contractor projects ("[Croatian] - Voice Recording Specialist"), and the
+CV evidences English only. These are now a **mandatory** mismatch rather
+than a soft gap, and `find_mismatches()` reads the job title as well as
+the description, because the language marker is frequently in the title
+alone.

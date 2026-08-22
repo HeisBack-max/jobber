@@ -18,6 +18,14 @@ class JobSource(ABC):
 
     name: str
 
+    # Provenance recorded on every job_sources row this adapter produces
+    # (spec §35: an official ATS posting outranks an aggregator copy of
+    # the same vacancy, and confidence is deducted for aggregator-only
+    # discovery). Adapters override these; the defaults describe an
+    # official ATS board.
+    source_type: str = "official_ats"
+    quality_rank: int = 1
+
     @abstractmethod
     async def discover(self) -> list[RawJob]:
         """Return lightweight identity records for currently listed jobs."""

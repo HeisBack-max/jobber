@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from jobintel.digest.generator import generate_digest  # noqa: E402
+from jobintel.notifications.dispatch import dispatch_notifications  # noqa: E402
 from jobintel.pipeline import run_collection, run_evaluation  # noqa: E402
 
 
@@ -27,6 +28,10 @@ def main() -> None:
     collect_summary = asyncio.run(run_collection())
     eval_summary = run_evaluation()
     digest = generate_digest()
+    # No-op when no channel is configured, and a failing channel is
+    # reported in the summary rather than raised - a cron job must not
+    # exit non-zero because Telegram was briefly unreachable.
+    notify_summary = asyncio.run(dispatch_notifications())
     duration = time.monotonic() - started
 
     print(collect_summary.render())
@@ -34,6 +39,8 @@ def main() -> None:
     print(eval_summary.render())
     print()
     print(digest.render_text())
+    print()
+    print(notify_summary.render())
     print(f"\nRun duration: {duration:.1f}s")
 
 

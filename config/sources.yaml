@@ -1,13 +1,26 @@
-# Company / source registry for the MVP ATS collectors. This list is
-# separate from config/strategic_companies.yaml: this file is the set of
-# boards the Greenhouse/Lever/Ashby collectors will actually poll. Every
-# entry here should have a verification_status of VERIFIED before being
-# relied upon in a production run (see scripts/verify_boards.py).
+# Company / source registry for the ATS collectors. This list is separate
+# from config/strategic_companies.yaml: this file is the set of boards the
+# collectors actually poll. Every entry here should have a
+# verification_status of VERIFIED before being relied upon in a production
+# run (see scripts/verify_boards.py).
 #
 # collection_status values: critical | high_priority | normal |
 # exploratory | muted | blacklisted
+#
+# `muted` means "adapter exists, token not yet confirmed live from this
+# machine" - the entry ships, `jobintel verify-boards` checks it, and it
+# starts being polled only once someone flips it to normal/critical. That
+# is how a board is added without inventing coverage that doesn't exist.
+#
+# Supported `ats` values (see src/jobintel/discovery/registry.py):
+#   greenhouse | lever | ashby | workday | smartrecruiters | workable |
+#   recruitee | careersite_microsoft | careersite_amazon | careersite_google
+#
+# `options:` carries per-source knobs (lever `region: eu`, workday/
+# smartrecruiters `max_jobs`, career-site `queries`/`results_per_query`).
 
 companies:
+  # --- Frontier AI labs and AI platform companies ---
   - name: Anthropic
     ats: greenhouse
     board_token: anthropic
@@ -15,9 +28,19 @@ companies:
     strategic_themes: [ai_security, ai_evaluation, trust_and_safety]
     career_url: https://www.anthropic.com/careers
     verification_status: VERIFIED
-    last_successful_check: "2026-08-14"
-    last_changed: null
+    last_successful_check: "2026-08-22"
     source_health: HEALTHY
+
+  - name: OpenAI
+    ats: ashby
+    board_token: openai
+    collection_status: critical
+    strategic_themes: [ai_evaluation, ai_security, trust_and_safety, customer_enablement]
+    career_url: https://openai.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+    notes: "Closes the headline coverage gap recorded in IMPLEMENTATION_PLAN.md §1: OpenAI does run a public Ashby board (754 postings at verification), it just isn't linked from the careers page's main navigation."
 
   - name: Mistral AI
     ats: lever
@@ -26,10 +49,9 @@ companies:
     strategic_themes: [ai_training, ai_security]
     career_url: https://mistral.ai/careers
     verification_status: VERIFIED
-    last_successful_check: "2026-08-14"
-    last_changed: null
+    last_successful_check: "2026-08-22"
     source_health: HEALTHY
-    notes: "API responds 200 with a valid (currently empty) list - 0 open roles on this board right now is a legitimate result, not a broken token. Recheck periodically rather than assuming misconfiguration."
+    notes: "API responds 200 with a valid (sometimes empty) list - 0 open roles is a legitimate result, not a broken token."
 
   - name: Cohere
     ats: ashby
@@ -38,10 +60,30 @@ companies:
     strategic_themes: [ai_training, ai_consulting]
     career_url: https://cohere.com/careers
     verification_status: VERIFIED
-    last_successful_check: "2026-08-14"
-    last_changed: "2026-08-14"
+    last_successful_check: "2026-08-22"
     source_health: HEALTHY
     notes: "Corrected from an earlier greenhouse:cohere entry, which 404'd. That token belonged to a different, unrelated company (Cohere Health, a healthcare startup) - the AI company Cohere is on Ashby, not Greenhouse."
+
+  - name: xAI
+    ats: greenhouse
+    board_token: xai
+    collection_status: critical
+    strategic_themes: [ai_training, ai_evaluation]
+    career_url: https://x.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+    notes: "Board reports its name as 'SpaceXAI'; sample postings carry xAI's mission statement and include AI Tutor roles, so the token is right even though the board label is unexpected."
+
+  - name: Perplexity
+    ats: ashby
+    board_token: perplexity
+    collection_status: critical
+    strategic_themes: [ai_training, customer_enablement]
+    career_url: https://www.perplexity.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
 
   - name: Databricks
     ats: greenhouse
@@ -50,8 +92,7 @@ companies:
     strategic_themes: [ai_training, technical_training]
     career_url: https://www.databricks.com/company/careers
     verification_status: VERIFIED
-    last_successful_check: "2026-08-14"
-    last_changed: null
+    last_successful_check: "2026-08-22"
     source_health: HEALTHY
 
   - name: ElevenLabs
@@ -61,8 +102,7 @@ companies:
     strategic_themes: [ai_training]
     career_url: https://elevenlabs.io/careers
     verification_status: VERIFIED
-    last_successful_check: "2026-08-14"
-    last_changed: null
+    last_successful_check: "2026-08-22"
     source_health: HEALTHY
 
   - name: Scale AI
@@ -72,11 +112,754 @@ companies:
     strategic_themes: [ai_evaluation, gig_project_work]
     career_url: https://scale.com/careers
     verification_status: VERIFIED
-    last_successful_check: "2026-08-14"
-    last_changed: null
+    last_successful_check: "2026-08-22"
     source_health: HEALTHY
 
-# Additional boards may be appended here as they are manually verified via
-# `python scripts/verify_boards.py`. Do not add a company without first
-# confirming a board_token resolves - a wrong token silently returns 404
-# and would look like "zero jobs" rather than "misconfigured source".
+  - name: Together AI
+    ats: greenhouse
+    board_token: togetherai
+    collection_status: high_priority
+    strategic_themes: [ai_training]
+    career_url: https://www.together.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Cerebras
+    ats: ashby
+    board_token: cerebras
+    collection_status: high_priority
+    strategic_themes: [ai_training]
+    career_url: https://cerebras.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Inflection AI
+    ats: greenhouse
+    board_token: inflectionai
+    collection_status: high_priority
+    strategic_themes: [ai_training, responsible_ai]
+    career_url: https://inflection.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Sierra
+    ats: ashby
+    board_token: sierra
+    collection_status: high_priority
+    strategic_themes: [ai_consulting, customer_enablement]
+    career_url: https://sierra.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Harvey
+    ats: ashby
+    board_token: harvey
+    collection_status: high_priority
+    strategic_themes: [ai_consulting, customer_enablement]
+    career_url: https://www.harvey.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Cursor
+    ats: ashby
+    board_token: cursor
+    collection_status: high_priority
+    strategic_themes: [ai_training]
+    career_url: https://cursor.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Replit
+    ats: ashby
+    board_token: replit
+    collection_status: high_priority
+    strategic_themes: [ai_training, technical_training]
+    career_url: https://replit.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: LangChain
+    ats: ashby
+    board_token: langchain
+    collection_status: high_priority
+    strategic_themes: [ai_training, agentic_ai]
+    career_url: https://www.langchain.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: LlamaIndex
+    ats: ashby
+    board_token: llamaindex
+    collection_status: normal
+    strategic_themes: [ai_training, agentic_ai]
+    career_url: https://www.llamaindex.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Character.AI
+    ats: ashby
+    board_token: character
+    collection_status: normal
+    strategic_themes: [ai_training, trust_and_safety]
+    career_url: https://character.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Modal
+    ats: ashby
+    board_token: modal
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://modal.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Anyscale
+    ats: ashby
+    board_token: anyscale
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.anyscale.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Pinecone
+    ats: ashby
+    board_token: pinecone
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.pinecone.io/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Stability AI
+    ats: greenhouse
+    board_token: stabilityai
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://stability.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Black Forest Labs
+    ats: greenhouse
+    board_token: blackforestlabs
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://bfl.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Figure AI
+    ats: greenhouse
+    board_token: figureai
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.figure.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+    notes: "Token `figureai` (board name 'Figure', humanoid-robotics postings). A separate greenhouse token `figure` exists and belongs to an unrelated company - do not use it."
+
+  # --- European / regional AI companies on the strategic watchlist ---
+  - name: Helsing
+    ats: greenhouse
+    board_token: helsing
+    collection_status: high_priority
+    strategic_themes: [ai_security]
+    career_url: https://helsing.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: DeepL
+    ats: ashby
+    board_token: deepl
+    collection_status: high_priority
+    strategic_themes: [ai_training]
+    career_url: https://jobs.deepl.com/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Synthesia
+    ats: ashby
+    board_token: synthesia
+    collection_status: high_priority
+    strategic_themes: [ai_training, technical_instructional_design]
+    career_url: https://www.synthesia.io/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Wayve
+    ats: greenhouse
+    board_token: wayve
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://wayve.ai/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+    notes: "Also present on Ashby with a near-identical posting count; Greenhouse chosen as the single source to avoid collecting the same vacancy twice (dedup would merge them, but one authoritative source per employer keeps provenance clean)."
+
+  - name: Aleph Alpha
+    ats: ashby
+    board_token: alephalpha
+    collection_status: normal
+    strategic_themes: [ai_security]
+    career_url: https://aleph-alpha.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Quantexa
+    ats: ashby
+    board_token: quantexa
+    collection_status: normal
+    strategic_themes: [ai_consulting]
+    career_url: https://www.quantexa.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Isomorphic Labs
+    ats: greenhouse
+    board_token: isomorphiclabs
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.isomorphiclabs.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Owkin
+    ats: ashby
+    board_token: owkin
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.owkin.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: n8n
+    ats: ashby
+    board_token: n8n
+    collection_status: normal
+    strategic_themes: [ai_consulting, agentic_ai]
+    career_url: https://n8n.io/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Sarvam AI
+    ats: ashby
+    board_token: sarvam
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.sarvam.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: FuriosaAI
+    ats: greenhouse
+    board_token: furiosaai
+    collection_status: normal
+    strategic_themes: [ai_training]
+    career_url: https://www.furiosa.ai/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Palantir
+    ats: lever
+    board_token: palantir
+    collection_status: high_priority
+    strategic_themes: [ai_security, ai_consulting]
+    career_url: https://www.palantir.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Snowflake
+    ats: ashby
+    board_token: snowflake
+    collection_status: high_priority
+    strategic_themes: [ai_consulting, technical_training]
+    career_url: https://careers.snowflake.com/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  # --- AI data / model-training marketplaces (career roles AND the
+  #     contractor postings that are the ToS-compliant route to gig work) ---
+  - name: Mercor
+    ats: ashby
+    board_token: mercor
+    collection_status: high_priority
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://mercor.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Turing
+    ats: greenhouse
+    board_token: turing
+    collection_status: high_priority
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://www.turing.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Toloka
+    ats: greenhouse
+    board_token: toloka
+    collection_status: high_priority
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://toloka.ai/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Appen
+    ats: lever
+    board_token: appen
+    collection_status: high_priority
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://www.appen.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+    notes: "Posts independent-contractor project work (e.g. voice/data collection projects) on the same public Lever board as staff roles - this is the ToS-compliant gig channel that Outlier AI's login-only listings are not."
+
+  - name: Invisible Technologies
+    ats: greenhouse
+    board_token: invisible
+    collection_status: normal
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://www.invisible.co/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Snorkel AI
+    ats: greenhouse
+    board_token: snorkelai
+    collection_status: normal
+    strategic_themes: [ai_evaluation]
+    career_url: https://snorkel.ai/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Labelbox
+    ats: greenhouse
+    board_token: labelbox
+    collection_status: normal
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://labelbox.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Prolific
+    ats: greenhouse
+    board_token: prolific
+    collection_status: normal
+    strategic_themes: [ai_evaluation, gig_project_work]
+    career_url: https://www.prolific.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Toptal
+    ats: lever
+    board_token: toptal
+    collection_status: exploratory
+    strategic_themes: [gig_project_work, ai_consulting]
+    career_url: https://www.toptal.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Andela
+    ats: ashby
+    board_token: andela
+    collection_status: exploratory
+    strategic_themes: [gig_project_work]
+    career_url: https://www.andela.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  # --- AI security / model evaluation ---
+  - name: HiddenLayer
+    ats: greenhouse
+    board_token: hiddenlayer
+    collection_status: high_priority
+    strategic_themes: [ai_security]
+    career_url: https://hiddenlayer.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Haize Labs
+    ats: greenhouse
+    board_token: haizelabs
+    collection_status: high_priority
+    strategic_themes: [ai_security, ai_evaluation]
+    career_url: https://haizelabs.com/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Arize AI
+    ats: greenhouse
+    board_token: arizeai
+    collection_status: normal
+    strategic_themes: [ai_evaluation]
+    career_url: https://arize.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  # --- Cybersecurity employers with training / awareness / education roles ---
+  - name: KnowBe4
+    ats: greenhouse
+    board_token: knowbe4
+    collection_status: high_priority
+    strategic_themes: [cybersecurity_training]
+    career_url: https://www.knowbe4.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Immersive Labs
+    ats: ashby
+    board_token: immersivelabs
+    collection_status: high_priority
+    strategic_themes: [cybersecurity_training]
+    career_url: https://www.immersivelabs.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: HackerOne
+    ats: ashby
+    board_token: hackerone
+    collection_status: high_priority
+    strategic_themes: [cybersecurity_training, ai_security]
+    career_url: https://www.hackerone.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Bugcrowd
+    ats: greenhouse
+    board_token: bugcrowd
+    collection_status: normal
+    strategic_themes: [cybersecurity_training]
+    career_url: https://www.bugcrowd.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Synack
+    ats: greenhouse
+    board_token: synack
+    collection_status: normal
+    strategic_themes: [cybersecurity_training]
+    career_url: https://www.synack.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Sophos
+    ats: lever
+    board_token: sophos
+    collection_status: normal
+    strategic_themes: [cybersecurity_training]
+    career_url: https://www.sophos.com/en-us/company/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Recorded Future
+    ats: greenhouse
+    board_token: recordedfuture
+    collection_status: normal
+    strategic_themes: [cybersecurity_training, osint]
+    career_url: https://www.recordedfuture.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Dragos
+    ats: greenhouse
+    board_token: dragos
+    collection_status: normal
+    strategic_themes: [cybersecurity_training]
+    career_url: https://www.dragos.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  # --- Learning / enablement platforms (technical training, instructional design) ---
+  - name: Coursera
+    ats: greenhouse
+    board_token: coursera
+    collection_status: high_priority
+    strategic_themes: [technical_training, customer_education]
+    career_url: https://careers.coursera.com/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+    notes: "Coursera and Udemy now operate as one company but still run separate Greenhouse boards; both are polled."
+
+  - name: Udemy
+    ats: greenhouse
+    board_token: udemy
+    collection_status: normal
+    strategic_themes: [technical_training, customer_education]
+    career_url: https://about.udemy.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: DataCamp
+    ats: greenhouse
+    board_token: datacamp
+    collection_status: normal
+    strategic_themes: [technical_training, ai_training]
+    career_url: https://www.datacamp.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Multiverse
+    ats: ashby
+    board_token: multiverse
+    collection_status: high_priority
+    strategic_themes: [technical_training, ai_training]
+    career_url: https://www.multiverse.io/en-GB/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Skillsoft
+    ats: greenhouse
+    board_token: skillsoft
+    collection_status: normal
+    strategic_themes: [technical_training, cybersecurity_training]
+    career_url: https://www.skillsoft.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Docebo
+    ats: ashby
+    board_token: docebo
+    collection_status: normal
+    strategic_themes: [technical_training, technical_instructional_design]
+    career_url: https://www.docebo.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: 360Learning
+    ats: lever
+    board_token: 360learning
+    collection_status: exploratory
+    strategic_themes: [technical_training]
+    career_url: https://360learning.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  # --- Remote-first technology employers (customer education / developer
+  #     enablement roles, and a reliable source of genuinely remote postings) ---
+  - name: GitLab
+    ats: greenhouse
+    board_token: gitlab
+    collection_status: normal
+    strategic_themes: [technical_training, customer_education]
+    career_url: https://about.gitlab.com/jobs/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Cloudflare
+    ats: greenhouse
+    board_token: cloudflare
+    collection_status: normal
+    strategic_themes: [cybersecurity_training, customer_education]
+    career_url: https://www.cloudflare.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Docker
+    ats: ashby
+    board_token: docker
+    collection_status: exploratory
+    strategic_themes: [technical_training]
+    career_url: https://www.docker.com/career-openings/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Zapier
+    ats: ashby
+    board_token: zapier
+    collection_status: exploratory
+    strategic_themes: [ai_training, customer_education]
+    career_url: https://zapier.com/jobs
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Supabase
+    ats: ashby
+    board_token: supabase
+    collection_status: exploratory
+    strategic_themes: [technical_training]
+    career_url: https://supabase.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Vercel
+    ats: greenhouse
+    board_token: vercel
+    collection_status: exploratory
+    strategic_themes: [technical_training]
+    career_url: https://vercel.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Mozilla
+    ats: greenhouse
+    board_token: mozilla
+    collection_status: exploratory
+    strategic_themes: [responsible_ai, technical_training]
+    career_url: https://www.mozilla.org/en-US/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Remote.com
+    ats: greenhouse
+    board_token: remotecom
+    collection_status: exploratory
+    strategic_themes: [customer_education]
+    career_url: https://remote.com/careers
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  - name: Handshake
+    ats: ashby
+    board_token: handshake
+    collection_status: exploratory
+    strategic_themes: [ai_evaluation, customer_education]
+    career_url: https://joinhandshake.com/careers/
+    verification_status: VERIFIED
+    last_successful_check: "2026-08-22"
+    source_health: HEALTHY
+
+  # --- Adapters that exist but whose tokens are not yet confirmed live ---
+  # These are `muted`: shipped, checkable with `jobintel verify-boards`,
+  # and deliberately NOT polled until a real 200 response proves the token.
+  # This is the honest alternative to claiming coverage for an employer
+  # whose endpoint has never actually answered (IMPLEMENTATION_PLAN.md §1).
+  - name: Microsoft
+    ats: careersite_microsoft
+    board_token: microsoft
+    collection_status: muted
+    strategic_themes: [ai_training, responsible_ai, technical_training]
+    career_url: https://jobs.careers.microsoft.com/
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    source_health: UNKNOWN
+    notes: "Adapter implemented against the public search JSON its own careers SPA calls. Not verifiable from the sandbox this was written in (egress policy blocks gcsservices.careers.microsoft.com), so it ships muted: run `jobintel verify-boards` from an unrestricted network, then set collection_status to normal."
+
+  - name: Amazon
+    ats: careersite_amazon
+    board_token: amazon
+    collection_status: muted
+    strategic_themes: [ai_training, ai_consulting]
+    career_url: https://www.amazon.jobs/
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    source_health: UNKNOWN
+    notes: "Adapter implemented against amazon.jobs/en/search.json. Same sandbox egress caveat as Microsoft - verify before unmuting."
+
+  - name: Google
+    ats: careersite_google
+    board_token: google
+    collection_status: muted
+    strategic_themes: [google_vertex_ai, ai_training, ai_consulting]
+    career_url: https://www.google.com/about/careers/applications/
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    source_health: UNKNOWN
+    notes: "Adapter implemented against careers.google.com/api/v3/search. Same sandbox egress caveat as Microsoft - verify before unmuting. This is the collector that feeds the dashboard's Vertex AI & Gemini tab with first-party Google postings."
+
+  - name: NVIDIA
+    ats: workday
+    board_token: nvidia.wd5/NVIDIAExternalCareerSite
+    collection_status: muted
+    strategic_themes: [ai_training, ai_consulting]
+    career_url: https://www.nvidia.com/en-us/about-nvidia/careers/
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    source_health: UNKNOWN
+    notes: "Workday CXS adapter. The tenant/site pair is taken from the public careers URL and must be confirmed with `jobintel verify-boards`; if it fails, copy the tenant and site out of the careers page URL (https://{tenant}.{wdNN}.myworkdayjobs.com/{site}) and update board_token."
+
+  - name: Salesforce
+    ats: workday
+    board_token: salesforce.wd12/External_Career_Site
+    collection_status: muted
+    strategic_themes: [ai_consulting]
+    career_url: https://careers.salesforce.com/
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    source_health: UNKNOWN
+    notes: "Workday CXS adapter - same token-confirmation caveat as NVIDIA."
+
+  - name: ServiceNow
+    ats: workday
+    board_token: servicenow.wd1/ServiceNow
+    collection_status: muted
+    strategic_themes: [ai_consulting, technical_training]
+    career_url: https://careers.servicenow.com/
+    verification_status: UNVERIFIED
+    last_successful_check: null
+    source_health: UNKNOWN
+    notes: "Workday CXS adapter - same token-confirmation caveat as NVIDIA."
+
+# Adding a board: confirm the token resolves first (a wrong token silently
+# returns 404 and would look like "zero jobs" rather than "misconfigured
+# source"), and confirm the board belongs to the company you think it does -
+# `greenhouse:cohere` and `greenhouse:figure` both resolve to entirely
+# different companies than the names suggest.

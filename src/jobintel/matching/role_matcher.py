@@ -23,7 +23,8 @@ from dataclasses import dataclass, field
 
 from rapidfuzz import fuzz
 
-from jobintel.settings import load_roles
+from jobintel.matching.embeddings import get_role_family_index
+from jobintel.settings import load_roles, load_scoring
 
 _STOPWORDS = {
     "the", "and", "or", "of", "a", "an", "for", "in", "on", "to", "with",
@@ -35,6 +36,15 @@ _STOPWORDS = {
     "consultant", "learning", "solutions", "customer", "success",
     "developer", "designer", "programme", "program", "manager", "lead",
     "coordinator", "advisor", "officer",
+    # Generic organisational nouns. "team" is the same class of bug as
+    # "enablement" one level down, in the keyword channel rather than the
+    # title channel: it is extracted as a keyword from ai_security's "AI
+    # Red Team" example titles, then matches the phrase "enterprise
+    # teams" in the boilerplate of a pure training posting, which was
+    # enough to hand a Generative AI Trainer role to the AI-security
+    # family (regression test in tests/test_embeddings.py).
+    "team", "teams", "group", "department", "enterprise", "business",
+    "global", "senior", "junior", "staff", "member", "partner",
 }
 
 _TIER_WEIGHT = {"A": 1.0, "B": 0.9, "C": 0.8, "dedicated_channel": 0.9}
@@ -87,6 +97,23 @@ class RoleMatchResult:
     combined_score: float  # 0-1
     evidence_categories: list[str] = field(default_factory=list)
     matched_example_title: str | None = None
+    semantic_score: float = 0.0  # 0-1, normalized cosine (see embeddings.py)
+    matched_via: str = "title"  # "title" | "semantic_rescue" | "none"
+    semantic_terms: list[str] = field(default_factory=list)
+
+
+def _semantic_config() -> dict:
+    config = load_scoring().get("semantic_matching", {}) or {}
+    weights = config.get("weights", {}) or {}
+    return {
+        "enabled": config.get("enabled", True),
+        "title_weight": float(weights.get("title", 0.60)),
+        "keyword_weight": float(weights.get("keyword", 0.20)),
+        "semantic_weight": float(weights.get("semantic", 0.20)),
+        "reference": float(config.get("reference_similarity", 0.35)) or 0.35,
+        "rescue_min": float(config.get("rescue_min_normalized_similarity", 0.80)),
+        "rescue_penalty": float(config.get("rescue_penalty", 0.85)),
+    }
 
 
 def _keywords_from_titles(titles: list[str]) -> set[str]:
@@ -130,6 +157,11 @@ def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
 
     title_stripped = _strip_stopwords(title_lower)
 
+    config = _semantic_config()
+    index = get_role_family_index() if config["enabled"] else None
+    document = f"{job_title}. {description_text or ''}"
+    document_vector = index.embedder.embed(document) if index else {}
+
     candidates: list[RoleMatchResult] = []
     for family_key, family in roles.items():
         example_titles = family.get("example_titles", [])
@@ -147,8 +179,20 @@ def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
                 best_title_ratio = ratio
                 best_title = example
 
+        semantic_score = 0.0
+        if index is not None:
+            semantic_score = min(1.0, index.similarity(family_key, document_vector) / config["reference"])
+
+        # The semantic rescue path: a vacancy can describe exactly this
+        # work in words the taxonomy never lists ("Enterprise Adoption
+        # Lead, Generative AI"). Anchor gating still applies below, so
+        # this widens recall without reopening the false-positive class
+        # in IMPLEMENTATION_PLAN.md §7.3.
+        matched_via = "title"
         if best_title_ratio < _MIN_TITLE_RATIO:
-            continue
+            if semantic_score < config["rescue_min"]:
+                continue
+            matched_via = "semantic_rescue"
         if not _passes_anchor_gate(family_key, title_lower):
             continue
 
@@ -159,13 +203,23 @@ def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
         else:
             keyword_score = 0.0
 
-        # Keyword hits act as a bonus on top of a real title match, not
-        # an independent channel that can carry the score alone - this
-        # is what the title floor above already mostly guarantees, but
-        # weighting title higher keeps keyword noise from inflating
-        # borderline-floor titles further.
-        combined = (best_title_ratio * 0.75) + (keyword_score * 0.25)
+        # Three channels, none of which can carry a match alone: the
+        # title floor above gates entry, keyword hits act as a bonus on
+        # a real title match, and document similarity corroborates (or
+        # damps) both. Keyword noise on boilerplate can no longer inflate
+        # a borderline title, because the rest of the document has to
+        # agree with the family too.
+        if index is None:
+            combined = (best_title_ratio * 0.75) + (keyword_score * 0.25)
+        else:
+            combined = (
+                best_title_ratio * config["title_weight"]
+                + keyword_score * config["keyword_weight"]
+                + semantic_score * config["semantic_weight"]
+            )
         combined *= _TIER_WEIGHT.get(family.get("tier"), 0.75)
+        if matched_via == "semantic_rescue":
+            combined *= config["rescue_penalty"]
         if family_key == "ai_training" and _MORE_SPECIFIC_THAN_AI_TRAINING.search(title_lower):
             combined *= 0.8
 
@@ -178,18 +232,42 @@ def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
             combined_score=combined,
             evidence_categories=family.get("evidence_categories", []),
             matched_example_title=best_title,
+            semantic_score=semantic_score,
+            matched_via=matched_via,
+            semantic_terms=index.explain(family_key, document) if index else [],
         ))
 
     if not candidates:
-        return RoleMatchResult(
-            role_family=None, tier=None, label=None,
-            title_score=0.0, keyword_score=0.0, combined_score=0.0,
-        )
+        return _no_match()
 
     best = max(candidates, key=lambda c: c.combined_score)
     if best.combined_score < _MIN_COMBINED_SCORE:
-        return RoleMatchResult(
-            role_family=None, tier=None, label=None,
-            title_score=0.0, keyword_score=0.0, combined_score=0.0,
-        )
+        return _no_match()
     return best
+
+
+def _no_match() -> RoleMatchResult:
+    return RoleMatchResult(
+        role_family=None, tier=None, label=None,
+        title_score=0.0, keyword_score=0.0, combined_score=0.0,
+        matched_via="none",
+    )
+
+
+def semantic_prescore(job_title: str, description_text: str) -> float:
+    """Stage 2 semantic pre-score (spec §45): 0-1 normalized similarity
+    to the best-matching role family's profile document.
+
+    Deliberately independent of the title-matching gates above - a
+    posting that clears no family's title floor can still be topically
+    relevant, and this is the number that decides whether it is worth
+    spending an LLM call on.
+    """
+    config = _semantic_config()
+    if not config["enabled"]:
+        return 1.0  # semantic gating disabled: never block on this signal
+    index = get_role_family_index()
+    ranked = index.rank(f"{job_title}. {description_text or ''}", top_n=1)
+    if not ranked:
+        return 0.0
+    return min(1.0, ranked[0][1] / config["reference"])

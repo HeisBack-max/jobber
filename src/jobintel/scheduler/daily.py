@@ -23,6 +23,10 @@ def _run_daily_job() -> None:
     logger.info("scheduler.evaluation_complete", summary=eval_summary.render())
     digest = generate_digest()
     logger.info("scheduler.digest_generated", text=digest.render_text())
+    from jobintel.notifications.dispatch import dispatch_notifications
+
+    notify_summary = asyncio.run(dispatch_notifications())
+    logger.info("scheduler.notifications_dispatched", summary=notify_summary.render())
 
 
 def start_daily_scheduler(hour: int = 6, minute: int = 0) -> None:

@@ -78,7 +78,37 @@ confidence_scoring:
     location_information_conflicting: 15
   floor: 5
 
+semantic_matching:
+  # Vector-space (TF-IDF cosine) similarity between a vacancy and each
+  # role family's profile document - see src/jobintel/matching/embeddings.py.
+  # This is what lets a posting match on *meaning* when it doesn't reuse
+  # the CV's vocabulary, and what stops keyword noise from inflating a
+  # borderline title match: the rest of the document has to agree.
+  enabled: true
+  weights:
+    # Must sum to 1.0. Title similarity still dominates - the semantic
+    # channel corroborates or damps it, it does not replace it.
+    title: 0.60
+    keyword: 0.20
+    semantic: 0.20
+  # Raw cosine that counts as a full-strength topical match. Cosines over
+  # sparse TF-IDF vectors are small in absolute terms (a strong match
+  # scores ~0.25-0.45 against these short profile documents), so scores
+  # are normalized against this reference before being weighted. Raise it
+  # to make the semantic channel stricter.
+  reference_similarity: 0.35
+  # A vacancy whose title is too different to clear the title floor can
+  # still be considered when the *document* similarity is this strong -
+  # this is the "different words, same job" case that keyword and fuzzy
+  # title matching structurally cannot catch. Anchor-term gating still
+  # applies, so this can never rescue an unrelated role at an AI company.
+  rescue_min_normalized_similarity: 0.80
+  rescue_penalty: 0.85
+
 cost_control:
   daily_llm_budget_usd: 5.00
+  # Normalized (0-1) semantic pre-score, per semantic_matching above: a
+  # posting below this never reaches the paid LLM stage no matter how
+  # well it scores on geography or freshness.
   stage2_semantic_prescore_min_to_advance: 0.35
   stage4_deep_analysis_min_score: 85

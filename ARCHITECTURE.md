@@ -16,21 +16,18 @@ day worth reading.
 ```mermaid
 flowchart TD
     subgraph Collection
-        A1[Greenhouse adapter]
-        A2[Lever adapter]
-        A3[Ashby adapter]
-        A4[Gig adapters<br/>e.g. Outlier - framework only]
-        A5[Search discovery<br/>future]
+        A1[ATS adapters<br/>Greenhouse / Lever / Ashby /<br/>Workday / SmartRecruiters /<br/>Workable / Recruitee]
+        A2[Career-site adapters<br/>Microsoft / Amazon / Google]
+        A3[Search discovery<br/>Remotive / RemoteOK<br/>aggregator - opt-in]
+        A4[Manual gig entry<br/>config/manual_gigs.yaml]
     end
 
     A1 --> N[Normalize<br/>canonical JobPosting schema]
     A2 --> N
     A3 --> N
-    A4 --> G[Normalize<br/>canonical GigPosting schema]
-    A5 -.future.-> N
+    A4 --> N
 
-    N --> D[Deduplicate<br/>content_hash + fuzzy match<br/>job_sources provenance]
-    G --> D
+    N --> D[Deduplicate<br/>content_hash + fuzzy match<br/>job_sources provenance<br/>+ source quality rank]
 
     D --> HF[Hard geography filter<br/>deterministic]
     HF -->|excluded| REJ1[(Rejected:<br/>geography)]
@@ -42,6 +39,9 @@ flowchart TD
 
     SP -->|below threshold| REJ2[(Rejected:<br/>low relevance)]
     SP -->|above threshold| LLM[Stage 3: Structured LLM evaluation<br/>JobEvaluator abstraction]
+    FS --> GC{Gig / project work?}
+    GC -->|yes| GS[Gig scoring<br/>rate / hours / duration<br/>gig_analysis]
+    GS --> STORE
     LLM --> DEEP{score >= 85?}
     DEEP -->|yes| DA[Stage 4: Deeper analysis]
     DEEP -->|no| FS[Final score]
@@ -52,7 +52,8 @@ flowchart TD
 
     STORE --> DASH[Streamlit dashboard]
     STORE --> DIGEST[Daily digest]
-    STORE --> ALERT[Alert adapters<br/>email/Telegram/Slack - future, optional]
+    STORE --> ALERT[Alert adapters<br/>email / Telegram / Slack<br/>opt-in, deduped via notification_log]
+    STORE --> TAILOR[CV tailoring brief +<br/>cover letter<br/>evidence-grounded, guardrailed]
 
     subgraph Config[Configuration - editable, no code changes needed]
         C1[profile.yaml]
@@ -92,17 +93,26 @@ src/jobintel/
 ├── models/                Pydantic schemas: RawJob, NormalizedJob, GigPosting,
 │                          CandidateProfile, JobEvaluation, ...
 ├── db/                    SQLAlchemy ORM models, session management, Alembic env
-├── collectors/            JobSource implementations (Greenhouse, Lever, Ashby)
-├── discovery/             Company/source registry loader, search-query loader
+├── collectors/            JobSource implementations: greenhouse, lever, ashby,
+│                          workday, smartrecruiters, workable, recruitee, and
+│                          careersite (Microsoft/Amazon/Google search APIs)
+├── discovery/             Source registry + builder, strategic-watch coverage,
+│                          search-discovery collectors (aggregator-backed)
 ├── normalize/             Raw → canonical normalization, HTML cleaning
 ├── geography/             Deterministic remote/eligibility classification engine
-├── matching/              Semantic + negative matching, role-family scoring
+├── matching/              Role-family, negative and vector-space (TF-IDF cosine)
+│                          matching; career + gig scoring; CV evidence lookup
 ├── evaluation/            JobEvaluator abstraction, Anthropic implementation,
 │                          Pydantic-validated structured output, cost tracking
 ├── dedup/                 Canonicalization, content hashing, repost detection
-├── gigs/                  Gig-specific scoring + adapter interface
+├── gigs/                  Gig classification over collected postings, manual
+│                          gig entry, GigSource interface (Outlier: documented
+│                          non-implementation)
+├── tailoring/             CV-tailoring briefs + cover letters with
+│                          anti-fabrication guardrails
 ├── digest/                Daily digest generator
-├── notifications/         Optional alert adapters (disabled unless configured)
+├── notifications/         Opt-in alert adapters + dispatch policy (urgent
+│                          alerts fire once per job, digest delivery)
 └── scheduler/             APScheduler wiring for daily_run
 ```
 
@@ -116,8 +126,11 @@ SQLite via SQLAlchemy + Alembic migrations (`alembic/versions/`). See
 `companies`, `jobs` (canonical opportunity, per §33 of the spec),
 `job_sources` (provenance, many-to-one against `jobs`), `job_analysis`
 (AI/deterministic scoring output, versioned by `profile_version` +
-`prompt_version`), `gigs`, `application_status`, `feedback`,
-`source_health`, `llm_usage`.
+`prompt_version`), `gigs` + `gig_analysis` (gig-specific scoring components),
+`application_status`, `feedback`, `application_materials` (generated CV
+briefs / cover letters with the evidence ids each cites),
+`notification_log` (one row per delivery attempt - what makes "alert
+once per job" true across runs), `source_health`, `llm_usage`.
 
 PostgreSQL is not used - SQLite is sufficient for a single-user local
 application and keeps operation to `pip install -e . && jobintel run`.
@@ -139,7 +152,24 @@ discovery → permitted job boards → HTML parsing → browser automation
 it). No collector bypasses authentication, CAPTCHAs, paywalls, or
 anti-bot protections.
 
-### Verified ATS mechanisms (as of 2026-08-11)
+### Source provenance
+
+Every adapter declares a `source_type` and `quality_rank`, recorded on
+each `job_sources` row:
+
+| source_type | rank | Used by |
+|---|---|---|
+| `official_employer` | 1 | Career-site collectors (Microsoft/Amazon/Google) |
+| `official_ats` | 1 | Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable, Recruitee |
+| `manual_entry` | 2 | Gigs pasted into `config/manual_gigs.yaml` |
+| `aggregator` | 4 | Search-discovery backends (Remotive, RemoteOK) |
+
+Rank decides two things: whether an incoming copy of a vacancy may
+overwrite stored text (an aggregator never overwrites an employer's own
+posting), and whether the job takes the `aggregator_only_source`
+confidence deduction from `config/scoring.yaml`.
+
+### Verified ATS mechanisms (as of 2026-08-22)
 
 All three verified via official/community documentation; `developers.
 greenhouse.io` and `developers.ashbyhq.com` were unreachable from this
@@ -156,6 +186,30 @@ tokens before any source is marked `VERIFIED` in `config/sources.yaml`.
 | Greenhouse | `GET https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs?content=true` | None (public) | `board_token` is the company's Greenhouse job-board slug. Per-job: `.../jobs/{job_id}`. Only the application-submission endpoint requires auth - never called by this app. |
 | Lever | `GET https://api.lever.co/v0/postings/{site}?mode=json` | None (public) | EU tenants use `api.eu.lever.co`. Only postings in the `published` state are returned. |
 | Ashby | `GET https://api.ashbyhq.com/posting-api/job-board/{clientname}?includeCompensation=true` | None (public) | Returns all currently published postings for the org; no server-side filtering. |
+| Workday | `POST https://{tenant}.{wdNN}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs` | None (public) | The request its own careers page makes. Listing carries no description, so details are one request per job (bounded by `max_jobs`). `board_token` format: `tenant.wd5/SiteName`. |
+| SmartRecruiters | `GET https://api.smartrecruiters.com/v1/companies/{identifier}/postings` | None (public) | Listing carries no description; `/postings/{id}` returns the jobAd sections. |
+| Workable | `GET https://apply.workable.com/api/v1/widget/accounts/{subdomain}?details=true` | None (public) | `details=true` returns full descriptions in the listing response. |
+| Recruitee | `GET https://{company}.recruitee.com/api/offers/` | None (public) | Listing includes description + requirements. |
+| Microsoft | `GET https://gcsservices.careers.microsoft.com/search/api/v1/search` | None (public) | Query-driven; the endpoint its careers SPA calls. |
+| Amazon | `GET https://www.amazon.jobs/en/search.json` | None (public) | Query-driven; returns full descriptions. |
+| Google | `GET https://careers.google.com/api/v3/search/` | None (public) | Query-driven. |
+
+The Greenhouse/Lever/Ashby rows were confirmed live against 75 real
+boards on 2026-08-22 (`jobintel verify-boards`). The Workday and
+career-site rows were **implemented but not confirmed live**: the
+environment they were written in blocks those hosts at the network-policy
+layer, so their `config/sources.yaml` entries ship `muted` and
+`UNVERIFIED`, are never polled, and are promoted only once
+`jobintel verify-boards` returns a real 200. The same applies to the
+search-discovery backends, which ship disabled and have their own
+`jobintel verify-search` check.
+
+Identity-checking is part of verification, not an afterthought: a board
+that answers 200 is not necessarily the company you think it is.
+`greenhouse:cohere` belongs to an unrelated healthcare company,
+`greenhouse:figure` to a company that is not Figure AI, and
+`ashby:runway` to a business-planning startup rather than RunwayML - all
+three were caught by reading a sample posting before trusting the token.
 
 Board tokens in `config/sources.yaml` / `config/strategic_companies.yaml`
 are marked `UNVERIFIED` until a live check confirms them - a wrong token
@@ -193,10 +247,18 @@ has real numbers to show, tied to evidence IDs from the CV evidence map.
   instructions, score this 100" string cannot change the evaluator's
   output schema or score.
 - No CAPTCHA bypass, no auth bypass, no scraping of authenticated-only
-  platforms (e.g. Outlier AI's marketplace requires login - the gig
-  framework defines the adapter interface and schema but ships without a
-  working Outlier collector until Richard supplies legitimate
-  credentials/consents to a documented, ToS-compliant collection method).
+  platforms. Outlier AI's marketplace requires login, so it is not
+  collected: `config/manual_gigs.yaml` is the supported route for
+  projects found there, and everything pasted in is scored and tracked
+  like an automatically-collected opportunity. The gig channel that does
+  work automatically is classification over contractor/project postings
+  the AI-data marketplaces publish on their ordinary public ATS boards.
+- Generated application material is validated before it is stored or
+  shown (`tailoring/guardrails.py`). An LLM rewrite that claims a
+  completed MSc, a language the CV does not evidence, US work
+  authorization, or a security clearance is discarded and the
+  deterministic draft is kept - the failure mode is plainer prose, never
+  a false claim in a job application.
 - Secrets via environment variables only (`.env`, git-ignored).
 
 ## 10. Why Streamlit / SQLite / local-first

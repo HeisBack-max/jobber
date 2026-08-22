@@ -94,3 +94,19 @@ privacy:
   # the CV/profile above.
   store_recruiter_contacts: true
   store_application_notes: true
+
+alerts:
+  # Urgent alerts interrupt Richard's day, so the bar is deliberately
+  # high: an exceptional, genuinely-eligible, genuinely-remote role that
+  # was posted today. Everything else waits for the daily digest.
+  urgent_min_score: 92
+  urgent_max_age_hours: 24
+  urgent_requires_geographic_eligibility: true
+  urgent_requires_confirmed_remote: true
+  # Send the daily digest through the configured notification channels
+  # as well as printing it. No channel is configured by default, so this
+  # is a no-op until one is.
+  send_daily_digest: true
+  # A job is only ever alerted on once, regardless of how many channels
+  # are configured or how many times the pipeline runs.
+  suppress_duplicate_alerts: true
