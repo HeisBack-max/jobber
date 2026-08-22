@@ -1,0 +1,928 @@
+<title>Kestrel RF-9 Sweep Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root{
+    --ground:#080B10;
+    --case:#151B24;
+    --case-hi:#1D2530;
+    --screen:#0A0F15;
+    --screen-2:#0D131B;
+    --bezel:#2A3441;
+    --rule:#212A35;
+    --ink:#D7DFE9;
+    --ink-dim:#7A8899;
+    --ink-faint:#4E5B6B;
+    --amber:#FFAE3B;
+    --amber-deep:#B4700F;
+    --teal:#4FB3A5;
+    --alert:#FF4A38;
+    --alert-deep:#7A1A12;
+    --ok:#5FC98B;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --cond:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+    --body:"Barlow",system-ui,-apple-system,sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--ground);
+    background-image:
+      radial-gradient(120% 90% at 50% -10%, #16202B 0%, #080B10 62%);
+    color:var(--ink);
+    font-family:var(--body);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(8px,2vw,28px);
+  }
+
+  /* ── Hardware case ───────────────────────────────────────── */
+  .unit{
+    width:min(1180px,100%);
+    background:linear-gradient(180deg,var(--case-hi),var(--case) 22%,#10161E);
+    border:1px solid #2E3846;
+    border-radius:10px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.06) inset,
+      0 40px 90px -30px #000,
+      0 0 0 1px #05080C;
+    padding:clamp(10px,1.4vw,18px);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .screw{
+    position:absolute;width:9px;height:9px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#4A5563,#20272F 60%,#131920);
+    box-shadow:0 1px 1px rgba(0,0,0,.8), 0 0 0 1px #0B0F14;
+  }
+  .screw::after{content:"";position:absolute;inset:3px 1px;background:#0D1218;border-radius:1px;transform:rotate(28deg)}
+  .screw.tl{top:7px;left:7px}.screw.tr{top:7px;right:7px}
+  .screw.bl{bottom:7px;left:7px}.screw.br{bottom:7px;right:7px}
+
+  /* ── Top identity bar ────────────────────────────────────── */
+  .idbar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:0 6px 10px;border-bottom:1px solid var(--rule);
+  }
+  .brand{display:flex;align-items:baseline;gap:9px}
+  .brand b{
+    font-family:var(--cond);font-weight:700;font-size:20px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink);
+  }
+  .brand span{
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--amber);
+  }
+  .brand small{
+    font-family:var(--cond);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .idbar .spacer{flex:1}
+  .stat{
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-dim);
+    text-transform:uppercase;
+  }
+  .stat b{color:var(--ink);font-weight:500}
+  .led{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);box-shadow:0 0 0 1px #05080C}
+  .led.on{background:var(--ok);box-shadow:0 0 7px var(--ok),0 0 0 1px #05080C}
+  .led.warn{background:var(--amber);box-shadow:0 0 7px var(--amber),0 0 0 1px #05080C}
+  .led.alert{background:var(--alert);box-shadow:0 0 9px var(--alert),0 0 0 1px #05080C;animation:blip .6s steps(1,end) infinite}
+  @keyframes blip{50%{opacity:.2;box-shadow:none}}
+
+  .batt{display:flex;align-items:center;gap:5px}
+  .batt-cell{
+    width:26px;height:10px;border:1px solid var(--ink-faint);border-radius:2px;position:relative;padding:1px;
+  }
+  .batt-cell::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:4px;background:var(--ink-faint)}
+  .batt-fill{height:100%;background:var(--ok);transition:width .6s linear}
+
+  /* ── Alert banner ────────────────────────────────────────── */
+  .alertbar{
+    display:none;align-items:center;gap:12px;
+    background:linear-gradient(90deg,var(--alert-deep),#3A0D08 70%,#25080550);
+    border:1px solid var(--alert);
+    border-radius:4px;padding:8px 12px;
+    font-family:var(--cond);text-transform:uppercase;letter-spacing:.16em;
+  }
+  .alertbar.show{display:flex;animation:alertpulse 1.1s ease-in-out infinite}
+  @keyframes alertpulse{0%,100%{border-color:var(--alert)}50%{border-color:#8E2418}}
+  .alertbar .tag{
+    background:var(--alert);color:#180402;font-weight:700;font-size:12px;
+    padding:3px 8px;border-radius:2px;letter-spacing:.14em;
+  }
+  .alertbar .msg{font-weight:600;font-size:15px;color:#FFD9D3}
+  .alertbar .frq{
+    margin-left:auto;font-family:var(--mono);font-size:15px;letter-spacing:.04em;
+    color:#FF9A8C;font-variant-numeric:tabular-nums;
+  }
+
+  /* ── Main grid ───────────────────────────────────────────── */
+  .grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 286px;
+    gap:12px;
+  }
+  @media (max-width:900px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+  .screenwrap{
+    background:var(--screen);
+    border:1px solid var(--bezel);
+    border-radius:5px;
+    box-shadow:0 0 0 1px #05080C, 0 10px 24px -14px #000 inset;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .screenhead{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:7px 10px;border-bottom:1px solid var(--rule);
+    background:linear-gradient(180deg,#101720,#0B1119);
+  }
+  .chip{
+    font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-dim);border:1px solid var(--rule);border-radius:2px;padding:2px 7px;
+  }
+  .chip b{font-family:var(--mono);font-size:11px;color:var(--ink);letter-spacing:.02em;font-weight:500}
+  .chip.live{color:var(--amber);border-color:#4A3616}
+
+  canvas{display:block;width:100%}
+  #spectrum{height:clamp(190px,26vh,290px)}
+  #waterfall{height:clamp(96px,15vh,156px);border-top:1px solid var(--rule)}
+
+  .axis{
+    display:flex;justify-content:space-between;
+    padding:4px 10px 6px;
+    font-family:var(--mono);font-size:10px;color:var(--ink-faint);
+    letter-spacing:.04em;font-variant-numeric:tabular-nums;
+    border-top:1px solid var(--rule);
+  }
+
+  /* ── Right rail ──────────────────────────────────────────── */
+  .rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .panel{
+    background:linear-gradient(180deg,#111821,#0C1219);
+    border:1px solid var(--bezel);border-radius:5px;
+    box-shadow:0 0 0 1px #05080C;
+    overflow:hidden;
+  }
+  .panel > h3{
+    margin:0;padding:7px 10px;
+    font-family:var(--cond);font-size:11px;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);
+    border-bottom:1px solid var(--rule);
+    display:flex;align-items:center;gap:7px;
+  }
+  .panel > h3 .n{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:0}
+
+  .target{padding:10px}
+  .target .big{
+    font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;
+    color:var(--ink-faint);font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+  }
+  .target.locked .big{color:var(--alert);text-shadow:0 0 18px rgba(255,74,56,.35)}
+  .target .unit-lbl{font-family:var(--cond);font-size:12px;color:var(--ink-faint);letter-spacing:.16em;margin-left:5px}
+  .target .sub{
+    margin-top:5px;font-family:var(--cond);font-size:12px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-dim);
+  }
+  .kv{
+    display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:9px;
+    font-size:11px;
+  }
+  .kv dt{font-family:var(--cond);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
+  .kv dd{margin:0;font-family:var(--mono);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+
+  .prox{padding:10px}
+  .meter{
+    height:16px;border:1px solid var(--rule);border-radius:2px;
+    background:
+      repeating-linear-gradient(90deg,#0E141B 0 6px,#0A1017 6px 7px);
+    position:relative;overflow:hidden;
+  }
+  .meter-fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,#2F6E5F,#4FB3A5 45%,var(--amber) 78%,var(--alert));
+    transition:width .16s linear;
+  }
+  .meter-ticks{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 25%}
+  .meter-ticks i{width:1px;background:#05080C99}
+  .prox .row{
+    display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;
+    font-family:var(--mono);font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums;
+  }
+  .prox .row b{color:var(--ink);font-weight:500}
+
+  /* signal table */
+  .siglist{max-height:236px;overflow-y:auto}
+  .siglist table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+  .siglist th{
+    position:sticky;top:0;background:#0D131B;
+    font-family:var(--cond);font-weight:500;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-faint);text-align:left;
+    padding:5px 8px;border-bottom:1px solid var(--rule);
+  }
+  .siglist td{padding:5px 8px;border-bottom:1px solid #161D26;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .siglist td:first-child{color:var(--ink)}
+  .siglist td:last-child{text-align:right}
+  .siglist tr.flag td{color:#FFB6AC;background:#2A0B0733}
+  .siglist tr.flag td:first-child{color:var(--alert)}
+  .cls{font-family:var(--cond);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+
+  /* ── Log strip ───────────────────────────────────────────── */
+  .log{
+    height:78px;overflow-y:auto;padding:6px 10px;
+    font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-faint);
+  }
+  .log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .log .t{color:#3D4854;margin-right:8px}
+  .log .w{color:var(--amber)}
+  .log .a{color:var(--alert)}
+
+  /* ── Control deck ────────────────────────────────────────── */
+  .deck{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    padding:10px 6px 2px;border-top:1px solid var(--rule);
+  }
+  button{
+    font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--ink-dim);
+    background:linear-gradient(180deg,#1C242F,#141A23);
+    border:1px solid #2E3846;border-radius:3px;
+    padding:8px 13px;cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 4px -2px #000;
+    transition:color .12s,border-color .12s,transform .05s;
+  }
+  button:hover{color:var(--ink);border-color:#43505F}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+  button.armed{color:var(--amber);border-color:var(--amber-deep);box-shadow:0 0 12px -4px var(--amber),0 1px 0 rgba(255,255,255,.06) inset}
+  button.danger.armed{color:var(--alert);border-color:#7A2117;box-shadow:0 0 12px -4px var(--alert)}
+  .deck .spacer{flex:1}
+  .deck .hint{
+    font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  kbd{
+    font-family:var(--mono);font-size:10px;color:var(--ink-dim);
+    background:#0E141B;border:1px solid #2A3441;border-bottom-width:2px;border-radius:3px;
+    padding:1px 5px;margin:0 1px;
+  }
+
+  /* ── Cue card ────────────────────────────────────────────── */
+  .cue{
+    position:fixed;inset:0;background:#04060Aee;z-index:40;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .cue.show{display:flex}
+  .cue-inner{
+    max-width:600px;width:100%;
+    background:var(--case);border:1px solid var(--bezel);border-radius:8px;
+    padding:22px 24px;box-shadow:0 40px 90px -30px #000;
+  }
+  .cue h2{
+    margin:0 0 3px;font-family:var(--cond);font-size:19px;font-weight:700;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--amber);
+  }
+  .cue p{margin:0 0 16px;font-size:13px;color:var(--ink-dim);line-height:1.55;max-width:60ch}
+  .cue dl{display:grid;grid-template-columns:104px 1fr;gap:7px 14px;margin:0;align-items:baseline}
+  .cue dt{text-align:right}
+  .cue dd{margin:0;font-size:13px;color:var(--ink)}
+  .cue dd em{font-style:normal;color:var(--ink-dim)}
+  .cue footer{margin-top:18px;padding-top:14px;border-top:1px solid var(--rule);font-size:12px;color:var(--ink-faint);line-height:1.6}
+
+  .hidden{display:none !important}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  }
+</style>
+
+<div class="unit" id="unit">
+  <i class="screw tl"></i><i class="screw tr"></i><i class="screw bl"></i><i class="screw br"></i>
+
+  <header class="idbar">
+    <div class="brand">
+      <b>Kestrel</b><span>RF-9</span><small>Counter-Surveillance Sweep Unit</small>
+    </div>
+    <div class="spacer"></div>
+    <div class="stat"><i class="led on" id="ledPwr"></i> PWR</div>
+    <div class="stat"><i class="led warn" id="ledScan"></i> SCAN</div>
+    <div class="stat"><i class="led" id="ledDet"></i> DET</div>
+    <div class="stat">ANT <b>OMNI-B</b></div>
+    <div class="stat">SWP <b id="swpCount">0000</b></div>
+    <div class="stat">
+      <span class="batt"><span class="batt-cell"><span class="batt-fill" id="battFill" style="width:87%"></span></span></span>
+      <b id="battPct">87%</b>
+    </div>
+    <div class="stat"><b id="clock">--:--:--</b></div>
+  </header>
+
+  <div class="alertbar" id="alertbar">
+    <span class="tag">Alert</span>
+    <span class="msg" id="alertMsg">Unregistered transmitter in sweep area</span>
+    <span class="frq" id="alertFrq">—</span>
+  </div>
+
+  <div class="grid">
+    <section class="screenwrap">
+      <div class="screenhead">
+        <span class="chip live">Mode <b>WIDE SWEEP</b></span>
+        <span class="chip">Span <b>20 – 6000 MHz</b></span>
+        <span class="chip">RBW <b>300 kHz</b></span>
+        <span class="chip">Ref <b>−20 dBm</b></span>
+        <span class="chip">Att <b>0 dB</b></span>
+        <span class="chip">Gain <b id="gainLbl">+18 dB</b></span>
+      </div>
+      <canvas id="spectrum"></canvas>
+      <canvas id="waterfall"></canvas>
+      <div class="axis" id="axis"></div>
+    </section>
+
+    <aside class="rail">
+      <div class="panel">
+        <h3>Locked target</h3>
+        <div class="target" id="target">
+          <div><span class="big" id="tFreq">———.———</span><span class="unit-lbl">MHz</span></div>
+          <div class="sub" id="tName">No target — sweeping</div>
+          <dl class="kv">
+            <dt>Level</dt><dd id="tLevel">—</dd>
+            <dt>Bandwidth</dt><dd id="tBw">—</dd>
+            <dt>Modulation</dt><dd id="tMod">—</dd>
+            <dt>Duty</dt><dd id="tDuty">—</dd>
+            <dt>First seen</dt><dd id="tSeen">—</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Proximity <span class="n" id="proxState">STANDBY</span></h3>
+        <div class="prox">
+          <div class="meter"><div class="meter-fill" id="proxFill"></div>
+            <div class="meter-ticks"><i></i><i></i><i></i></div>
+          </div>
+          <div class="row"><span>FIELD STRENGTH</span><b id="proxVal">0.00 mV/m</b></div>
+          <div class="row"><span>EST. RANGE</span><b id="proxRange">—</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Detected emitters <span class="n" id="sigCount">0</span></h3>
+        <div class="siglist">
+          <table>
+            <thead><tr><th>Freq / MHz</th><th>Class</th><th>dBm</th></tr></thead>
+            <tbody id="sigBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="panel">
+    <h3>Sweep log</h3>
+    <div class="log" id="log"></div>
+  </section>
+
+  <div class="deck">
+    <button id="btnSweep" class="armed">Sweep · Run</button>
+    <button id="btnAudio">Audio Off</button>
+    <button id="btnPeak" class="armed">Max hold</button>
+    <button id="btnClear" class="danger">Clear flags</button>
+    <button id="btnFull">Full screen</button>
+    <div class="spacer"></div>
+    <span class="hint">Cue card <kbd>?</kbd> · hide controls <kbd>H</kbd></span>
+  </div>
+</div>
+
+<div class="cue" id="cue">
+  <div class="cue-inner">
+    <h2>Cue card — stage prop</h2>
+    <p>This unit is a theatrical prop. It measures nothing; every reading is generated on the spot. Keep this card off the projector — these are your cues.</p>
+    <dl>
+      <dt><kbd>1</kbd></dt><dd>Plant bug — <em>433.920 MHz, analog FM body mic</em></dd>
+      <dt><kbd>2</kbd></dt><dd>Plant bug — <em>1268.500 MHz, burst telemetry</em></dd>
+      <dt><kbd>3</kbd></dt><dd>Plant bug — <em>2437.000 MHz, unassociated Wi-Fi camera</em></dd>
+      <dt><kbd>4</kbd></dt><dd>Plant bug — <em>5745.000 MHz, analog video downlink</em></dd>
+      <dt><kbd>0</kbd></dt><dd>Clear every flagged signal, back to a clean room</dd>
+      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Walk toward / away — drives the meter and the click rate</dd>
+      <dt><kbd>Space</kbd></dt><dd>Hold / resume the sweep</dd>
+      <dt><kbd>A</kbd></dt><dd>Audio on or off (clicks build as you close in)</dd>
+      <dt><kbd>H</kbd></dt><dd>Hide the button row for a clean shot</dd>
+      <dt><kbd>F</kbd></dt><dd>Full screen</dd>
+      <dt><kbd>?</kbd> <kbd>Esc</kbd></dt><dd>Open / close this card</dd>
+    </dl>
+    <footer>
+      Blocking note: proximity decays on its own, so a bug found and then abandoned goes quiet — walk back in with <kbd>↑</kbd> and it wakes up again. Audio needs one click anywhere on the page before it will sound; press <kbd>A</kbd> during your pre-set.
+    </footer>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ── Fixed instrument parameters ────────────────────────────
+  const F_MIN = 20, F_MAX = 6000;         // MHz displayed span
+  const BINS  = 600;                       // trace resolution
+  const DB_TOP = -20, DB_BOT = -115;       // vertical scale
+
+  const $ = id => document.getElementById(id);
+
+  // ── Ambient RF environment — always present, never flagged ─
+  const AMBIENT = [
+    {f:  98.1, bw: 14,  lvl: -52, name:"FM broadcast",        mod:"WBFM"},
+    {f: 191.5, bw: 8,   lvl: -68, name:"DAB block 9B",        mod:"OFDM"},
+    {f: 433.9, bw: 1.2, lvl: -84, name:"ISM telemetry",       mod:"OOK",  intermittent:true},
+    {f: 796.0, bw: 10,  lvl: -61, name:"LTE band 20 downlink",mod:"OFDMA"},
+    {f: 942.4, bw: 6,   lvl: -58, name:"GSM-900 beacon",      mod:"GMSK"},
+    {f:1842.0, bw: 15,  lvl: -63, name:"LTE band 3 downlink", mod:"OFDMA"},
+    {f:1881.8, bw: 1.7, lvl: -72, name:"DECT base station",   mod:"GFSK", intermittent:true},
+    {f:2412.0, bw: 20,  lvl: -57, name:"WLAN ch 1 · assoc.",  mod:"OFDM"},
+    {f:2462.0, bw: 20,  lvl: -66, name:"WLAN ch 11 · assoc.", mod:"OFDM"},
+    {f:2480.0, bw: 2,   lvl: -78, name:"BT LE advertising",   mod:"GFSK", intermittent:true},
+    {f:5220.0, bw: 40,  lvl: -70, name:"WLAN ch 44 · assoc.", mod:"OFDM"},
+    {f:5805.0, bw: 40,  lvl: -76, name:"WLAN ch 161 · assoc.",mod:"OFDM"}
+  ];
+
+  // ── Plantable covert transmitters (the actor's cues) ───────
+  const BUGS = {
+    "1":{f: 433.920, bw:0.18, base:-88, name:"Analog FM body mic",      mod:"NBFM",  duty:"CONT 100%",
+         note:"continuous carrier, no protocol handshake"},
+    "2":{f:1268.500, bw:0.75, base:-91, name:"Burst telemetry link",    mod:"2-FSK", duty:"BURST 4.1 s",
+         note:"periodic burst outside licensed allocation"},
+    "3":{f:2437.000, bw:9.0,  base:-84, name:"Wi-Fi camera, unassoc.",  mod:"OFDM",  duty:"CONT 92%",
+         note:"video-rate uplink with no gateway association"},
+    "4":{f:5745.000, bw:6.5,  base:-86, name:"Analog video downlink",   mod:"AM-VSB",duty:"CONT 100%",
+         note:"vestigial-sideband video, FPV band"}
+  };
+
+  // ── Runtime state ──────────────────────────────────────────
+  const st = {
+    running:true, audio:false, maxHold:true,
+    sweepPos:0, sweeps:0, batt:87,
+    prox:0, proxTarget:0,
+    planted:[],            // active bug keys
+    trace:new Float32Array(BINS),
+    hold:new Float32Array(BINS),
+    lock:null,             // locked bug object
+    logged:new Set()
+  };
+  st.trace.fill(DB_BOT); st.hold.fill(DB_BOT);
+
+  const binOf = f => Math.round((f - F_MIN) / (F_MAX - F_MIN) * (BINS - 1));
+  const freqOf = b => F_MIN + b / (BINS - 1) * (F_MAX - F_MIN);
+  const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+
+  // ── Canvas plumbing ────────────────────────────────────────
+  const spec = $("spectrum"), wf = $("waterfall");
+  const sx = spec.getContext("2d"), wx = wf.getContext("2d");
+  let W = 0, H = 0, WW = 0, WH = 0, dpr = 1;
+
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    for (const [c, ctx] of [[spec, sx], [wf, wx]]){
+      const r = c.getBoundingClientRect();
+      c.width  = Math.max(1, Math.round(r.width  * dpr));
+      c.height = Math.max(1, Math.round(r.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    const rs = spec.getBoundingClientRect(), rw = wf.getBoundingClientRect();
+    W = rs.width; H = rs.height; WW = rw.width; WH = rw.height;
+    wx.fillStyle = "#080D13"; wx.fillRect(0, 0, WW, WH);
+  }
+  new ResizeObserver(resize).observe(spec);
+  window.addEventListener("resize", resize);
+
+  // frequency axis labels
+  (() => {
+    const marks = [20, 1000, 2000, 3000, 4000, 5000, 6000];
+    $("axis").innerHTML = marks
+      .map(m => `<span>${m >= 1000 ? (m/1000).toFixed(1) + " GHz" : m + " MHz"}</span>`)
+      .join("");
+  })();
+
+  // ── Signal synthesis ───────────────────────────────────────
+  const t0 = performance.now();
+  function shape(binIdx, f, bwMHz, peakDb, now){
+    // gaussian-ish skirt in bin space
+    const c = binOf(f);
+    const halfBins = Math.max(1.1, bwMHz / (F_MAX - F_MIN) * BINS * 0.6);
+    const d = (binIdx - c) / halfBins;
+    if (Math.abs(d) > 4) return DB_BOT;
+    return peakDb - 26 * d * d - Math.abs(d) * 3;
+  }
+
+  function levelAt(binIdx, now){
+    // thermal noise floor, tilted slightly up at the low end
+    const f = freqOf(binIdx);
+    let floor = -101 + (f < 300 ? (300 - f) / 300 * 7 : 0);
+    let v = floor + (Math.random() + Math.random() + Math.random() - 1.5) * 4.2;
+
+    for (const e of AMBIENT){
+      let lvl = e.lvl;
+      if (e.intermittent){
+        const phase = Math.sin(now / 1000 * (0.6 + e.f % 3) + e.f) ;
+        if (phase < 0.25) continue;
+        lvl -= (1 - phase) * 14;
+      }
+      lvl += Math.sin(now / 700 + e.f) * 1.8;      // slow fading
+      v = Math.max(v, shape(binIdx, e.f, e.bw, lvl, now));
+    }
+
+    for (const k of st.planted){
+      const b = BUGS[k];
+      // amplitude rides the proximity meter: far away it hides in the grass
+      let lvl = b.base + st.prox * 0.42;
+      if (b.duty.startsWith("BURST")){
+        const on = (now / 1000) % 4.1 < 1.15;
+        if (!on) lvl -= 30;
+      }
+      lvl += Math.sin(now / 430 + b.f) * 1.4;
+      v = Math.max(v, shape(binIdx, b.f, b.bw, lvl, now));
+    }
+    return v;
+  }
+
+  // ── Rendering ──────────────────────────────────────────────
+  const yOf = db => (DB_TOP - db) / (DB_TOP - DB_BOT) * H;
+
+  function drawSpectrum(){
+    sx.clearRect(0, 0, W, H);
+    sx.fillStyle = "#0A0F15"; sx.fillRect(0, 0, W, H);
+
+    // graticule
+    sx.strokeStyle = "#16202B"; sx.lineWidth = 1;
+    sx.beginPath();
+    for (let db = DB_TOP; db >= DB_BOT; db -= 10){
+      const y = Math.round(yOf(db)) + .5;
+      sx.moveTo(0, y); sx.lineTo(W, y);
+    }
+    for (let g = 0; g <= 6000; g += 500){
+      const x = Math.round((g - F_MIN) / (F_MAX - F_MIN) * W) + .5;
+      sx.moveTo(x, 0); sx.lineTo(x, H);
+    }
+    sx.stroke();
+
+    // dB labels
+    sx.font = "10px 'IBM Plex Mono', monospace";
+    sx.fillStyle = "#3E4A58"; sx.textBaseline = "bottom";
+    for (let db = DB_TOP - 10; db > DB_BOT; db -= 20){
+      sx.fillText(db, 4, yOf(db) - 2);
+    }
+
+    // detection threshold
+    sx.setLineDash([4, 4]); sx.strokeStyle = "#4E3A16"; sx.beginPath();
+    sx.moveTo(0, yOf(-80) + .5); sx.lineTo(W, yOf(-80) + .5); sx.stroke();
+    sx.setLineDash([]);
+
+    const xOf = i => i / (BINS - 1) * W;
+
+    // max-hold trace
+    if (st.maxHold){
+      sx.strokeStyle = "rgba(79,179,165,.55)"; sx.lineWidth = 1; sx.beginPath();
+      for (let i = 0; i < BINS; i++){
+        const y = yOf(st.hold[i]);
+        i ? sx.lineTo(xOf(i), y) : sx.moveTo(xOf(i), y);
+      }
+      sx.stroke();
+    }
+
+    // live trace + fill
+    const grad = sx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, "rgba(255,174,59,.30)");
+    grad.addColorStop(1, "rgba(255,174,59,.02)");
+    sx.beginPath(); sx.moveTo(0, H);
+    for (let i = 0; i < BINS; i++) sx.lineTo(xOf(i), yOf(st.trace[i]));
+    sx.lineTo(W, H); sx.closePath();
+    sx.fillStyle = grad; sx.fill();
+
+    sx.beginPath();
+    for (let i = 0; i < BINS; i++){
+      const y = yOf(st.trace[i]);
+      i ? sx.lineTo(xOf(i), y) : sx.moveTo(xOf(i), y);
+    }
+    sx.strokeStyle = "#FFAE3B"; sx.lineWidth = 1.2;
+    sx.shadowColor = "rgba(255,174,59,.5)"; sx.shadowBlur = 5;
+    sx.stroke(); sx.shadowBlur = 0;
+
+    // flagged markers
+    for (const k of st.planted){
+      const b = BUGS[k];
+      const x = Math.round(binOf(b.f) / (BINS - 1) * W) + .5;
+      const y = yOf(st.trace[clamp(binOf(b.f), 0, BINS - 1)]);
+      sx.strokeStyle = "rgba(255,74,56,.75)"; sx.lineWidth = 1;
+      sx.beginPath(); sx.moveTo(x, y - 6); sx.lineTo(x, 8); sx.stroke();
+      sx.fillStyle = "#FF4A38";
+      sx.beginPath(); sx.moveTo(x, y - 5); sx.lineTo(x - 4, y - 12); sx.lineTo(x + 4, y - 12); sx.closePath(); sx.fill();
+      sx.font = "10px 'IBM Plex Mono', monospace"; sx.textBaseline = "top";
+      const lbl = b.f.toFixed(3);
+      const tw = sx.measureText(lbl).width;
+      sx.fillText(lbl, clamp(x - tw / 2, 2, W - tw - 2), 10);
+    }
+
+    // sweep cursor
+    const cx = st.sweepPos / (BINS - 1) * W;
+    const cg = sx.createLinearGradient(cx - 60, 0, cx, 0);
+    cg.addColorStop(0, "rgba(255,174,59,0)"); cg.addColorStop(1, "rgba(255,174,59,.16)");
+    sx.fillStyle = cg; sx.fillRect(cx - 60, 0, 60, H);
+    sx.strokeStyle = "rgba(255,220,160,.85)"; sx.lineWidth = 1;
+    sx.beginPath(); sx.moveTo(cx + .5, 0); sx.lineTo(cx + .5, H); sx.stroke();
+  }
+
+  function wfColor(db){
+    const t = clamp((db - (-104)) / 60, 0, 1);
+    if (t < .35) { const u = t / .35; return `rgb(${8 + u * 12},${13 + u * 46},${19 + u * 52})`; }
+    if (t < .62) { const u = (t - .35) / .27; return `rgb(${20 + u * 130},${59 + u * 68},${71 - u * 44})`; }
+    const u = (t - .62) / .38;
+    return `rgb(${150 + u * 105},${127 + u * 90},${27 + u * 150})`;
+  }
+
+  function pushWaterfall(){
+    // scroll down 1px, paint newest row on top
+    wx.drawImage(wf, 0, 0, wf.width, wf.height - dpr, 0, 1, WW, WH - 1);
+    const cw = WW / BINS;
+    for (let i = 0; i < BINS; i++){
+      wx.fillStyle = wfColor(st.trace[i]);
+      wx.fillRect(i * cw, 0, Math.ceil(cw) + .5, 1.2);
+    }
+  }
+
+  // ── Detection / classification ─────────────────────────────
+  function classify(f){
+    for (const e of AMBIENT) if (Math.abs(e.f - f) < Math.max(e.bw, 2)) return e;
+    return null;
+  }
+
+  function refreshSignals(){
+    const rows = [];
+    for (const e of AMBIENT){
+      const idx = clamp(binOf(e.f), 0, BINS - 1);
+      rows.push({f:e.f, lvl:st.hold[idx], cls:"KNOWN", name:e.name, flag:false});
+    }
+    for (const k of st.planted){
+      const b = BUGS[k], idx = clamp(binOf(b.f), 0, BINS - 1);
+      rows.push({f:b.f, lvl:st.hold[idx], cls:"UNREG", name:b.name, flag:true});
+    }
+    rows.sort((a, c) => (c.flag - a.flag) || (c.lvl - a.lvl));
+    $("sigBody").innerHTML = rows.map(r => `
+      <tr class="${r.flag ? "flag" : ""}" title="${r.name}">
+        <td>${r.f.toFixed(3)}</td>
+        <td><span class="cls">${r.cls}</span></td>
+        <td>${r.lvl > DB_BOT + 2 ? r.lvl.toFixed(1) : "—"}</td>
+      </tr>`).join("");
+    $("sigCount").textContent = rows.length;
+  }
+
+  // ── Log ────────────────────────────────────────────────────
+  function stamp(){
+    const d = new Date();
+    return [d.getHours(), d.getMinutes(), d.getSeconds()]
+      .map(n => String(n).padStart(2, "0")).join(":");
+  }
+  function log(msg, kind){
+    const el = document.createElement("div");
+    el.innerHTML = `<span class="t">${stamp()}</span><span class="${kind || ""}">${msg}</span>`;
+    const box = $("log");
+    box.appendChild(el);
+    while (box.children.length > 120) box.removeChild(box.firstChild);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ── Audio: proximity clicks + lock tone ────────────────────
+  let ac = null, toneOsc = null, toneGain = null, nextClick = 0;
+  function audioCtx(){
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    return ac;
+  }
+  function click(gain){
+    const c = audioCtx(), t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "square"; o.frequency.setValueAtTime(1500 + Math.random() * 400, t);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.001);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.05);
+  }
+  function setTone(on, hz){
+    if (!st.audio){ if (toneOsc){ toneOsc.stop(); toneOsc = null; } return; }
+    const c = audioCtx();
+    if (on && !toneOsc){
+      toneOsc = c.createOscillator(); toneGain = c.createGain();
+      toneOsc.type = "sine"; toneGain.gain.value = 0.0;
+      toneOsc.connect(toneGain).connect(c.destination); toneOsc.start();
+    }
+    if (toneOsc){
+      toneOsc.frequency.setTargetAtTime(hz, c.currentTime, .08);
+      toneGain.gain.setTargetAtTime(on ? 0.035 : 0, c.currentTime, .12);
+      if (!on){ const o = toneOsc; toneOsc = null; setTimeout(() => { try{ o.stop(); }catch(e){} }, 400); }
+    }
+  }
+
+  // ── Cue actions ────────────────────────────────────────────
+  function plant(key){
+    const b = BUGS[key];
+    if (!b || st.planted.includes(key)) return;
+    st.planted.push(key);
+    st.proxTarget = Math.max(st.proxTarget, 34);
+    log(`ANOMALY — energy at ${b.f.toFixed(3)} MHz above floor, no registration match`, "w");
+    setTimeout(() => log(`CLASSIFY — ${b.mod}, ${b.note}`, "a"), 900);
+    setTimeout(() => { lockOn(key); }, 1700);
+  }
+
+  function lockOn(key){
+    const b = BUGS[key];
+    st.lock = {key, since: stamp()};
+    $("target").classList.add("locked");
+    $("tFreq").textContent = b.f.toFixed(3);
+    $("tName").textContent = b.name;
+    $("tBw").textContent = (b.bw < 1 ? (b.bw * 1000).toFixed(0) + " kHz" : b.bw.toFixed(1) + " MHz");
+    $("tMod").textContent = b.mod;
+    $("tDuty").textContent = b.duty;
+    $("tSeen").textContent = st.lock.since;
+    $("alertbar").classList.add("show");
+    $("alertMsg").textContent = "Unregistered transmitter — " + b.name;
+    $("alertFrq").textContent = b.f.toFixed(3) + " MHz";
+    $("ledDet").className = "led alert";
+    log(`LOCK — target held at ${b.f.toFixed(3)} MHz · walk the room to localise`, "a");
+  }
+
+  function clearAll(){
+    if (!st.planted.length){ log("SWEEP — no flagged emitters to clear"); return; }
+    st.planted.length = 0; st.lock = null; st.proxTarget = 0;
+    st.hold.fill(DB_BOT);
+    $("target").classList.remove("locked");
+    $("tFreq").textContent = "———.———";
+    $("tName").textContent = "No target — sweeping";
+    ["tLevel","tBw","tMod","tDuty","tSeen"].forEach(id => $(id).textContent = "—");
+    $("alertbar").classList.remove("show");
+    $("ledDet").className = "led";
+    setTone(false, 400);
+    log("CLEAR — flag register wiped, room reads clean", "w");
+    refreshSignals();
+  }
+
+  // ── Main loop ──────────────────────────────────────────────
+  let last = performance.now(), acc = 0, wfAcc = 0;
+
+  function frame(now){
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+
+    // proximity easing + natural decay when the operator stands still
+    st.proxTarget = clamp(st.proxTarget - (st.planted.length ? 2.4 : 9) * dt, 0, 100);
+    st.prox += (st.proxTarget - st.prox) * Math.min(1, dt * 4);
+
+    if (st.running){
+      // advance the sweep, refilling bins behind the cursor
+      const step = Math.max(1, Math.round(BINS * dt * 1.15));
+      for (let n = 0; n < step; n++){
+        const i = (st.sweepPos + n) % BINS;
+        const v = levelAt(i, now - t0);
+        st.trace[i] = st.trace[i] * 0.25 + v * 0.75;
+        if (st.trace[i] > st.hold[i]) st.hold[i] = st.trace[i];
+        else st.hold[i] -= 0.06;
+      }
+      const wrapped = st.sweepPos + step >= BINS;
+      st.sweepPos = (st.sweepPos + step) % BINS;
+      if (wrapped){
+        st.sweeps++;
+        $("swpCount").textContent = String(st.sweeps).padStart(4, "0");
+        if (st.sweeps % 4 === 0) refreshSignals();
+        if (st.sweeps % 9 === 0 && !st.planted.length)
+          log(`SWEEP ${String(st.sweeps).padStart(4,"0")} — 20–6000 MHz nominal, ${AMBIENT.length} registered emitters`);
+      }
+
+      wfAcc += dt;
+      if (wfAcc > 0.06){ pushWaterfall(); wfAcc = 0; }
+    }
+
+    drawSpectrum();
+
+    // proximity panel
+    const p = st.prox;
+    $("proxFill").style.width = p.toFixed(1) + "%";
+    $("proxVal").textContent = (p * 0.0184).toFixed(2) + " mV/m";
+    $("proxRange").textContent = st.planted.length
+      ? (p < 4 ? "> 12 m" : (12 * Math.exp(-p / 34)).toFixed(1) + " m")
+      : "—";
+    $("proxState").textContent = !st.planted.length ? "STANDBY"
+      : p > 78 ? "AT SOURCE" : p > 45 ? "CLOSING" : "SEARCHING";
+
+    if (st.lock){
+      const b = BUGS[st.lock.key];
+      $("tLevel").textContent = (b.base + p * 0.42).toFixed(1) + " dBm";
+    }
+
+    // audio: click rate rides proximity, tone confirms lock
+    if (st.audio && st.planted.length){
+      const rate = 1.2 + Math.pow(p / 100, 1.7) * 26;    // clicks per second
+      if (now > nextClick){
+        click(0.05 + p / 100 * 0.09);
+        nextClick = now + 1000 / rate * (0.82 + Math.random() * 0.36);
+      }
+      setTone(p > 72, 300 + p * 4);
+    } else {
+      setTone(false, 300);
+    }
+
+    // housekeeping
+    acc += dt;
+    if (acc > 1){
+      acc = 0;
+      $("clock").textContent = stamp();
+      st.batt = Math.max(4, st.batt - 0.017);
+      $("battFill").style.width = st.batt + "%";
+      $("battFill").style.background = st.batt > 35 ? "#5FC98B" : st.batt > 15 ? "#FFAE3B" : "#FF4A38";
+      $("battPct").textContent = Math.round(st.batt) + "%";
+    }
+  }
+
+  // ── Controls ───────────────────────────────────────────────
+  function toggleSweep(){
+    st.running = !st.running;
+    $("btnSweep").classList.toggle("armed", st.running);
+    $("btnSweep").textContent = st.running ? "Sweep · Run" : "Sweep · Hold";
+    $("ledScan").className = "led " + (st.running ? "warn" : "");
+    log(st.running ? "SWEEP — resumed" : "SWEEP — held by operator", "w");
+  }
+  function toggleAudio(){
+    st.audio = !st.audio;
+    if (st.audio) audioCtx();
+    $("btnAudio").classList.toggle("armed", st.audio);
+    $("btnAudio").textContent = st.audio ? "Audio On" : "Audio Off";
+    if (!st.audio) setTone(false, 300);
+    log("AUDIO — monitor " + (st.audio ? "enabled" : "muted"));
+  }
+  function togglePeak(){
+    st.maxHold = !st.maxHold;
+    $("btnPeak").classList.toggle("armed", st.maxHold);
+    if (!st.maxHold) st.hold.fill(DB_BOT);
+    log("TRACE — max hold " + (st.maxHold ? "on" : "cleared"));
+  }
+  function fullscreen(){
+    const el = document.documentElement;
+    if (!document.fullscreenElement) el.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+  function toggleCue(){ $("cue").classList.toggle("show"); }
+
+  $("btnSweep").addEventListener("click", toggleSweep);
+  $("btnAudio").addEventListener("click", toggleAudio);
+  $("btnPeak").addEventListener("click", togglePeak);
+  $("btnClear").addEventListener("click", clearAll);
+  $("btnFull").addEventListener("click", fullscreen);
+  $("cue").addEventListener("click", e => { if (e.target === $("cue")) toggleCue(); });
+
+  document.addEventListener("keydown", e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (BUGS[k]) { plant(k); e.preventDefault(); return; }
+    switch (k){
+      case "0": clearAll(); break;
+      case "ArrowUp":   st.proxTarget = clamp(st.proxTarget + 7, 0, 100); e.preventDefault(); break;
+      case "ArrowDown": st.proxTarget = clamp(st.proxTarget - 9, 0, 100); e.preventDefault(); break;
+      case " ": toggleSweep(); e.preventDefault(); break;
+      case "a": case "A": toggleAudio(); break;
+      case "p": case "P": togglePeak(); break;
+      case "f": case "F": fullscreen(); break;
+      case "h": case "H": document.querySelector(".deck").classList.toggle("hidden"); break;
+      case "?": case "/": toggleCue(); e.preventDefault(); break;
+      case "Escape": $("cue").classList.remove("show"); break;
+    }
+  });
+
+  // mouse/touch drag on the meter also drives proximity, for hand props
+  const meter = document.querySelector(".meter");
+  const dragTo = e => {
+    const r = meter.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    st.proxTarget = clamp(x / r.width * 100, 0, 100);
+  };
+  let dragging = false;
+  meter.addEventListener("pointerdown", e => { dragging = true; meter.setPointerCapture(e.pointerId); dragTo(e); });
+  meter.addEventListener("pointermove", e => { if (dragging) dragTo(e); });
+  meter.addEventListener("pointerup",   () => { dragging = false; });
+
+  // ── Boot sequence ──────────────────────────────────────────
+  resize();
+  refreshSignals();
+  const boot = [
+    "KESTREL RF-9 · firmware 4.18b · serial K9-2214-EU",
+    "SELF TEST — synth lock OK · LO drift 0.4 ppm · preamp OK",
+    "ANTENNA — omnidirectional B-element, VSWR 1.3:1",
+    "CALIBRATION — noise floor referenced at −101 dBm",
+    "REGISTRY — 12 licensed emitters loaded for this location",
+    "SWEEP — continuous mode, 20–6000 MHz, 300 kHz RBW"
+  ];
+  boot.forEach((line, i) => setTimeout(() => log(line, i === 1 ? "w" : ""), 260 * i));
+  setTimeout(() => log("READY — room baseline established, no anomalies", "w"), 260 * boot.length + 200);
+
+  requestAnimationFrame(frame);
+})();
+</script>
