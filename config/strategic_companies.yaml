@@ -3,14 +3,15 @@
 # `ats` + `board_token` are only filled in where the collector adapter can
 # verify a live, working public board today. Verification status:
 #   VERIFIED       - board_token confirmed reachable via the adapter as of
-#                     last_checked (see scripts/verify_boards.py)
-#   UNVERIFIED     - company is on the watchlist but no public Greenhouse/
-#                     Lever/Ashby board has been confirmed yet; requires
-#                     manual research or a future non-ATS collector
-#                     (career-site HTML / search discovery)
-#   NO_PUBLIC_ATS  - company does not expose jobs through Greenhouse,
-#                     Lever, or Ashby; needs a dedicated career-site or
-#                     search-discovery collector (future work)
+#                     last_checked (see scripts/verify_boards.py) AND
+#                     identity-checked: the board's own name / sample
+#                     posting text confirms it belongs to this company
+#   UNVERIFIED     - company is on the watchlist but no public board has
+#                     been confirmed yet; either an adapter exists and the
+#                     token is unconfirmed (entry is `muted` in
+#                     config/sources.yaml), or no channel has been found
+#   NO_PUBLIC_ATS  - company does not expose jobs through any public JSON
+#                     endpoint this app can collect
 #
 # Company nationality/HQ NEVER determines candidate eligibility - that is
 # decided per-vacancy by the geography engine. This registry only decides
@@ -24,18 +25,18 @@ tiers:
         watch_priority: critical
         strategic_themes: [ai_evaluation, ai_security, trust_and_safety, ai_deployment, customer_enablement, technical_success]
         career_url: https://openai.com/careers/
-        ats: null
-        board_token: null
-        verification_status: UNVERIFIED
-        notes: "No confirmed public Greenhouse/Lever/Ashby board as of verification date; careers site appears to run a custom ATS. Requires a dedicated career-site collector (future work). Monitor via search discovery in the interim."
+        ats: ashby
+        board_token: openai
+        verification_status: VERIFIED
+        notes: "Resolved 2026-08-22: OpenAI does run a public Ashby board (confirmed live, 754 postings, sample content identity-checked). The earlier 'custom ATS, needs a career-site collector' assessment was wrong - the board simply isn't linked from the careers page navigation."
       - name: Google
         watch_priority: critical
         strategic_themes: [google_vertex_ai, ai_training, ai_consulting]
         career_url: https://www.google.com/about/careers/applications/
-        ats: null
-        board_token: null
-        verification_status: NO_PUBLIC_ATS
-        notes: "Google Careers runs a proprietary careers platform, not Greenhouse/Lever/Ashby. Requires search-discovery collector."
+        ats: careersite_google
+        board_token: google
+        verification_status: UNVERIFIED
+        notes: "Career-site collector implemented (collectors/careersite.py) against the public careers.google.com search JSON. Muted in config/sources.yaml until `jobintel verify-boards` returns a live 200 - the environment this was written in blocks the host at the network-policy layer, so it could not be confirmed here."
       - name: Google DeepMind
         watch_priority: critical
         strategic_themes: [google_vertex_ai, ai_evaluation, ai_security]
@@ -43,6 +44,7 @@ tiers:
         ats: null
         board_token: null
         verification_status: NO_PUBLIC_ATS
+        notes: "Probed against Greenhouse/Lever/Ashby 2026-08-22: no public board. DeepMind roles are posted through Google's careers platform, so the Google career-site collector covers them once verified."
       - name: Anthropic
         watch_priority: critical
         strategic_themes: [ai_security, ai_evaluation, trust_and_safety]
@@ -50,28 +52,31 @@ tiers:
         ats: greenhouse
         board_token: anthropic
         verification_status: VERIFIED
-        notes: "Confirmed live 2026-08-14 (426 open postings). Anthropic must NEVER receive a company-wide remote classification - evaluate every vacancy's individual location/travel language."
+        notes: "Anthropic must NEVER receive a company-wide remote classification - evaluate every vacancy's individual location/travel language."
       - name: NVIDIA
         watch_priority: critical
         strategic_themes: [ai_training, ai_consulting]
         career_url: https://www.nvidia.com/en-us/about-nvidia/careers/
-        ats: null
-        board_token: null
-        verification_status: NO_PUBLIC_ATS
+        ats: workday
+        board_token: nvidia.wd5/NVIDIAExternalCareerSite
+        verification_status: UNVERIFIED
+        notes: "Workday CXS collector implemented (collectors/workday.py). Muted until `jobintel verify-boards` confirms the tenant/site pair; the sandbox this was written in blocks myworkdayjobs.com."
       - name: Microsoft
         watch_priority: critical
         strategic_themes: [google_vertex_ai, ai_training, responsible_ai]
         career_url: https://careers.microsoft.com/
-        ats: null
-        board_token: null
-        verification_status: NO_PUBLIC_ATS
+        ats: careersite_microsoft
+        board_token: microsoft
+        verification_status: UNVERIFIED
+        notes: "Career-site collector implemented against the public search JSON used by jobs.careers.microsoft.com. Muted until verified live."
       - name: Amazon
         watch_priority: critical
         strategic_themes: [ai_training, ai_consulting]
         career_url: https://www.amazon.jobs/
-        ats: null
-        board_token: null
-        verification_status: NO_PUBLIC_ATS
+        ats: careersite_amazon
+        board_token: amazon
+        verification_status: UNVERIFIED
+        notes: "Career-site collector implemented against amazon.jobs/en/search.json. Muted until verified live."
       - name: Meta
         watch_priority: critical
         strategic_themes: [ai_training, responsible_ai]
@@ -79,6 +84,7 @@ tiers:
         ats: null
         board_token: null
         verification_status: NO_PUBLIC_ATS
+        notes: "metacareers.com serves listings through an authenticated GraphQL endpoint with no public JSON search API. Probed against Greenhouse/Lever/Ashby 2026-08-22: nothing. Remains genuinely uncovered - this is the one Tier-1 employer with no collectable channel, and the dashboard's Source Health tab says so rather than implying coverage."
       - name: Mistral AI
         watch_priority: critical
         strategic_themes: [ai_training, ai_security]
@@ -86,7 +92,7 @@ tiers:
         ats: lever
         board_token: mistral
         verification_status: VERIFIED
-        notes: "Board token confirmed live 2026-08-14 (returns 200 with valid JSON); 0 open postings at check time, which is a legitimate empty state, not a broken token."
+        notes: "Board token confirmed live (returns 200 with valid JSON); an empty list is a legitimate empty state, not a broken token."
       - name: Cohere
         watch_priority: critical
         strategic_themes: [ai_training, ai_consulting]
@@ -95,6 +101,21 @@ tiers:
         board_token: cohere
         verification_status: VERIFIED
         notes: "Corrected 2026-08-14: previously misconfigured as greenhouse:cohere, which 404'd - that token belongs to an unrelated healthcare company (Cohere Health). The AI company Cohere is on Ashby."
+      - name: xAI
+        watch_priority: critical
+        strategic_themes: [ai_training, ai_evaluation]
+        career_url: https://x.ai/careers
+        ats: greenhouse
+        board_token: xai
+        verification_status: VERIFIED
+        notes: "Board reports its name as 'SpaceXAI'. Identity-checked: postings carry xAI's mission statement and include AI Tutor roles, so the token is correct despite the unexpected board label."
+      - name: Perplexity
+        watch_priority: critical
+        strategic_themes: [ai_training, customer_enablement]
+        career_url: https://www.perplexity.ai/careers
+        ats: ashby
+        board_token: perplexity
+        verification_status: VERIFIED
       - name: Databricks
         watch_priority: critical
         strategic_themes: [ai_training, technical_training]
@@ -109,6 +130,7 @@ tiers:
         ats: null
         board_token: null
         verification_status: UNVERIFIED
+        notes: "Probed `huggingface`, `hugging-face`, `huggingfaceinc` and `hf` against all three public ATS APIs 2026-08-22 - all 404. No collectable channel found yet."
       - name: ElevenLabs
         watch_priority: critical
         strategic_themes: [ai_training]
@@ -127,26 +149,83 @@ tiers:
   high_priority:
     description: "Tier 2"
     companies:
-      - {name: Salesforce, strategic_themes: [ai_consulting], notes: "Agentforce"}
-      - {name: IBM, strategic_themes: [ai_consulting], notes: "watsonx"}
-      - {name: SAP, strategic_themes: [ai_consulting]}
-      - {name: ServiceNow, strategic_themes: [ai_consulting]}
-      - {name: Oracle, strategic_themes: [ai_consulting]}
-      - {name: AMD, strategic_themes: [ai_training]}
-      - {name: Palantir, strategic_themes: [ai_security]}
-      - {name: Snowflake, strategic_themes: [ai_consulting]}
-      - {name: n8n, strategic_themes: [ai_consulting, agentic_ai]}
-      - {name: Helsing, strategic_themes: [ai_security]}
-      - {name: DeepL, strategic_themes: [ai_training]}
-      - {name: Synthesia, strategic_themes: [ai_training]}
-      - {name: Wayve, strategic_themes: [ai_training]}
-      - {name: Stability AI, strategic_themes: [ai_training]}
-      - {name: Black Forest Labs, strategic_themes: [ai_training]}
-      - {name: Aleph Alpha, strategic_themes: [ai_security]}
-      - {name: Quantexa, strategic_themes: [ai_consulting]}
-      - {name: Isomorphic Labs, strategic_themes: [ai_training]}
-      - {name: Owkin, strategic_themes: [ai_training]}
+      - {name: Palantir, strategic_themes: [ai_security], ats: lever, board_token: palantir, verification_status: VERIFIED}
+      - {name: Snowflake, strategic_themes: [ai_consulting], ats: ashby, board_token: snowflake, verification_status: VERIFIED}
+      - {name: Helsing, strategic_themes: [ai_security], ats: greenhouse, board_token: helsing, verification_status: VERIFIED}
+      - {name: DeepL, strategic_themes: [ai_training], ats: ashby, board_token: deepl, verification_status: VERIFIED}
+      - {name: Synthesia, strategic_themes: [ai_training], ats: ashby, board_token: synthesia, verification_status: VERIFIED}
+      - {name: Wayve, strategic_themes: [ai_training], ats: greenhouse, board_token: wayve, verification_status: VERIFIED}
+      - {name: Stability AI, strategic_themes: [ai_training], ats: greenhouse, board_token: stabilityai, verification_status: VERIFIED}
+      - {name: Black Forest Labs, strategic_themes: [ai_training], ats: greenhouse, board_token: blackforestlabs, verification_status: VERIFIED}
+      - {name: Aleph Alpha, strategic_themes: [ai_security], ats: ashby, board_token: alephalpha, verification_status: VERIFIED}
+      - {name: Quantexa, strategic_themes: [ai_consulting], ats: ashby, board_token: quantexa, verification_status: VERIFIED}
+      - {name: Isomorphic Labs, strategic_themes: [ai_training], ats: greenhouse, board_token: isomorphiclabs, verification_status: VERIFIED}
+      - {name: Owkin, strategic_themes: [ai_training], ats: ashby, board_token: owkin, verification_status: VERIFIED}
+      - {name: n8n, strategic_themes: [ai_consulting, agentic_ai], ats: ashby, board_token: n8n, verification_status: VERIFIED}
+      - {name: Together AI, strategic_themes: [ai_training], ats: greenhouse, board_token: togetherai, verification_status: VERIFIED}
+      - {name: Cerebras, strategic_themes: [ai_training], ats: ashby, board_token: cerebras, verification_status: VERIFIED}
+      - {name: Sierra, strategic_themes: [ai_consulting, customer_enablement], ats: ashby, board_token: sierra, verification_status: VERIFIED}
+      - {name: Harvey, strategic_themes: [ai_consulting], ats: ashby, board_token: harvey, verification_status: VERIFIED}
+      - {name: Inflection AI, strategic_themes: [responsible_ai], ats: greenhouse, board_token: inflectionai, verification_status: VERIFIED}
+      - {name: Salesforce, strategic_themes: [ai_consulting], ats: workday, board_token: salesforce.wd12/External_Career_Site, verification_status: UNVERIFIED, notes: "Agentforce. Workday collector implemented; token unconfirmed (muted)."}
+      - {name: ServiceNow, strategic_themes: [ai_consulting], ats: workday, board_token: servicenow.wd1/ServiceNow, verification_status: UNVERIFIED, notes: "Workday collector implemented; token unconfirmed (muted)."}
+      - {name: IBM, strategic_themes: [ai_consulting], notes: "watsonx. Probed against the three public ATS APIs 2026-08-22 - no public board. Runs its own careers platform; would need a dedicated career-site collector."}
+      - {name: SAP, strategic_themes: [ai_consulting], notes: "No public Greenhouse/Lever/Ashby board (probed 2026-08-22)."}
+      - {name: Oracle, strategic_themes: [ai_consulting], notes: "No public Greenhouse/Lever/Ashby board (probed 2026-08-22)."}
+      - {name: AMD, strategic_themes: [ai_training], notes: "No public Greenhouse/Lever/Ashby board (probed 2026-08-22)."}
     all_verification_status: UNVERIFIED
+
+  ai_data_and_gig_platforms:
+    description: >-
+      Tier 2 - AI data / model-training marketplaces. These matter twice
+      over: they hire staff trainers and evaluators, and they publish
+      independent-contractor project work on the same public board, which
+      is the ToS-compliant route to gig income that a login-only platform
+      like Outlier AI is not (see gigs/outlier.py).
+    companies:
+      - {name: Mercor, strategic_themes: [ai_evaluation, gig_project_work], ats: ashby, board_token: mercor, verification_status: VERIFIED}
+      - {name: Turing, strategic_themes: [ai_evaluation, gig_project_work], ats: greenhouse, board_token: turing, verification_status: VERIFIED}
+      - {name: Toloka, strategic_themes: [ai_evaluation, gig_project_work], ats: greenhouse, board_token: toloka, verification_status: VERIFIED}
+      - {name: Appen, strategic_themes: [ai_evaluation, gig_project_work], ats: lever, board_token: appen, verification_status: VERIFIED, notes: "Publishes independent-contractor project postings alongside staff roles."}
+      - {name: Invisible Technologies, strategic_themes: [ai_evaluation, gig_project_work], ats: greenhouse, board_token: invisible, verification_status: VERIFIED}
+      - {name: Snorkel AI, strategic_themes: [ai_evaluation], ats: greenhouse, board_token: snorkelai, verification_status: VERIFIED}
+      - {name: Labelbox, strategic_themes: [ai_evaluation, gig_project_work], ats: greenhouse, board_token: labelbox, verification_status: VERIFIED}
+      - {name: Prolific, strategic_themes: [ai_evaluation, gig_project_work], ats: greenhouse, board_token: prolific, verification_status: VERIFIED}
+      - {name: Outlier AI, strategic_themes: [gig_project_work], verification_status: NO_PUBLIC_ATS, notes: "Listings require an authenticated account; no public API. Deliberately not collected - see src/jobintel/gigs/outlier.py. Scale AI (its parent) is collected via greenhouse:scaleai."}
+
+  ai_security_and_evaluation:
+    description: "Tier 2 - AI security, red-teaming and model-evaluation specialists"
+    companies:
+      - {name: HiddenLayer, strategic_themes: [ai_security], ats: greenhouse, board_token: hiddenlayer, verification_status: VERIFIED}
+      - {name: Haize Labs, strategic_themes: [ai_security, ai_evaluation], ats: greenhouse, board_token: haizelabs, verification_status: VERIFIED}
+      - {name: Arize AI, strategic_themes: [ai_evaluation], ats: greenhouse, board_token: arizeai, verification_status: VERIFIED}
+      - {name: Lakera, strategic_themes: [ai_security], notes: "No public board found (probed 2026-08-22)."}
+      - {name: Gray Swan AI, strategic_themes: [ai_security], notes: "No public board found (probed 2026-08-22)."}
+      - {name: Patronus AI, strategic_themes: [ai_evaluation], notes: "No public board found (probed 2026-08-22)."}
+    all_verification_status: UNVERIFIED
+
+  cybersecurity_training:
+    description: "Tier 2 - cybersecurity employers that hire trainers, instructors and awareness specialists"
+    companies:
+      - {name: KnowBe4, strategic_themes: [cybersecurity_training], ats: greenhouse, board_token: knowbe4, verification_status: VERIFIED}
+      - {name: Immersive Labs, strategic_themes: [cybersecurity_training], ats: ashby, board_token: immersivelabs, verification_status: VERIFIED}
+      - {name: HackerOne, strategic_themes: [cybersecurity_training, ai_security], ats: ashby, board_token: hackerone, verification_status: VERIFIED}
+      - {name: Bugcrowd, strategic_themes: [cybersecurity_training], ats: greenhouse, board_token: bugcrowd, verification_status: VERIFIED}
+      - {name: Synack, strategic_themes: [cybersecurity_training], ats: greenhouse, board_token: synack, verification_status: VERIFIED}
+      - {name: Sophos, strategic_themes: [cybersecurity_training], ats: lever, board_token: sophos, verification_status: VERIFIED}
+      - {name: Recorded Future, strategic_themes: [cybersecurity_training, osint], ats: greenhouse, board_token: recordedfuture, verification_status: VERIFIED}
+      - {name: Dragos, strategic_themes: [cybersecurity_training], ats: greenhouse, board_token: dragos, verification_status: VERIFIED}
+
+  learning_platforms:
+    description: "Tier 2 - technical training / instructional design employers"
+    companies:
+      - {name: Coursera, strategic_themes: [technical_training, customer_education], ats: greenhouse, board_token: coursera, verification_status: VERIFIED}
+      - {name: Udemy, strategic_themes: [technical_training, customer_education], ats: greenhouse, board_token: udemy, verification_status: VERIFIED}
+      - {name: DataCamp, strategic_themes: [technical_training, ai_training], ats: greenhouse, board_token: datacamp, verification_status: VERIFIED}
+      - {name: Multiverse, strategic_themes: [technical_training, ai_training], ats: ashby, board_token: multiverse, verification_status: VERIFIED}
+      - {name: Skillsoft, strategic_themes: [technical_training, cybersecurity_training], ats: greenhouse, board_token: skillsoft, verification_status: VERIFIED}
+      - {name: Docebo, strategic_themes: [technical_training, technical_instructional_design], ats: ashby, board_token: docebo, verification_status: VERIFIED}
+      - {name: 360Learning, strategic_themes: [technical_training], ats: lever, board_token: 360learning, verification_status: VERIFIED}
 
   middle_east:
     description: "Middle East strategic targets"
@@ -160,19 +239,19 @@ tiers:
   asia:
     description: "Asia-Pacific strategic targets (outside Thailand)"
     companies:
+      - {name: Sarvam AI, strategic_themes: [ai_training], ats: ashby, board_token: sarvam, verification_status: VERIFIED}
+      - {name: FuriosaAI, strategic_themes: [ai_training], ats: greenhouse, board_token: furiosaai, verification_status: VERIFIED}
       - {name: Sakana AI, strategic_themes: [ai_training]}
       - {name: Preferred Networks, strategic_themes: [ai_training]}
-      - {name: NAVER / HyperCLOVA, strategic_themes: [ai_training]}
+      - {name: "NAVER / HyperCLOVA", strategic_themes: [ai_training]}
       - {name: Rebellions, strategic_themes: [ai_training]}
-      - {name: FuriosaAI, strategic_themes: [ai_training]}
       - {name: Upstage, strategic_themes: [ai_training]}
-      - {name: Sarvam AI, strategic_themes: [ai_training]}
       - {name: Qure.ai, strategic_themes: [ai_training]}
-      - {name: Alibaba / Qwen, strategic_themes: [ai_training]}
-      - {name: ByteDance / Seed, strategic_themes: [ai_training]}
+      - {name: "Alibaba / Qwen", strategic_themes: [ai_training]}
+      - {name: "ByteDance / Seed", strategic_themes: [ai_training]}
       - {name: Huawei AI, strategic_themes: [ai_training]}
-      - {name: Tencent / Hunyuan, strategic_themes: [ai_training]}
-      - {name: Baidu / ERNIE, strategic_themes: [ai_training]}
+      - {name: "Tencent / Hunyuan", strategic_themes: [ai_training]}
+      - {name: "Baidu / ERNIE", strategic_themes: [ai_training]}
     all_verification_status: UNVERIFIED
 
   research_experimental:
@@ -183,6 +262,9 @@ tiers:
 
 # Companies default to `board_token: null / verification_status: UNVERIFIED`
 # unless independently reconfirmed. scripts/verify_boards.py performs a
-# live HTTP check against each configured (ats, board_token) pair and
-# updates last_checked / source_health without ever assuming a historical
-# API is still current.
+# live HTTP check against each configured (ats, board_token) pair without
+# ever assuming a historical API is still current, and identity-checking
+# a new board (does its own name / sample posting match the company you
+# think it is?) is part of promoting it to VERIFIED - `greenhouse:cohere`
+# and `greenhouse:figure` are both real boards belonging to entirely
+# different companies than their tokens suggest.

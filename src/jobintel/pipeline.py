@@ -15,6 +15,8 @@ import structlog
 
 from jobintel.collectors.base import SourceError
 from jobintel.db.models import (
+    Gig,
+    GigAnalysisRecord,
     Job,
     JobAnalysisRecord,
     JobSourceRecord,
@@ -22,11 +24,15 @@ from jobintel.db.models import (
     SourceHealthRecord,
 )
 from jobintel.db.session import session_scope
-from jobintel.dedup.engine import is_duplicate, should_overwrite
+from jobintel.dedup.engine import SOURCE_QUALITY_RANK, is_duplicate, should_overwrite
 from jobintel.discovery.registry import build_sources
 from jobintel.evaluation.evaluator import apply_refinement, get_evaluator
+from jobintel.gigs.classifier import classify_gig, platform_reliability_for
 from jobintel.matching.career_scorer import score_career_opportunity
 from jobintel.matching.cv_evidence import get_evidence_for_categories
+from jobintel.matching.gig_scorer import score_gig
+from jobintel.matching.role_matcher import semantic_prescore
+from jobintel.models.enums import OpportunityClass
 from jobintel.models.schemas import NormalizedJob
 from jobintel.normalize.normalizer import normalize_job
 from jobintel.settings import get_settings, load_scoring, load_strategic_companies
@@ -64,6 +70,8 @@ class EvaluationSummary:
     exceptional_matches: int = 0
     ineligible: int = 0
     total_llm_cost_usd: float = 0.0
+    gigs_identified: int = 0
+    high_quality_gigs: int = 0
 
     def render(self) -> str:
         return (
@@ -73,6 +81,8 @@ class EvaluationSummary:
             f"Strong matches: {self.strong_matches}\n"
             f"Exceptional matches: {self.exceptional_matches}\n"
             f"Ineligible (geography): {self.ineligible}\n"
+            f"Gigs identified: {self.gigs_identified} "
+            f"({self.high_quality_gigs} high quality)\n"
             f"LLM spend this run: ${self.total_llm_cost_usd:.4f}"
         )
 
@@ -123,7 +133,10 @@ async def run_collection() -> CollectionSummary:
                 try:
                     details = await source.fetch_details(raw_job)
                     normalized = normalize_job(details)
-                    _persist_normalized_job(session, normalized, summary)
+                    _persist_normalized_job(
+                        session, normalized, summary,
+                        source_type=source.source_type, quality_rank=source.quality_rank,
+                    )
                 except Exception as exc:  # noqa: BLE001
                     logger.error("pipeline.job_processing_failed", source=source.name, error=str(exc))
                     summary.errors.append(f"{source.name}/{raw_job.source_job_id}: {exc}")
@@ -131,7 +144,40 @@ async def run_collection() -> CollectionSummary:
     return summary
 
 
-def _persist_normalized_job(session, normalized: NormalizedJob, summary: CollectionSummary) -> None:
+def _is_aggregator_only(job: Job) -> bool:
+    """True when the only place this vacancy has ever been seen is an
+    aggregator - which costs confidence (spec §53), because aggregator
+    copies are frequently stale, truncated, or stripped of the
+    employer's own geography and travel language."""
+    records = job.sources
+    if not records:
+        return False
+    return all(r.source_type in {"aggregator", "board", "unknown"} for r in records)
+
+
+def _best_source_type(job: Job) -> str:
+    """The most authoritative source this job has already been seen
+    through - an aggregator copy must not overwrite text that came from
+    the employer's own ATS (spec §35).
+
+    Reads the loaded `job.sources` relationship rather than issuing its
+    own query: in steady state almost every posting from every board
+    takes this path on every run, so a query here is thousands of extra
+    round-trips per daily run to pick a minimum over a handful of rows.
+    """
+    records = job.sources
+    if not records:
+        return "unknown"
+    return min(records, key=lambda r: SOURCE_QUALITY_RANK.get(r.source_type, SOURCE_QUALITY_RANK["unknown"])).source_type
+
+
+def _persist_normalized_job(
+    session,
+    normalized: NormalizedJob,
+    summary: CollectionSummary,
+    source_type: str = "official_ats",
+    quality_rank: int = 1,
+) -> None:
     now = datetime.now(UTC)
     existing = (
         session.query(Job)
@@ -187,15 +233,16 @@ def _persist_normalized_job(session, normalized: NormalizedJob, summary: Collect
         session.flush()
         session.add(JobSourceRecord(
             job_id=job.id, source=normalized.source, source_url=normalized.source_url,
-            source_type="official_ats", quality_rank=1,
+            source_type=source_type, quality_rank=quality_rank,
             source_published_at=normalized.published_at, first_seen_at=now, last_seen_at=now,
         ))
         summary.new_canonical_opportunities += 1
         return
 
     existing.last_seen_at = now
+    best_existing_source_type = _best_source_type(existing)
     if existing.content_hash != normalized.content_hash:
-        if should_overwrite("official_ats", "official_ats"):
+        if should_overwrite(best_existing_source_type, source_type):
             existing.job_description_clean = normalized.job_description_clean
             existing.job_description_raw = normalized.job_description_raw
             existing.salary_raw = normalized.salary_raw
@@ -215,11 +262,90 @@ def _persist_normalized_job(session, normalized: NormalizedJob, summary: Collect
     if source_record is None:
         session.add(JobSourceRecord(
             job_id=existing.id, source=normalized.source, source_url=normalized.source_url,
-            source_type="official_ats", quality_rank=1,
+            source_type=source_type, quality_rank=quality_rank,
             source_published_at=normalized.published_at, first_seen_at=now, last_seen_at=now,
         ))
     else:
         source_record.last_seen_at = now
+
+
+def _evaluate_gigs(session, summary: EvaluationSummary, min_quality_score: float) -> None:
+    """Identify and score gig/project work among collected postings.
+
+    Runs after career scoring rather than instead of it: a contractor
+    posting is still a career opportunity worth ranking, it just also
+    needs the gig model, which judges rate, flexibility and duration
+    instead of salary and seniority (spec §21).
+    """
+    scored_job_ids = {row.job_id for row in session.query(Gig).all()}
+
+    for job in session.query(Job).filter(Job.is_active.is_(True)).all():
+        if job.id in scored_job_ids:
+            continue
+
+        signals = classify_gig(
+            job_title=job.job_title,
+            description_text=job.job_description_clean,
+            employment_type=job.employment_type,
+            salary_raw=job.salary_raw,
+        )
+        if not signals.is_gig:
+            continue
+
+        from jobintel.geography.classifier import classify_geography
+
+        geo = classify_geography(job.location_raw, job.job_description_clean)
+        result = score_gig(
+            title=job.job_title,
+            description_text=job.job_description_clean,
+            geo_evidence=geo,
+            hourly_rate_min=signals.hourly_rate_min,
+            hourly_rate_max=signals.hourly_rate_max,
+            weekly_hours_min=signals.weekly_hours_min,
+            weekly_hours_max=signals.weekly_hours_max,
+            platform_reliability=platform_reliability_for(job.company_name),
+        )
+
+        gig = Gig(
+            job_id=job.id,
+            platform=job.company_name,
+            advertised_hourly_rate_min=signals.hourly_rate_min,
+            advertised_hourly_rate_max=signals.hourly_rate_max,
+            rate_currency=signals.rate_currency,
+            expected_weekly_hours_min=signals.weekly_hours_min,
+            expected_weekly_hours_max=signals.weekly_hours_max,
+            project_duration=signals.project_duration,
+            residency_countries=geo.required_residence_countries,
+            specialist_classification="commodity_annotation" if result.is_commodity_annotation else "specialist",
+            gig_quality_score=result.gig_quality_score,
+        )
+        session.add(gig)
+        session.flush()
+
+        session.add(GigAnalysisRecord(
+            gig_id=gig.id,
+            job_id=job.id,
+            gig_quality_score=result.gig_quality_score,
+            geographic_compatibility=result.geographic_compatibility,
+            professional_relevance=result.professional_relevance,
+            compensation=result.compensation,
+            flexibility=result.flexibility,
+            ai_cyber_career_value=result.ai_cyber_career_value,
+            source_reliability=result.source_reliability,
+            time_commitment_compatibility=result.time_commitment_compatibility,
+            is_commodity_annotation=result.is_commodity_annotation,
+            reasoning_summary=(
+                f"Classified as gig work ({'; '.join(signals.reasons[:3])}). "
+                f"Gig quality {result.gig_quality_score:.1f}/100."
+                + (" Commodity annotation work - capped by policy (spec §20)."
+                   if result.is_commodity_annotation else "")
+            ),
+        ))
+
+        job.opportunity_class = OpportunityClass.GIG_PROJECT_WORK.value
+        summary.gigs_identified += 1
+        if result.gig_quality_score >= min_quality_score:
+            summary.high_quality_gigs += 1
 
 
 def run_evaluation() -> EvaluationSummary:
@@ -231,6 +357,7 @@ async def _run_evaluation_async() -> EvaluationSummary:
     scoring = load_scoring()
     daily_budget = get_settings().daily_llm_budget_usd or scoring["cost_control"]["daily_llm_budget_usd"]
     stage4_threshold = scoring["cost_control"]["stage4_deep_analysis_min_score"]
+    stage2_threshold = scoring["cost_control"]["stage2_semantic_prescore_min_to_advance"]
     strategic_names = _strategic_company_names()
     evaluator = get_evaluator()
 
@@ -255,10 +382,21 @@ async def _run_evaluation_async() -> EvaluationSummary:
                 salary_max=job.salary_max,
                 is_strategic_company=job.company_name.strip().lower() in strategic_names,
                 full_description_available=bool(job.job_description_clean),
-                source_is_aggregator_only=False,
+                source_is_aggregator_only=_is_aggregator_only(job),
             )
 
-            if analysis.overall_score >= stage4_threshold and spent_today < daily_budget:
+            # Two independent gates before spending money on an LLM call
+            # (spec §45): the deterministic score has to be high enough to
+            # be worth refining, AND the vacancy has to be topically close
+            # to the CV corpus at all. A high-scoring posting that is
+            # semantically unrelated is exactly the case where a paid call
+            # buys nothing.
+            prescore = semantic_prescore(job.job_title, job.job_description_clean)
+            if (
+                analysis.overall_score >= stage4_threshold
+                and prescore >= stage2_threshold
+                and spent_today < daily_budget
+            ):
                 evidence_texts = get_evidence_for_categories(role_match.evidence_categories) if role_match.role_family else []
                 refinement, usage = await evaluator.evaluate(
                     job_title=job.job_title,
@@ -306,4 +444,12 @@ async def _run_evaluation_async() -> EvaluationSummary:
             elif analysis.recommendation.value == "EXCEPTIONAL_MATCH":
                 summary.exceptional_matches += 1
 
+        _evaluate_gigs(session, summary, min_quality_score=_minimum_digest_score())
+
     return summary
+
+
+def _minimum_digest_score() -> float:
+    from jobintel.settings import load_profile
+
+    return float(load_profile().get("scoring", {}).get("minimum_digest_score", 75))

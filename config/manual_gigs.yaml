@@ -1,0 +1,46 @@
+# Manually-entered gigs and projects.
+#
+# Some platforms (Outlier AI and comparable expert marketplaces) only
+# show project listings to a logged-in account and publish no API, so
+# this app deliberately does not collect them - see
+# src/jobintel/gigs/outlier.py for why. This file is the supported route
+# for those: paste a project here and it is scored, ranked, tracked and
+# digested exactly like an automatically-collected opportunity.
+#
+# Only `title` is required. Everything else improves the scoring:
+#   platform       - who is offering it (used for source reliability)
+#   url            - link back to the listing
+#   location       - as advertised, e.g. "Remote - Worldwide". Whatever
+#                    you paste goes through the same geography engine as
+#                    every other posting, so paste the real wording
+#                    rather than a summary of it.
+#   description    - paste the real listing text; the gig classifier and
+#                    the matcher both read it
+#   hourly_rate    - e.g. "$45-60 per hour"
+#   weekly_hours   - e.g. "10-20"
+#   duration       - e.g. "6 weeks"
+#   employment_type- e.g. "independent contractor"
+#   posted_on      - ISO date, e.g. 2026-08-20 (affects the freshness score)
+#   id             - a stable id of your choosing; without one, entries
+#                    are keyed by position, so reordering this file
+#                    creates duplicates
+#
+# Example (commented out - uncomment and edit, or add your own):
+#
+# gigs:
+#   - id: outlier-llm-eval-2026-08
+#     platform: Outlier AI
+#     url: https://app.outlier.ai/expert/opportunities/example
+#     title: LLM Safety Evaluation Specialist
+#     location: Remote - Worldwide
+#     hourly_rate: "$50-70 per hour"
+#     weekly_hours: "10-20"
+#     duration: "8 weeks"
+#     employment_type: independent contractor
+#     posted_on: 2026-08-20
+#     description: >-
+#       Evaluate model responses for safety and policy adherence, run
+#       adversarial prompts against a frontier model, and write up
+#       findings. Remote worldwide, flexible hours, project-based.
+
+gigs: []

@@ -120,6 +120,9 @@ class Job(Base):
     feedback_entries: Mapped[list[Feedback]] = relationship(
         back_populates="job", cascade="all, delete-orphan"
     )
+    materials: Mapped[list[ApplicationMaterial]] = relationship(
+        back_populates="job", cascade="all, delete-orphan"
+    )
 
 
 class JobSourceRecord(Base):
@@ -197,6 +200,77 @@ class Gig(Base):
     gig_quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     job: Mapped[Job] = relationship(back_populates="gig")
+    analyses: Mapped[list[GigAnalysisRecord]] = relationship(
+        back_populates="gig", cascade="all, delete-orphan"
+    )
+
+
+class GigAnalysisRecord(Base):
+    """Gig scoring components, kept separate from job_analysis because a
+    gig is scored on a different model entirely (spec §21) - a short,
+    well-paid specialist project must never be penalised for being
+    short, which is exactly what career scoring would do."""
+
+    __tablename__ = "gig_analysis"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    gig_id: Mapped[str] = mapped_column(ForeignKey("gigs.id"))
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"))
+
+    gig_quality_score: Mapped[float] = mapped_column(Float, index=True)
+    geographic_compatibility: Mapped[float] = mapped_column(Float, default=0.0)
+    professional_relevance: Mapped[float] = mapped_column(Float, default=0.0)
+    compensation: Mapped[float] = mapped_column(Float, default=0.0)
+    flexibility: Mapped[float] = mapped_column(Float, default=0.0)
+    ai_cyber_career_value: Mapped[float] = mapped_column(Float, default=0.0)
+    source_reliability: Mapped[float] = mapped_column(Float, default=0.0)
+    time_commitment_compatibility: Mapped[float] = mapped_column(Float, default=0.0)
+    is_commodity_annotation: Mapped[bool] = mapped_column(Boolean, default=False)
+    reasoning_summary: Mapped[str] = mapped_column(Text, default="")
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+
+    gig: Mapped[Gig] = relationship(back_populates="analyses")
+
+
+class ApplicationMaterial(Base):
+    """A generated CV-tailoring brief or cover-letter draft (spec §39).
+
+    `evidence_ids` records exactly which cv_evidence_map entries the text
+    was built from, so any claim in a generated document can be traced
+    back to a line in the real CV - the anti-fabrication guarantee is
+    only meaningful if it is auditable after the fact."""
+
+    __tablename__ = "application_materials"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"))
+    kind: Mapped[str] = mapped_column(String(30))  # CV_TAILORING_BRIEF | COVER_LETTER
+    content: Mapped[str] = mapped_column(Text)
+    evidence_ids: Mapped[list] = mapped_column(JSON, default=list)
+    unsupported_requirements: Mapped[list] = mapped_column(JSON, default=list)
+    model_used: Mapped[str] = mapped_column(String(100), default="deterministic")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+
+    job: Mapped[Job] = relationship(back_populates="materials")
+
+
+class NotificationLog(Base):
+    """One row per delivery attempt per channel.
+
+    Exists so an urgent alert fires exactly once per job no matter how
+    often the pipeline runs or how many channels are configured - a
+    notifier that re-alerts on every run trains its reader to ignore it.
+    """
+
+    __tablename__ = "notification_log"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id"), nullable=True, index=True)
+    channel: Mapped[str] = mapped_column(String(30))
+    kind: Mapped[str] = mapped_column(String(30), index=True)  # urgent_alert | daily_digest | test
+    status: Mapped[str] = mapped_column(String(20), default="SENT")  # SENT | FAILED
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class ApplicationStatusRecord(Base):

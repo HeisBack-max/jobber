@@ -50,3 +50,46 @@ query_families:
       - '"LLM red team" contract remote'
       - '"AI model evaluation" project remote'
       - '"prompt evaluation" freelance'
+
+# Search-discovery collectors (src/jobintel/discovery/search.py). These
+# query public remote-job search APIs with the families above, so a role
+# matching Richard's profile can surface from an employer nobody put on
+# the watchlist - and so strategic employers with no collectable ATS
+# (Meta, Hugging Face) still have some channel.
+#
+# Disabled by default, exactly like a muted board in config/sources.yaml:
+# both backends were unreachable from the environment this was written in
+# (the network policy blocks them), so nothing here has been confirmed
+# live. Turn a backend on only after `jobintel verify-search` reports it
+# reachable - the pipeline should never quietly depend on an unproven
+# source.
+#
+# Anything discovered this way is recorded as source_type=aggregator with
+# a worse quality_rank than an ATS record: an employer's own posting
+# always overwrites the aggregator copy, and an aggregator-only job takes
+# the `aggregator_only_source` confidence deduction from
+# config/scoring.yaml.
+search_discovery:
+  backends:
+    remotive: false
+    remoteok: false
+  # Which query families to use; omit or set to null for all of them.
+  families:
+    - ai_training
+    - cybersecurity
+    - google_ecosystem
+    - responsible_ai
+  max_queries_per_run: 8
+
+# Plain keyword terms for the employer career-site collectors
+# (collectors/careersite.py). Kept separate from `query_families` because
+# those employers' APIs take bare keywords, not search-engine syntax.
+career_site_terms:
+  - AI trainer
+  - AI enablement
+  - technical trainer
+  - cybersecurity training
+  - instructional designer
+  - customer education
+  - responsible AI training
+  - Vertex AI consultant

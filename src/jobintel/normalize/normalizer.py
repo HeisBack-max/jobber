@@ -16,7 +16,12 @@ from jobintel.normalize.title import detect_seniority, normalize_title
 _EMPLOYMENT_TYPE_PATTERNS = [
     (re.compile(r"\bfull[\s-]time\b", re.I), EmploymentType.FULL_TIME),
     (re.compile(r"\bpart[\s-]time\b", re.I), EmploymentType.PART_TIME),
-    (re.compile(r"\bcontract(or)?\b", re.I), EmploymentType.CONTRACT),
+    # Must describe *this* posting, not mention contractors in passing:
+    # "oversee contractor work on-site (electricians, cabling crews)" in
+    # a permanent Hardware Lab Manager posting was previously enough to
+    # type the role as CONTRACT, which then fed the gig classifier.
+    (re.compile(r"\bcontract(?:or)? (?:role|position|assignment|engagement|opportunity)\b"
+                r"|\bfixed[- ]term contract\b|\bcontract of employment\b", re.I), EmploymentType.CONTRACT),
     (re.compile(r"\bfreelance\b", re.I), EmploymentType.FREELANCE),
     (re.compile(r"\bintern(ship)?\b", re.I), EmploymentType.INTERNSHIP),
 ]

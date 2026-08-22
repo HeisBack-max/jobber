@@ -57,19 +57,43 @@ migrations under `alembic/versions/`.
 
 ## Source configuration
 
-- `config/sources.yaml` - the ATS boards actually polled by
-  `jobintel collect` (Greenhouse/Lever/Ashby board tokens).
+- `config/sources.yaml` - the boards actually polled by `jobintel
+  collect`: 75 verified employer boards across Greenhouse, Lever and
+  Ashby, plus muted (shipped-but-unverified) entries for Workday and the
+  Microsoft/Amazon/Google career-site collectors. Supported `ats` values:
+  `greenhouse`, `lever`, `ashby`, `workday`, `smartrecruiters`,
+  `workable`, `recruitee`, `careersite_microsoft`, `careersite_amazon`,
+  `careersite_google`.
 - `config/strategic_companies.yaml` - the full strategic watchlist,
   including companies without a working collector yet (see
   `verification_status` / `notes` on each entry).
-- `config/search_queries.yaml` - query families for a future
-  search-discovery collector.
+- `config/search_queries.yaml` - query families for the search-discovery
+  collectors and the career-site collectors' keyword terms. Both
+  aggregator backends (Remotive, RemoteOK) ship **disabled**; enable them
+  under `search_discovery.backends` once `jobintel verify-search`
+  confirms they are reachable from your network.
+- `config/manual_gigs.yaml` - gigs you enter by hand, for platforms that
+  publish no API (Outlier AI and similar). Anything pasted here is
+  scored, ranked and digested like a collected opportunity.
 
-Before relying on a new board token, verify it's live:
+Before relying on a new board token, verify it is live **and belongs to
+the company you think it does**:
 
 ```bash
-jobintel verify-boards
+jobintel verify-boards          # check every configured board
+jobintel verify-boards --muted  # check only the not-yet-verified ones
+jobintel verify-search          # check the search-discovery backends
 ```
+
+A board answering 200 is not proof of identity: `greenhouse:cohere` is a
+healthcare company, `greenhouse:figure` is not Figure AI, and
+`ashby:runway` is a business-planning startup, not RunwayML. Read a
+sample posting before promoting a token to `VERIFIED`.
+
+Entries with `collection_status: muted` ship with a working adapter but
+are never polled until you verify the token and change their status -
+that is how a source is added without inventing coverage that does not
+exist.
 
 ## Collecting opportunities
 
@@ -89,10 +113,79 @@ jobintel evaluate
 ```
 
 Runs the deterministic geography/matching/scoring pipeline on any job
-that hasn't been scored yet for the current profile version, then (if
-`ANTHROPIC_API_KEY` is set and the deterministic pre-score clears the
-Stage 4 threshold in `config/scoring.yaml`) sends it for a bounded LLM
-refinement pass.
+that hasn't been scored yet for the current profile version, identifies
+and separately scores gig/project work, and then - if `ANTHROPIC_API_KEY`
+is set and the job clears *both* cost-control gates in
+`config/scoring.yaml` (`stage2_semantic_prescore_min_to_advance` and
+`stage4_deep_analysis_min_score`) - sends it for a bounded LLM refinement
+pass.
+
+Matching runs in two passes. First, title similarity and anchor terms
+decide which role families are plausible at all. Then vector-space
+document similarity (TF-IDF cosine over word and character n-grams,
+fitted on the role taxonomy plus your CV evidence) decides which of those
+plausible families the posting's *content* actually favours. Weights are
+in `config/scoring.yaml` under `semantic_matching`.
+
+The ordering is deliberate and measured: across 650 real ATS postings,
+absolute document similarity does **not** separate relevant from
+irrelevant work - full-length postings all land in a narrow band, because
+the boilerplate every posting shares dominates the vector. What it does
+reliably is compare two candidate families for the *same* posting. So it
+is used as a tie-breaker, never as a standalone relevance score, and it
+can never admit a family that the title gate rejected.
+
+The Stage 2 cost gate uses the combined match confidence for the same
+reason: on those 650 postings it admits about a third, and a posting
+matching no role family scores exactly 0.
+
+## Gigs and project work
+
+Gigs are found two ways, both ToS-compliant:
+
+1. **Automatically** - contractor and project postings published on the
+   ordinary public boards of the AI-data marketplaces this app already
+   collects (Appen, Mercor, Toloka, Turing, Prolific, Invisible,
+   Labelbox, Snorkel). `jobintel evaluate` classifies them, extracts
+   hourly rate / weekly hours / duration, and scores them on the gig
+   model rather than the career model.
+2. **By hand** - paste anything from a platform that publishes no API
+   into `config/manual_gigs.yaml`.
+
+Outlier AI is deliberately not scraped: its listings require a logged-in
+account and it publishes no API. See `src/jobintel/gigs/outlier.py`.
+
+## Tailoring a CV / cover letter
+
+```bash
+jobintel tailor <job_id>            # brief + cover-letter draft
+jobintel tailor <job_id> --no-llm   # deterministic only, no API call
+```
+
+Produces a tailoring brief (which CV evidence to lead with for *this*
+posting, which of its requirements your CV does not support, which of its
+terms you can safely mirror) and a cover-letter draft assembled only from
+entries in `config/cv_evidence_map.json`. With an API key configured, an
+LLM may rewrite the draft for tone - and the rewrite is thrown away if it
+introduces any claim the CV does not support (a completed MSc, another
+language, US work authorization, a clearance). The dashboard exposes the
+same thing behind the "Tailor CV" button, deterministic-only so a click
+never spends money.
+
+## Notifications
+
+Every channel is opt-in and none is required:
+
+```bash
+jobintel notify --test   # prove your channels work
+jobintel notify          # send pending urgent alerts + today's digest
+```
+
+Configure any of Telegram, Slack or SMTP email in `.env` (see
+`.env.example`). Urgent-alert thresholds live in `config/profile.yaml`
+under `alerts:`; an urgent alert fires **once per job**, tracked in the
+`notification_log` table, so a re-run never re-alerts. `jobintel run` and
+`scripts/daily_run.py` dispatch notifications automatically.
 
 ## Full daily run
 
@@ -100,7 +193,8 @@ refinement pass.
 jobintel run
 ```
 
-Equivalent to `collect` + `evaluate` + printing the daily digest.
+Equivalent to `collect` + `evaluate` + notify + printing the daily
+digest. Use `jobintel run --no-notify` to skip the notification step.
 
 ## Starting the dashboard
 
@@ -167,6 +261,17 @@ Always review the generated migration before applying it.
   `.env` and that jobs are clearing the `stage4_deep_analysis_min_score`
   threshold in `config/scoring.yaml` - low-scoring jobs intentionally skip
   the paid LLM stage.
+- **A muted board never collects anything**: that is intentional - muted
+  means "adapter ships, token unproven". Run `jobintel verify-boards
+  --muted`, then set `collection_status` to `normal` (or higher) for the
+  ones that come back OK.
+- **A source suddenly reports BROKEN with "unexpected payload shape"**:
+  the upstream API changed. That is deliberately loud rather than
+  silently returning zero jobs, which would hide a whole employer from
+  your feed.
+- **A generated cover letter looks plainer than expected**: an LLM
+  rewrite was probably rejected by the anti-fabrication guardrails. The
+  output says so explicitly, listing which claim tripped which rule.
 - **"database is locked" errors**: SQLite only supports one writer at a
   time - don't run `jobintel collect`/`evaluate` and the dashboard's
   write actions (Applied/feedback buttons) at the exact same moment on a

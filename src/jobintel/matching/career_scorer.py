@@ -84,7 +84,7 @@ def score_career_opportunity(
     conf = scoring["confidence_scoring"]
 
     role_match = match_role_family(job_title, description_text)
-    mismatches = find_mismatches(description_text)
+    mismatches = find_mismatches(description_text, job_title=job_title)
 
     final_eligible = finalize_eligibility(geo_evidence)
     is_excluded_travel = excluded_travel_override(geo_evidence)
@@ -177,6 +177,10 @@ def score_career_opportunity(
     strengths = []
     if role_match.role_family:
         strengths.append(f"Role-family match: {role_match.label} ({role_match.tier} priority).")
+        if role_match.semantic_terms:
+            strengths.append(
+                "Shared vocabulary with your evidence: " + ", ".join(role_match.semantic_terms[:5]) + "."
+            )
     strengths.extend(evidence_texts)
     if remote_score >= 18:
         strengths.append(f"Strong remote suitability ({geo_evidence.classification.value}).")
@@ -200,7 +204,11 @@ def score_career_opportunity(
 
     reasoning_parts = []
     if role_match.role_family:
-        reasoning_parts.append(f"Matched role family '{role_match.label}'.")
+        reasoning_parts.append(
+            f"Matched role family '{role_match.label}' "
+            f"(title {role_match.title_score:.2f}, keywords {role_match.keyword_score:.2f}, "
+            f"content-vs-sibling-families {role_match.semantic_score:.2f})."
+        )
     reasoning_parts.append(f"Geographic eligibility: {final_eligible.value} ({geo_evidence.classification.value}).")
     if mismatches.mandatory_mismatches:
         reasoning_parts.append(f"{len(mismatches.mandatory_mismatches)} mandatory mismatch(es) found.")

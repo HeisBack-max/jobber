@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import functools
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -33,8 +34,12 @@ class Settings(BaseSettings):
     telegram_chat_id: str | None = None
     slack_webhook_url: str | None = None
     smtp_host: str | None = None
+    smtp_port: int = 587
     smtp_user: str | None = None
     smtp_password: str | None = None
+    smtp_use_tls: bool = True
+    notification_email_from: str | None = None
+    notification_email_to: str | None = None  # comma-separated
 
     request_timeout_seconds: int = 20
     user_agent: str = "RemoteJobIntelligence/0.1 (personal use; contact: bestrichardanthonyspencer@gmail.com)"
@@ -88,6 +93,18 @@ def load_cv_evidence_map() -> dict[str, Any]:
         return json.load(f)
 
 
+# Caches derived from config that live outside this module (e.g. the
+# embedding index built from roles.yaml + cv_evidence_map.json) register
+# their clearer here, so clear_config_cache() stays the single place a
+# test or a config reload has to call.
+_EXTRA_CACHE_CLEARERS: list[Callable[[], None]] = []
+
+
+def register_cache_clearer(clearer: Callable[[], None]) -> None:
+    if clearer not in _EXTRA_CACHE_CLEARERS:
+        _EXTRA_CACHE_CLEARERS.append(clearer)
+
+
 def clear_config_cache() -> None:
     """Used by tests that need to reload config after monkeypatching CONFIG_DIR."""
     for fn in (
@@ -100,3 +117,5 @@ def clear_config_cache() -> None:
         load_cv_evidence_map,
     ):
         fn.cache_clear()
+    for clearer in _EXTRA_CACHE_CLEARERS:
+        clearer()

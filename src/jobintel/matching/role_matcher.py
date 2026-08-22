@@ -23,7 +23,8 @@ from dataclasses import dataclass, field
 
 from rapidfuzz import fuzz
 
-from jobintel.settings import load_roles
+from jobintel.matching.embeddings import get_role_family_index
+from jobintel.settings import load_roles, load_scoring
 
 _STOPWORDS = {
     "the", "and", "or", "of", "a", "an", "for", "in", "on", "to", "with",
@@ -35,6 +36,15 @@ _STOPWORDS = {
     "consultant", "learning", "solutions", "customer", "success",
     "developer", "designer", "programme", "program", "manager", "lead",
     "coordinator", "advisor", "officer",
+    # Generic organisational nouns. "team" is the same class of bug as
+    # "enablement" one level down, in the keyword channel rather than the
+    # title channel: it is extracted as a keyword from ai_security's "AI
+    # Red Team" example titles, then matches the phrase "enterprise
+    # teams" in the boilerplate of a pure training posting, which was
+    # enough to hand a Generative AI Trainer role to the AI-security
+    # family (regression test in tests/test_embeddings.py).
+    "team", "teams", "group", "department", "enterprise", "business",
+    "global", "senior", "junior", "staff", "member", "partner",
 }
 
 _TIER_WEIGHT = {"A": 1.0, "B": 0.9, "C": 0.8, "dedicated_channel": 0.9}
@@ -49,6 +59,16 @@ _MIN_COMBINED_SCORE = 0.40
 # generic job-posting boilerplate ("experience", "technical") must not
 # be able to single-handedly promote an unrelated title into a match.
 _MIN_TITLE_RATIO = 0.60
+
+# ...and a shared *word* is required as well, unless the two titles are
+# near-identical. Stripping stopwords can reduce an example title to a
+# single generic word ("Training Content Developer" -> "content"), and
+# rapidfuzz then compares that at the character level: "Senior Accountant"
+# -> "accountant" scored 0.71 against "content" and matched
+# technical_instructional_design. Same family of bug as "enablement" and
+# "team" (IMPLEMENTATION_PLAN.md §7.3, §9.3), one level down again.
+_NEAR_IDENTICAL_TITLE_RATIO = 0.85
+_MIN_SHARED_TOKEN_LENGTH = 2
 
 # Families whose Tier-A/dedicated positioning depends on the role
 # genuinely being about AI or cybersecurity, not just sharing a generic
@@ -87,6 +107,21 @@ class RoleMatchResult:
     combined_score: float  # 0-1
     evidence_categories: list[str] = field(default_factory=list)
     matched_example_title: str | None = None
+    # 0-1 standing of this family against the other plausible families
+    # for this posting (see RoleFamilyIndex.relative_standing).
+    semantic_score: float = 0.0
+    semantic_terms: list[str] = field(default_factory=list)
+
+
+def _semantic_config() -> dict:
+    config = load_scoring().get("semantic_matching", {}) or {}
+    weights = config.get("weights", {}) or {}
+    return {
+        "enabled": config.get("enabled", True),
+        "title_weight": float(weights.get("title", 0.60)),
+        "keyword_weight": float(weights.get("keyword", 0.20)),
+        "semantic_weight": float(weights.get("semantic", 0.20)),
+    }
 
 
 def _keywords_from_titles(titles: list[str]) -> set[str]:
@@ -124,11 +159,23 @@ def _passes_anchor_gate(family_key: str, title_lower: str) -> bool:
 
 
 def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
+    """Two passes on purpose.
+
+    Pass 1 decides *which families are plausible at all*, using the title
+    floor and the anchor-term gate from IMPLEMENTATION_PLAN.md §7.3.
+    Pass 2 asks the semantic index which of those plausible families the
+    posting's content actually favours. That ordering matters: document
+    similarity is a reliable tie-breaker between two families for one
+    posting, and an unreliable relevance score on its own (see
+    `RoleFamilyIndex.relative_standing`), so it is never allowed to admit
+    a family the title gate rejected.
+    """
     roles = load_roles().get("role_families", {})
     description_lower = (description_text or "").lower()
     title_lower = (job_title or "").lower()
-
     title_stripped = _strip_stopwords(title_lower)
+
+    config = _semantic_config()
 
     candidates: list[RoleMatchResult] = []
     for family_key, family in roles.items():
@@ -138,11 +185,15 @@ def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
 
         best_title_ratio = 0.0
         best_title = None
+        title_tokens = {w for w in title_stripped.split() if len(w) >= _MIN_SHARED_TOKEN_LENGTH}
         for example in example_titles:
             example_stripped = _strip_stopwords(example)
             if not title_stripped or not example_stripped:
                 continue
             ratio = fuzz.token_set_ratio(title_stripped, example_stripped) / 100.0
+            shares_a_word = bool(title_tokens & set(example_stripped.split()))
+            if not shares_a_word and ratio < _NEAR_IDENTICAL_TITLE_RATIO:
+                continue
             if ratio > best_title_ratio:
                 best_title_ratio = ratio
                 best_title = example
@@ -159,37 +210,79 @@ def match_role_family(job_title: str, description_text: str) -> RoleMatchResult:
         else:
             keyword_score = 0.0
 
-        # Keyword hits act as a bonus on top of a real title match, not
-        # an independent channel that can carry the score alone - this
-        # is what the title floor above already mostly guarantees, but
-        # weighting title higher keeps keyword noise from inflating
-        # borderline-floor titles further.
-        combined = (best_title_ratio * 0.75) + (keyword_score * 0.25)
-        combined *= _TIER_WEIGHT.get(family.get("tier"), 0.75)
-        if family_key == "ai_training" and _MORE_SPECIFIC_THAN_AI_TRAINING.search(title_lower):
-            combined *= 0.8
-
         candidates.append(RoleMatchResult(
             role_family=family_key,
             tier=family.get("tier"),
             label=family.get("label"),
             title_score=best_title_ratio,
             keyword_score=keyword_score,
-            combined_score=combined,
+            combined_score=0.0,  # filled in below, once semantics are known
             evidence_categories=family.get("evidence_categories", []),
             matched_example_title=best_title,
         ))
 
     if not candidates:
-        return RoleMatchResult(
-            role_family=None, tier=None, label=None,
-            title_score=0.0, keyword_score=0.0, combined_score=0.0,
-        )
+        return _no_match()
+
+    document = f"{job_title}. {description_text or ''}"
+    semantic_scores: dict[str, float] = {}
+    if config["enabled"]:
+        index = get_role_family_index()
+        semantic_scores = index.relative_standing(document, [c.role_family for c in candidates])
+
+    # With a single surviving candidate there is no comparison to make, so
+    # the semantic channel says nothing and its weight is redistributed
+    # rather than handed out for free - a constant bonus would just be a
+    # disguised threshold change, and it let "Senior Accountant" clear the
+    # match floor while this was being calibrated.
+    semantics_discriminate = config["enabled"] and len(candidates) > 1
+
+    for candidate in candidates:
+        family = roles[candidate.role_family]
+        semantic = semantic_scores.get(candidate.role_family, 0.0) if semantics_discriminate else 0.0
+        if semantics_discriminate:
+            combined = (
+                candidate.title_score * config["title_weight"]
+                + candidate.keyword_score * config["keyword_weight"]
+                + semantic * config["semantic_weight"]
+            )
+        else:
+            title_weight = config["title_weight"] + config["semantic_weight"] * 0.75
+            keyword_weight = config["keyword_weight"] + config["semantic_weight"] * 0.25
+            total = title_weight + keyword_weight
+            combined = (candidate.title_score * title_weight + candidate.keyword_score * keyword_weight) / total
+        combined *= _TIER_WEIGHT.get(family.get("tier"), 0.75)
+        if candidate.role_family == "ai_training" and _MORE_SPECIFIC_THAN_AI_TRAINING.search(title_lower):
+            combined *= 0.8
+
+        candidate.combined_score = combined
+        candidate.semantic_score = semantic
+        if semantics_discriminate and semantic > 0:
+            candidate.semantic_terms = get_role_family_index().explain(candidate.role_family, document)
 
     best = max(candidates, key=lambda c: c.combined_score)
     if best.combined_score < _MIN_COMBINED_SCORE:
-        return RoleMatchResult(
-            role_family=None, tier=None, label=None,
-            title_score=0.0, keyword_score=0.0, combined_score=0.0,
-        )
+        return _no_match()
     return best
+
+
+def _no_match() -> RoleMatchResult:
+    return RoleMatchResult(
+        role_family=None, tier=None, label=None,
+        title_score=0.0, keyword_score=0.0, combined_score=0.0,
+    )
+
+
+def semantic_prescore(job_title: str, description_text: str) -> float:
+    """Stage 2 pre-score (spec §45): the combined role-match confidence,
+    0-1, used to decide whether a posting is worth a paid LLM call.
+
+    This deliberately uses the full matching result rather than raw
+    document similarity. Measured over 650 real postings, raw similarity
+    is nearly flat - 97% of postings cleared a 0.35 threshold on it, and
+    the highest scorers were generic customer-success roles - so gating
+    on it would have been a no-op that merely looked like a cost control.
+    The combined score does discriminate: 221 of those 650 postings match
+    a role family at all, and the rest score exactly 0.
+    """
+    return match_role_family(job_title, description_text).combined_score

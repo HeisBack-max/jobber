@@ -16,16 +16,20 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from jobintel.db.models import (  # noqa: E402
+    ApplicationMaterial,
     ApplicationStatusRecord,
     Feedback,
     Gig,
+    GigAnalysisRecord,
     Job,
     JobAnalysisRecord,
+    NotificationLog,
     SourceHealthRecord,
 )
 from jobintel.db.session import session_scope  # noqa: E402
+from jobintel.discovery.registry import load_registry_entries  # noqa: E402
 from jobintel.discovery.strategic_watch import get_strategic_coverage  # noqa: E402
-from jobintel.settings import load_roles, load_strategic_companies  # noqa: E402
+from jobintel.settings import load_roles, load_search_queries, load_strategic_companies  # noqa: E402
 
 st.set_page_config(page_title="Remote Job Intelligence", layout="wide", page_icon="🧭")
 
@@ -131,7 +135,7 @@ def _render_card(job: Job, analysis: JobAnalysisRecord, is_strategic: bool, key_
         st.markdown(f"**Geography:** {job.candidate_geographically_eligible} · **Readiness:** {analysis.application_readiness}")
         st.progress(min(1.0, analysis.confidence_score / 100), text=f"Confidence: {analysis.confidence_score:.0f}%")
 
-        cols = st.columns(5)
+        cols = st.columns(6)
         cols[0].link_button("Open Job", job.canonical_url or job.source_url, width='stretch')
         for i, status in enumerate(ACTION_STATUSES, start=1):
             if cols[i].button(status, key=f"{key_prefix}-{job.id}-{status}", width='stretch'):
@@ -142,6 +146,12 @@ def _render_card(job: Job, analysis: JobAnalysisRecord, is_strategic: bool, key_
             st.markdown("**Geographic evidence:**")
             for e in analysis.geographic_evidence:
                 st.markdown(f"- {e}")
+        if cols[5].button("Tailor CV", key=f"{key_prefix}-{job.id}-tailor", width='stretch'):
+            with st.spinner("Building an evidence-grounded brief..."):
+                _generate_materials(job.id)
+            _jobs_with_materials.clear()
+            st.toast("Tailoring brief and cover letter generated")
+        _render_materials(job.id, key_prefix)
 
         fb_cols = st.columns(4)
         reactions = [("👍 Excellent", "EXCELLENT_MATCH"), ("👌 Relevant", "RELEVANT"),
@@ -171,6 +181,52 @@ def _set_application_status(job_id: str, status: str) -> None:
 def _record_feedback(job_id: str, reaction: str) -> None:
     with session_scope() as session:
         session.add(Feedback(job_id=job_id, reaction=reaction))
+
+
+def _generate_materials(job_id: str) -> None:
+    """CV tailoring brief + cover letter, generated on demand.
+
+    The LLM rewrite is skipped here even when an API key is configured:
+    the dashboard is a browsing surface, and a click should not silently
+    spend money. `jobintel tailor <job_id>` runs the refined version.
+    """
+    import asyncio
+
+    from jobintel.tailoring.service import generate_and_store_materials
+
+    asyncio.run(generate_and_store_materials(job_id, use_llm=False))
+
+
+@st.cache_data(ttl=10)
+def _jobs_with_materials() -> set[str]:
+    """One query per page render instead of one per card: a feed can show
+    300 cards, and almost none of them have generated material."""
+    with session_scope() as session:
+        return {row[0] for row in session.query(ApplicationMaterial.job_id).distinct().all()}
+
+
+def _render_materials(job_id: str, key_prefix: str) -> None:
+    if job_id not in _jobs_with_materials():
+        return
+    with session_scope() as session:
+        materials = (
+            session.query(ApplicationMaterial)
+            .filter_by(job_id=job_id)
+            .order_by(ApplicationMaterial.created_at.desc())
+            .limit(2)
+            .all()
+        )
+        rendered = [(m.kind, m.content, list(m.evidence_ids or [])) for m in materials]
+
+    if not rendered:
+        return
+    with st.expander("Application material (generated from your CV evidence)"):
+        for kind, content, evidence_ids in rendered:
+            st.markdown(f"**{kind.replace('_', ' ').title()}**")
+            st.code(content, language=None)
+            st.caption(
+                f"Traceable to {len(evidence_ids)} CV evidence entries: {', '.join(evidence_ids) or 'none'}"
+            )
 
 
 def main() -> None:
@@ -234,10 +290,25 @@ def main() -> None:
             _render_feed(vertex, strategic_names, "vertex")
 
         with tabs[4]:
-            gigs = session.query(Job, JobAnalysisRecord, Gig).join(JobAnalysisRecord, JobAnalysisRecord.job_id == Job.id).join(Gig, Gig.job_id == Job.id).order_by(Gig.gig_quality_score.desc()).limit(50).all()
+            gigs = (
+                session.query(Job, JobAnalysisRecord, Gig)
+                .join(JobAnalysisRecord, JobAnalysisRecord.job_id == Job.id)
+                .join(Gig, Gig.job_id == Job.id)
+                .order_by(Gig.gig_quality_score.desc())
+                .limit(50)
+                .all()
+            )
             if not gigs:
-                st.info("No gig/project opportunities collected yet. See IMPLEMENTATION_PLAN.md for gig-source status (e.g. Outlier AI requires ToS-compliant authenticated access, not yet implemented).")
-            for job, analysis, _gig in gigs:
+                st.info(
+                    "No gig/project work identified yet. Gigs are found two ways: contractor "
+                    "and project postings on the AI-data marketplaces this app already collects "
+                    "(Appen, Mercor, Toloka, Turing, Prolific...), and anything you paste into "
+                    "config/manual_gigs.yaml from a platform that publishes no API - which is "
+                    "why Outlier AI is entered by hand rather than scraped."
+                )
+            for job, analysis, gig in gigs:
+                gig_analysis = session.query(GigAnalysisRecord).filter_by(gig_id=gig.id).first()
+                _render_gig_summary(gig, gig_analysis)
                 _render_card(job, analysis, False, "gig")
 
         with tabs[5]:
@@ -268,7 +339,99 @@ def main() -> None:
                 width='stretch',
             )
 
+            st.subheader("Configured boards")
+            entries = load_registry_entries()
+            muted = [e for e in entries if not e.is_polled]
+            st.caption(
+                f"{len(entries) - len(muted)} boards polled every run; {len(muted)} shipped but "
+                "muted until `jobintel verify-boards` confirms the token resolves."
+            )
+            st.dataframe(
+                [{"Company": e.name, "ATS": e.ats, "Token": e.board_token,
+                  "Polled": e.is_polled, "Verification": e.verification_status} for e in entries],
+                width='stretch',
+            )
+
+            st.subheader("Channels that are deliberately not collected")
+            search_config = (load_search_queries().get("search_discovery", {}) or {}).get("backends", {})
+            st.dataframe(
+                [
+                    {"Channel": f"search-discovery: {name}",
+                     "Status": "ENABLED" if enabled else "DISABLED (unverified)",
+                     "Why": "Aggregator search backend; enable in config/search_queries.yaml once "
+                            "`jobintel verify-search` confirms it is reachable."}
+                    for name, enabled in search_config.items()
+                ]
+                + [
+                    {"Channel": "Outlier AI (gig platform)",
+                     "Status": "NOT COLLECTED",
+                     "Why": "Listings are visible only to a logged-in account and no public API "
+                            "exists. Paste projects into config/manual_gigs.yaml instead - they "
+                            "are then scored and tracked like any other opportunity."},
+                    {"Channel": "Meta careers",
+                     "Status": "NOT COLLECTED",
+                     "Why": "No public JSON search endpoint; no Greenhouse/Lever/Ashby board."},
+                ],
+                width='stretch',
+            )
+
+            st.subheader("Notifications sent")
+            notifications = (
+                session.query(NotificationLog)
+                .order_by(NotificationLog.created_at.desc())
+                .limit(25)
+                .all()
+            )
+            if not notifications:
+                st.caption("No notifications sent yet (channels are opt-in - see .env.example).")
+            else:
+                st.dataframe(
+                    [{"When": n.created_at, "Channel": n.channel, "Kind": n.kind,
+                      "Status": n.status, "Error": n.error} for n in notifications],
+                    width='stretch',
+                )
+
     st.session_state["last_visit"] = _utcnow_naive()
+
+
+def _render_gig_summary(gig: Gig, gig_analysis: GigAnalysisRecord | None) -> None:
+    """Gig-specific facts a career card has nowhere to show, plus the
+    score breakdown - a gig quality number with no components would be
+    exactly the "unexplained magic score" the spec forbids."""
+    rate = "Rate: UNKNOWN"
+    if gig.advertised_hourly_rate_min or gig.advertised_hourly_rate_max:
+        currency = gig.rate_currency or ""
+        lo = f"{gig.advertised_hourly_rate_min:,.0f}" if gig.advertised_hourly_rate_min else "?"
+        hi = f"{gig.advertised_hourly_rate_max:,.0f}" if gig.advertised_hourly_rate_max else "?"
+        rate = f"Rate: {currency} {lo}-{hi}/hour"
+
+    hours = "Hours: unspecified"
+    if gig.expected_weekly_hours_min or gig.expected_weekly_hours_max:
+        lo = f"{gig.expected_weekly_hours_min:,.0f}" if gig.expected_weekly_hours_min else "?"
+        hi = f"{gig.expected_weekly_hours_max:,.0f}" if gig.expected_weekly_hours_max else "?"
+        hours = f"Hours: {lo}-{hi}/week"
+
+    label = "commodity annotation" if gig.specialist_classification == "commodity_annotation" else "specialist"
+    st.caption(
+        f"Gig quality {gig.gig_quality_score:.0f}/100 ({label})  ·  {rate}  ·  {hours}"
+        + (f"  ·  Duration: {gig.project_duration}" if gig.project_duration else "")
+        + f"  ·  Platform: {gig.platform}"
+    )
+    if gig_analysis is not None:
+        with st.expander("Gig score breakdown"):
+            st.write(gig_analysis.reasoning_summary)
+            st.dataframe(
+                [{
+                    "Geography": round(gig_analysis.geographic_compatibility, 1),
+                    "Relevance": round(gig_analysis.professional_relevance, 1),
+                    "Compensation": round(gig_analysis.compensation, 1),
+                    "Flexibility": round(gig_analysis.flexibility, 1),
+                    "AI/cyber value": round(gig_analysis.ai_cyber_career_value, 1),
+                    "Source reliability": round(gig_analysis.source_reliability, 1),
+                    "Time commitment": round(gig_analysis.time_commitment_compatibility, 1),
+                }],
+                width='stretch',
+            )
 
 
 def _render_feed(rows, strategic_names, key_prefix: str) -> None:
