@@ -92,18 +92,18 @@
   /* ── Main grid ───────────────────────────────────────────── */
   .grid{
     display:grid;gap:12px;
-    grid-template-columns:minmax(0,1fr) 330px 286px;
+    grid-template-columns:minmax(0,1fr) 318px 322px;
     grid-template-areas:"spec ir rail";
   }
   @media (max-width:1240px){
-    .grid{grid-template-columns:minmax(0,1fr) 286px;grid-template-areas:"spec rail" "ir rail"}
+    .grid{grid-template-columns:minmax(0,1fr) 322px;grid-template-areas:"spec rail" "ir rail"}
     .rail{align-self:start}
   }
   @media (max-width:900px){
     .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"spec" "ir" "rail"}
   }
   .col-spec{grid-area:spec;align-self:start}
-  .col-ir{grid-area:ir}
+  .col-ir{grid-area:ir;align-self:start}
   .rail{grid-area:rail;display:flex;flex-direction:column;gap:12px;min-width:0}
 
   .screenwrap{
@@ -173,7 +173,10 @@
     font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;
     color:var(--ink-faint);font-variant-numeric:tabular-nums;letter-spacing:-.01em;
   }
-  .target.locked .big{color:var(--alert);text-shadow:0 0 18px rgba(255,74,56,.35)}
+  .target.rf .big{color:var(--amber);text-shadow:0 0 18px rgba(255,174,59,.30)}
+  .target.thr .big{color:var(--teal);text-shadow:0 0 18px rgba(79,179,165,.30)}
+  .target.fuse .big{color:var(--alert);text-shadow:0 0 20px rgba(255,74,56,.40)}
+  .panel > h3 .n.fuse{color:var(--alert)}
   .target .unit-lbl{font-family:var(--cond);font-size:12px;color:var(--ink-faint);letter-spacing:.16em;margin-left:5px}
   .target .sub{margin-top:5px;font-family:var(--cond);font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim)}
   .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:9px;font-size:11px}
@@ -192,8 +195,38 @@
   .prox .row{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
   .prox .row b{color:var(--ink);font-weight:500}
 
-  .siglist{max-height:200px;overflow-y:auto}
-  .siglist table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+  .clist{max-height:206px;overflow-y:auto}
+  .crow{
+    display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 8px;align-items:center;
+    padding:7px 10px;border-bottom:1px solid #161D26;
+  }
+  .crow .badge{
+    grid-column:1;grid-row:1 / 3;align-self:center;
+    font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.1em;
+    border:1px solid;border-radius:2px;padding:3px 5px;line-height:1;white-space:nowrap;
+  }
+  .crow.rf   .badge{color:var(--amber);border-color:#4A3616;background:#241A0A}
+  .crow.thr  .badge{color:var(--teal); border-color:#1E4A45;background:#0C221F}
+  .crow.fuse .badge{color:#FFD9D3;border-color:var(--alert);background:#3A0D08}
+  .crow.fuse{background:#2A0B0733}
+  .crow .name{grid-column:2;grid-row:1;font-family:var(--cond);font-size:12px;letter-spacing:.03em;color:var(--ink);
+    text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .crow.fuse .name{color:#FFB6AC}
+  .crow .note{grid-column:2;grid-row:2;font-size:11px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .crow .val{grid-column:3;grid-row:1 / 3;text-align:right;font-family:var(--mono);font-size:11px;
+    color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .crow .val i{display:block;font-style:normal;font-size:10px;color:var(--ink-faint);margin-top:2px}
+  .crow.fuse .val{color:var(--alert)}
+  .cempty{padding:14px 10px;font-family:var(--cond);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-faint)}
+
+  .target .prox{padding:12px 0 0;margin-top:11px;border-top:1px solid var(--rule)}
+  .prox .row span{font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+
+  .siglist{max-height:172px;overflow-y:auto}
+  .siglist table{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+  .siglist col.f{width:72px} .siglist col.d{width:54px}
+  .siglist td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .siglist th{
     position:sticky;top:0;background:#0D131B;
     font-family:var(--cond);font-weight:500;font-size:10px;letter-spacing:.14em;
@@ -330,39 +363,40 @@
       </div>
     </section>
 
-    <!-- Data rail -->
+    <!-- Fused contact rail -->
     <aside class="rail">
       <div class="panel">
-        <h3>Locked target</h3>
+        <h3>Primary contact <span class="n" id="fuseTag">standby</span></h3>
         <div class="target" id="target">
-          <div><span class="big" id="tFreq">———.———</span><span class="unit-lbl">MHz</span></div>
-          <div class="sub" id="tName">No target — sweeping</div>
+          <div><span class="big" id="tFreq">———.———</span><span class="unit-lbl" id="tUnit">MHz</span></div>
+          <div class="sub" id="tName">No contact — sweeping</div>
           <dl class="kv">
-            <dt>Level</dt><dd id="tLevel">—</dd>
-            <dt>Bandwidth</dt><dd id="tBw">—</dd>
+            <dt>RF level</dt><dd id="tLevel">—</dd>
             <dt>Modulation</dt><dd id="tMod">—</dd>
-            <dt>Duty</dt><dd id="tDuty">—</dd>
+            <dt>Surface temp</dt><dd id="tTemp">—</dd>
+            <dt>Respiration</dt><dd id="tResp">—</dd>
             <dt>First seen</dt><dd id="tSeen">—</dd>
           </dl>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h3>Proximity <span class="n" id="proxState">STANDBY</span></h3>
-        <div class="prox">
-          <div class="meter"><div class="meter-fill" id="proxFill"></div>
-            <div class="meter-ticks"><i></i><i></i><i></i></div>
+          <div class="prox">
+            <div class="meter"><div class="meter-fill" id="proxFill"></div>
+              <div class="meter-ticks"><i></i><i></i><i></i></div>
+            </div>
+            <div class="row"><span id="proxState">STANDBY</span><b id="proxRange">—</b></div>
           </div>
-          <div class="row"><span>FIELD STRENGTH</span><b id="proxVal">0.00 mV/m</b></div>
-          <div class="row"><span>EST. RANGE</span><b id="proxRange">—</b></div>
         </div>
       </div>
 
       <div class="panel">
-        <h3>Detected emitters <span class="n" id="sigCount">0</span></h3>
+        <h3>Contacts <span class="n" id="cCount">0</span></h3>
+        <div class="clist" id="clist"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Ambient RF <span class="n" id="sigCount">0</span></h3>
         <div class="siglist">
           <table>
-            <thead><tr><th>Freq / MHz</th><th>Class</th><th>dBm</th></tr></thead>
+            <colgroup><col class="f"><col><col class="d"></colgroup>
+            <thead><tr><th>MHz</th><th>Source</th><th>dBm</th></tr></thead>
             <tbody id="sigBody"></tbody>
           </table>
         </div>
@@ -412,18 +446,30 @@
       <dt><kbd>I</kbd></dt><dd>Thermal channel on / off</dd>
     </dl>
 
+    <h4>What the unit does on its own</h4>
+    <p>Place a body and plant a transmitter at the same time and the two channels correlate without you touching anything: the banner rewrites itself to <em>correlated contact</em>, the primary card turns red, and a three-tone alarm fires. Pressing <kbd>5</kbd> then <kbd>1</kbd> a few seconds apart is the whole reveal — let it escalate on its own rather than hitting both at once.</p>
+
+    <h4>The mix, once audio is on</h4>
+    <dl>
+      <dt>Clicks</dt><dd>RF — rate rises as you close on a transmitter</dd>
+      <dt>Sonar ping</dt><dd>Thermal — every 1.6 s while a body is tracked, faster once correlated</dd>
+      <dt>Low thump</dt><dd>Thermal — one per breath, at the contact's respiration rate</dd>
+      <dt>Two-tone</dt><dd>Correlation alarm, repeating every 2.6 s</dd>
+      <dt>Held tone</dt><dd>RF — you are on top of the transmitter</dd>
+    </dl>
+
     <h4>Unit</h4>
     <dl>
       <dt><kbd>0</kbd></dt><dd>Clear everything — RF flags and bodies. Clean room.</dd>
       <dt><kbd>Space</kbd></dt><dd>Hold / resume the RF sweep</dd>
-      <dt><kbd>A</kbd></dt><dd>Audio on or off (clicks build as you close in)</dd>
+      <dt><kbd>A</kbd></dt><dd>Audio on or off — <em>see the mix below</em></dd>
       <dt><kbd>H</kbd></dt><dd>Hide the button row for a clean shot</dd>
       <dt><kbd>F</kbd></dt><dd>Full screen</dd>
       <dt><kbd>?</kbd> <kbd>Esc</kbd></dt><dd>Open / close this card</dd>
     </dl>
 
     <footer>
-      Blocking notes: the door reads slightly cooler than the wall, so it is always visible — a body behind it blooms through as a soft, diffuse shape rather than a sharp one, which is what a real through-partition read looks like. Give the box a beat to settle: confidence climbs from 0.6 to 0.9 over about two seconds. RF proximity decays on its own, so an abandoned bug goes quiet; walk back in with <kbd>↑</kbd>. Audio needs one click on the page before it will sound — press <kbd>A</kbd> during your pre-set.
+      Blocking notes: the door reads slightly cooler than the wall, so it is always visible — a body behind it blooms through as a soft, diffuse shape rather than a sharp one, which is what a real through-partition read looks like. Give the box a beat to settle: confidence climbs from 0.6 to 0.9 over about two seconds. RF proximity decays on its own, so an abandoned bug goes quiet; walk back in with <kbd>↑</kbd>. Audio needs one click on the page before it will sound — press <kbd>A</kbd> during your pre-set. With a body and a bug both live the mix gets busy on purpose; <kbd>I</kbd> parks the thermal channel if you need the RF clicks alone for a line.
     </footer>
   </div>
 </div>
@@ -495,8 +541,8 @@
     running:true, audio:false, maxHold:true, irOn:true, pal:0,
     sweepPos:0, sweeps:0, batt:87,
     prox:0, proxTarget:0,
-    planted:[], lock:null,
-    bodies:[], conf:0, motion:0,
+    planted:[], seen:null,
+    bodies:[], conf:0, motion:0, fused:false,
     trace:new Float32Array(BINS), hold:new Float32Array(BINS)
   };
   st.trace.fill(DB_BOT); st.hold.fill(DB_BOT);
@@ -865,20 +911,86 @@
 
   /* ── Signal table ──────────────────────────────────────────── */
   function refreshSignals(){
-    const rows = [];
-    for (const e of AMBIENT) rows.push({f:e.f, lvl:st.hold[clamp(binOf(e.f),0,BINS-1)], cls:"KNOWN", name:e.name, flag:false});
-    for (const k of st.planted){
-      const b = BUGS[k];
-      rows.push({f:b.f, lvl:st.hold[clamp(binOf(b.f),0,BINS-1)], cls:"UNREG", name:b.name, flag:true});
-    }
-    rows.sort((a, c) => (c.flag - a.flag) || (c.lvl - a.lvl));
+    const rows = AMBIENT.map(e => ({f:e.f, lvl:st.hold[clamp(binOf(e.f),0,BINS-1)], name:e.name}));
+    rows.sort((a, c) => c.lvl - a.lvl);
     $("sigBody").innerHTML = rows.map(r => `
-      <tr class="${r.flag ? "flag" : ""}" title="${r.name}">
+      <tr title="${r.name}">
         <td>${r.f.toFixed(3)}</td>
-        <td><span class="cls">${r.cls}</span></td>
+        <td><span class="cls">${r.name}</span></td>
         <td>${r.lvl > DB_BOT + 2 ? r.lvl.toFixed(1) : "—"}</td>
       </tr>`).join("");
     $("sigCount").textContent = rows.length;
+  }
+
+  /* ── Fused contact picture ─────────────────────────────────── */
+  function isFused(){ return st.planted.length > 0 && st.bodies.length > 0 && st.conf > 0.6; }
+
+  function refreshContacts(){
+    const rows = [];
+    const bug = st.planted.length ? BUGS[st.planted[0]] : null;
+    const body = st.bodies.length ? BODIES[st.bodies[0]] : null;
+    const fused = isFused();
+
+    if (fused){
+      rows.push({cls:"fuse", badge:"RF+IR", name:"Correlated contact",
+        note:`${bug.mod} carrier moving with the ${body.pose} form`,
+        val:bug.f.toFixed(3) + " MHz", sub:irStats.contact.toFixed(1) + " °C"});
+    }
+    for (const k of st.planted){
+      const b = BUGS[k], lvl = b.base + st.prox * 0.42;
+      rows.push({cls:"rf", badge:"RF", name:b.name, note:b.mod + " · " + b.duty,
+        val:b.f.toFixed(3) + " MHz", sub:lvl.toFixed(1) + " dBm"});
+    }
+    for (const k of st.bodies){
+      const b = BODIES[k];
+      rows.push({cls:"thr", badge:"IR", name:b.name, note:b.where,
+        val:(irStats.peaks[k] || 0).toFixed(1) + " °C", sub:b.dist});
+    }
+
+    $("cCount").textContent = rows.length;
+    $("clist").innerHTML = rows.length
+      ? rows.map(r => `<div class="crow ${r.cls}">
+          <span class="badge">${r.badge}</span>
+          <span class="name">${r.name}</span>
+          <span class="note">${r.note}</span>
+          <span class="val">${r.val}<i>${r.sub}</i></span>
+        </div>`).join("")
+      : `<div class="cempty">No flagged contacts — room clean</div>`;
+  }
+
+  function updatePrimary(){
+    const bug = st.planted.length ? BUGS[st.planted[0]] : null;
+    const body = st.bodies.length ? BODIES[st.bodies[0]] : null;
+    const fused = isFused();
+    const card = $("target");
+    card.classList.toggle("fuse", fused);
+    card.classList.toggle("rf", !fused && !!bug);
+    card.classList.toggle("thr", !fused && !bug && !!body);
+
+    const tag = $("fuseTag");
+    tag.textContent = fused ? "CORRELATED" : bug ? "RF" : body ? "THERMAL" : "standby";
+    tag.classList.toggle("fuse", fused);
+
+    if (!bug && !body){
+      $("tFreq").textContent = "———.———"; $("tUnit").textContent = "MHz";
+      $("tName").textContent = "No contact — sweeping";
+      ["tLevel","tMod","tTemp","tResp","tSeen"].forEach(id => $(id).textContent = "—");
+      return;
+    }
+    if (bug){
+      $("tFreq").textContent = bug.f.toFixed(3); $("tUnit").textContent = "MHz";
+      $("tLevel").textContent = (bug.base + st.prox * 0.42).toFixed(1) + " dBm";
+      $("tMod").textContent = bug.mod;
+    } else {
+      $("tFreq").textContent = irStats.contact.toFixed(1); $("tUnit").textContent = "°C";
+      $("tLevel").textContent = "—"; $("tMod").textContent = "—";
+    }
+    $("tName").textContent = fused
+      ? "Transmitter co-located with human form"
+      : bug ? bug.name : body.name;
+    $("tTemp").textContent = body ? irStats.contact.toFixed(1) + " °C" : "—";
+    $("tResp").textContent = body ? Math.round(body.resp + Math.sin(performance.now() / 3400) * 1.2) + " /min" : "—";
+    $("tSeen").textContent = st.seen || "—";
   }
 
   /* ── Log ───────────────────────────────────────────────────── */
@@ -896,7 +1008,8 @@
   }
 
   /* ── Audio ─────────────────────────────────────────────────── */
-  let ac = null, toneOsc = null, toneGain = null, nextClick = 0;
+  let ac = null, toneOsc = null, toneGain = null;
+  let nextClick = 0, nextPing = 0, nextBreath = 0, nextWarble = 0;
   function audioCtx(){
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();
@@ -921,6 +1034,32 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.16));
     o.connect(g).connect(c.destination); o.start(t); o.stop(t + (dur || 0.16) + 0.03);
   }
+  function ping(urgent){
+    if (!st.audio) return;
+    const c = audioCtx(), t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = "sine";
+    o.frequency.setValueAtTime(urgent ? 1040 : 880, t);
+    o.frequency.exponentialRampToValueAtTime(urgent ? 660 : 540, t + 0.34);
+    f.type = "bandpass"; f.frequency.value = 780; f.Q.value = 1.8;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(urgent ? 0.075 : 0.055, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.44);
+    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + 0.5);
+  }
+  function breath(){
+    if (!st.audio) return;
+    const c = audioCtx(), t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(96, t);
+    o.frequency.exponentialRampToValueAtTime(62, t + 0.26);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.05, t + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.36);
+  }
+  function warble(){ beep(742, 0, .17); beep(556, .19, .19); }
+
   function setTone(on, hz){
     if (!st.audio){ if (toneOsc){ try{ toneOsc.stop(); }catch(e){} toneOsc = null; } return; }
     const c = audioCtx();
@@ -948,18 +1087,11 @@
   }
   function lockOn(key){
     const b = BUGS[key];
-    st.lock = {key, since: stamp()};
-    $("target").classList.add("locked");
-    $("tFreq").textContent = b.f.toFixed(3);
-    $("tName").textContent = b.name;
-    $("tBw").textContent = b.bw < 1 ? (b.bw * 1000).toFixed(0) + " kHz" : b.bw.toFixed(1) + " MHz";
-    $("tMod").textContent = b.mod;
-    $("tDuty").textContent = b.duty;
-    $("tSeen").textContent = st.lock.since;
+    st.seen = st.seen || stamp();
     $("alertbar").classList.add("show");
-    $("alertMsg").textContent = "Unregistered transmitter — " + b.name;
+    if (!isFused()) $("alertMsg").textContent = "Unregistered transmitter — " + b.name;
     $("alertFrq").textContent = b.f.toFixed(3) + " MHz";
-    updateDetLed();
+    updateDetLed(); updatePrimary(); refreshContacts();
     log(`LOCK — target held at ${b.f.toFixed(3)} MHz · walk the room to localise`, "a");
   }
 
@@ -969,6 +1101,7 @@
     if (!b || st.bodies.includes(key)) return;
     if (!st.irOn) toggleIr();
     st.bodies.push(key);
+    st.seen = st.seen || stamp();
     st.conf = Math.min(st.conf, 0.55);
     st.motion = 0.5;
     log(`IR — thermal gradient rising ${b.where}`, "i");
@@ -976,7 +1109,7 @@
     setTimeout(() => log(`IR — Δ+15.3 K over ambient, contour consistent with torso and head`, "w"), 800);
     setTimeout(() => {
       $("irbar").classList.add("show");
-      updateDetLed();
+      updateDetLed(); updatePrimary(); refreshContacts();
       log(`IR LOCK — ${b.name.toUpperCase()} · respiration ${b.resp}/min · range ${b.dist}`, "a");
       beep(1320, 0, .18);
     }, 1900);
@@ -996,22 +1129,18 @@
   function clearAll(){
     if (!st.planted.length && !st.bodies.length){ log("SWEEP — nothing flagged, room reads clean"); return; }
     st.planted.length = 0; st.bodies.length = 0;
-    st.lock = null; st.proxTarget = 0; st.conf = 0; st.motion = 0;
+    st.seen = null; st.proxTarget = 0; st.conf = 0; st.motion = 0; st.fused = false;
     st.hold.fill(DB_BOT);
-    $("target").classList.remove("locked");
-    $("tFreq").textContent = "———.———";
-    $("tName").textContent = "No target — sweeping";
-    ["tLevel","tBw","tMod","tDuty","tSeen"].forEach(id => $(id).textContent = "—");
     $("alertbar").classList.remove("show");
     $("irbar").classList.remove("show");
     updateDetLed();
     setTone(false, 400);
     log("CLEAR — flag register wiped, RF and thermal both nominal", "w");
-    refreshSignals();
+    updatePrimary(); refreshContacts(); refreshSignals();
   }
 
   /* ── Main loop ─────────────────────────────────────────────── */
-  let last = performance.now(), acc = 0, wfAcc = 0, irAcc = 0;
+  let last = performance.now(), acc = 0, wfAcc = 0, irAcc = 0, uiAcc = 0;
 
   function frame(now){
     requestAnimationFrame(frame);
@@ -1059,13 +1188,12 @@
     /* Readouts */
     const p = st.prox;
     $("proxFill").style.width = p.toFixed(1) + "%";
-    $("proxVal").textContent = (p * 0.0184).toFixed(2) + " mV/m";
     $("proxRange").textContent = st.planted.length
-      ? (p < 4 ? "> 12 m" : (12 * Math.exp(-p / 34)).toFixed(1) + " m") : "—";
-    $("proxState").textContent = !st.planted.length ? "STANDBY"
+      ? (p < 4 ? "> 12 m" : (12 * Math.exp(-p / 34)).toFixed(1) + " m")
+      : st.bodies.length ? BODIES[st.bodies[0]].dist : "—";
+    $("proxState").textContent = (!st.planted.length && !st.bodies.length) ? "STANDBY"
+      : !st.planted.length ? "THERMAL TRACK"
       : p > 78 ? "AT SOURCE" : p > 45 ? "CLOSING" : "SEARCHING";
-
-    if (st.lock) $("tLevel").textContent = (BUGS[st.lock.key].base + p * 0.42).toFixed(1) + " dBm";
 
     if (st.irOn){
       const body = st.bodies.length ? BODIES[st.bodies[0]] : null;
@@ -1074,28 +1202,48 @@
       $("irMin").textContent  = irStats.min.toFixed(1) + " °C";
       const dK = (body ? irStats.contact : irStats.max) - T_AMBIENT;
       $("irDelta").textContent = (dK >= 0 ? "+" : "") + dK.toFixed(1) + " K";
+      $("irDelta").className = body ? "hot" : "";
+      $("irResp").textContent = body ? `${(body.resp + Math.sin(t * .3) * 1.2).toFixed(0)} /min` : "—";
+      $("irClass").textContent = body ? `HUMAN ×${st.bodies.length} · ${st.conf.toFixed(2)}` : "NO HUMAN FORM";
+      $("irClass").className = body ? "hot" : "";
       if (body){
         $("irbarMsg").textContent = body.name + " · " + body.where
           + (st.bodies.length > 1 ? ` · +${st.bodies.length - 1} more` : "");
         $("irbarRange").textContent = body.dist + " · " + irStats.contact.toFixed(1) + " °C";
       }
-      $("irDelta").className = body ? "hot" : "";
-      $("irResp").textContent = body ? `${(body.resp + Math.sin(t * .3) * 1.2).toFixed(0)} /min` : "—";
-      $("irClass").textContent = body
-        ? `HUMAN ×${st.bodies.length} · ${st.conf.toFixed(2)}`
-        : "NO HUMAN FORM";
-      $("irClass").className = body ? "hot" : "";
     }
 
-    /* Audio */
-    if (st.audio && st.planted.length){
-      const rate = 1.2 + Math.pow(p / 100, 1.7) * 26;
-      if (now > nextClick){
-        click(0.05 + p / 100 * 0.09);
-        nextClick = now + 1000 / rate * (0.82 + Math.random() * 0.36);
+    /* Correlation — the two channels agreeing is the real alarm */
+    const fused = isFused();
+    if (fused !== st.fused){
+      st.fused = fused;
+      if (fused){
+        $("alertMsg").textContent = "Correlated contact — transmitter co-located with human form";
+        $("alertbar").classList.add("show");
+        log("CORRELATE — RF bearing coincides with thermal contact, same room volume", "a");
+        beep(880, 0, .14); beep(660, .17, .14); beep(880, .34, .22);
+      } else if (st.planted.length){
+        $("alertMsg").textContent = "Unregistered transmitter — " + BUGS[st.planted[0]].name;
       }
-      setTone(p > 72, 300 + p * 4);
+    }
+
+    /* Audio — RF clicks, thermal sonar and breath, fusion warble */
+    if (st.audio){
+      if (st.planted.length && now > nextClick){
+        click(0.05 + p / 100 * 0.09);
+        nextClick = now + 1000 / (1.2 + Math.pow(p / 100, 1.7) * 26) * (0.82 + Math.random() * 0.36);
+      }
+      if (st.bodies.length){
+        if (now > nextPing){ ping(fused); nextPing = now + (fused ? 950 : 1650); }
+        if (now > nextBreath){ breath(); nextBreath = now + 60000 / BODIES[st.bodies[0]].resp; }
+      }
+      if (fused && now > nextWarble){ warble(); nextWarble = now + 2600; }
+      setTone(st.planted.length > 0 && p > 72, 300 + p * 4);
     } else setTone(false, 300);
+
+    /* Rail refresh at 4 Hz — the numbers should settle, not flicker */
+    uiAcc += dt;
+    if (uiAcc > 0.25){ uiAcc = 0; updatePrimary(); refreshContacts(); }
 
     /* Housekeeping */
     acc += dt;
@@ -1194,7 +1342,7 @@
   /* ── Boot ──────────────────────────────────────────────────── */
   resize();
   computeField(0); renderField();
-  refreshSignals();
+  refreshSignals(); refreshContacts(); updatePrimary();
   const boot = [
     "KESTREL RF-9 · firmware 4.18b · serial K9-2214-EU",
     "SELF TEST — synth lock OK · LO drift 0.4 ppm · preamp OK",
