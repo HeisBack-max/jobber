@@ -271,6 +271,76 @@
     padding:1px 5px;margin:0 1px;
   }
 
+  /* ── Full-screen warning ─────────────────────────────────── */
+  .klax{
+    position:fixed;inset:0;z-index:60;display:none;
+    flex-direction:column;justify-content:space-between;
+    background:radial-gradient(120% 100% at 50% 40%, #4A0D06 0%, #1A0503 55%, #0B0201 100%);
+    animation:klaxflash 1.15s steps(2,end) infinite;
+    text-align:center;
+  }
+  .klax.show{display:flex}
+  @keyframes klaxflash{50%{background:radial-gradient(120% 100% at 50% 40%, #7A160B 0%, #2A0704 55%, #100302 100%)}}
+  .klax-stripe{
+    height:clamp(16px,2.4vh,30px);flex:none;
+    background:repeating-linear-gradient(-45deg,var(--alert) 0 22px,#180402 22px 44px);
+    opacity:.9;
+  }
+  .klax-body{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:clamp(8px,1.4vh,20px);padding:clamp(14px,3vh,40px) clamp(16px,4vw,60px);min-height:0;
+  }
+  .klax-tag{
+    font-family:var(--cond);font-weight:700;text-transform:uppercase;
+    font-size:clamp(12px,1.5vw,20px);letter-spacing:.42em;
+    color:#160302;background:var(--alert);padding:5px clamp(10px,1.4vw,20px);border-radius:2px;
+  }
+  .klax-head{
+    margin:0;font-family:var(--cond);font-weight:700;text-transform:uppercase;
+    font-size:clamp(34px,7.6vw,132px);line-height:.94;letter-spacing:.02em;
+    color:#FFF1EE;text-wrap:balance;text-shadow:0 0 40px rgba(255,74,56,.65);
+  }
+  .klax-sub{
+    margin:0;font-family:var(--cond);text-transform:uppercase;
+    font-size:clamp(13px,1.9vw,28px);letter-spacing:.18em;color:#FF9A8C;max-width:44ch;text-wrap:balance;
+  }
+  .klax-stats{
+    display:flex;flex-wrap:wrap;justify-content:center;
+    gap:clamp(18px,4.4vw,88px);margin-top:clamp(8px,2vh,26px);
+  }
+  .klax-stats div{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .klax-stats span{
+    font-family:var(--cond);font-size:clamp(9px,.95vw,14px);letter-spacing:.26em;
+    text-transform:uppercase;color:#C46A5E;
+  }
+  .klax-stats b{
+    font-family:var(--mono);font-weight:600;font-size:clamp(18px,3vw,50px);
+    color:#FFD9D3;font-variant-numeric:tabular-nums;line-height:1;
+  }
+  .klax-warn{
+    margin-top:clamp(6px,1.6vh,20px);
+    font-family:var(--cond);font-weight:700;text-transform:uppercase;
+    font-size:clamp(15px,2.6vw,42px);letter-spacing:.22em;color:var(--alert);
+    border-top:2px solid #7A2117;border-bottom:2px solid #7A2117;
+    padding:clamp(5px,1vh,13px) clamp(12px,2vw,32px);
+  }
+  .klax-foot{
+    font-family:var(--cond);font-size:clamp(10px,1vw,14px);letter-spacing:.2em;
+    text-transform:uppercase;color:#8E4034;
+  }
+  .klax.clear{
+    background:radial-gradient(120% 100% at 50% 40%, #06322C 0%, #041613 55%, #010807 100%);
+    animation:none;
+  }
+  .klax.clear .klax-stripe{background:repeating-linear-gradient(-45deg,var(--teal) 0 22px,#04120F 22px 44px)}
+  .klax.clear .klax-tag{background:var(--teal);color:#04120F}
+  .klax.clear .klax-head{color:#E4FFF9;text-shadow:0 0 40px rgba(79,179,165,.5)}
+  .klax.clear .klax-sub{color:#7FD6C8}
+  .klax.clear .klax-stats span{color:#4E8C82}
+  .klax.clear .klax-stats b{color:#D6F4EE}
+  .klax.clear .klax-warn{color:var(--teal);border-color:#1E4A45}
+  .klax.clear .klax-foot{color:#3E7168}
+
   /* ── Cue card ────────────────────────────────────────────── */
   .cue{position:fixed;inset:0;background:#04060Aee;z-index:40;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto}
   .cue.show{display:flex}
@@ -416,10 +486,24 @@
     <button id="btnAudio">Audio Off</button>
     <button id="btnPeak" class="armed">Max hold</button>
     <button id="btnClear" class="danger">Clear flags</button>
+    <button id="btnWarn" class="danger">Warning screen</button>
     <button id="btnFull">Full screen</button>
     <div class="spacer"></div>
     <span class="hint">Cue card <kbd>?</kbd> · hide controls <kbd>H</kbd></span>
   </div>
+</div>
+
+<div class="klax" id="klax" role="alertdialog" aria-live="assertive" aria-hidden="true">
+  <div class="klax-stripe"></div>
+  <div class="klax-body">
+    <div class="klax-tag" id="klaxTag">Correlated contact</div>
+    <h1 class="klax-head" id="klaxHead">Surveillance device detected</h1>
+    <p class="klax-sub" id="klaxSub">Active transmitter co-located with a concealed human form</p>
+    <div class="klax-stats" id="klaxStats"></div>
+    <div class="klax-warn" id="klaxWarn">Do not speak — device is live</div>
+    <div class="klax-foot">Acknowledge <kbd>Esc</kbd> · recall <kbd>W</kbd></div>
+  </div>
+  <div class="klax-stripe"></div>
 </div>
 
 <div class="cue" id="cue">
@@ -447,14 +531,14 @@
     </dl>
 
     <h4>What the unit does on its own</h4>
-    <p>Place a body and plant a transmitter at the same time and the two channels correlate without you touching anything: the banner rewrites itself to <em>correlated contact</em>, the primary card turns red, and a three-tone alarm fires. Pressing <kbd>5</kbd> then <kbd>1</kbd> a few seconds apart is the whole reveal — let it escalate on its own rather than hitting both at once.</p>
+    <p>Place a body and plant a transmitter at the same time and the two channels correlate without you touching anything: the banner rewrites itself to <em>correlated contact</em>, the primary card turns red, and the full-screen warning takes over with the klaxon under it. Pressing <kbd>5</kbd> then <kbd>1</kbd> a few seconds apart is the whole reveal — let it escalate on its own rather than hitting both at once.</p>
 
     <h4>The mix, once audio is on</h4>
     <dl>
       <dt>Clicks</dt><dd>RF — rate rises as you close on a transmitter</dd>
       <dt>Sonar ping</dt><dd>Thermal — every 1.6 s while a body is tracked, faster once correlated</dd>
       <dt>Low thump</dt><dd>Thermal — one per breath, at the contact's respiration rate</dd>
-      <dt>Two-tone</dt><dd>Correlation alarm, repeating every 2.6 s</dd>
+      <dt>Klaxon</dt><dd>Four-blast alarm under the warning screen, every 1.75 s — the loud one</dd>
       <dt>Held tone</dt><dd>RF — you are on top of the transmitter</dd>
     </dl>
 
@@ -463,6 +547,7 @@
       <dt><kbd>0</kbd></dt><dd>Clear everything — RF flags and bodies. Clean room.</dd>
       <dt><kbd>Space</kbd></dt><dd>Hold / resume the RF sweep</dd>
       <dt><kbd>A</kbd></dt><dd>Audio on or off — <em>see the mix below</em></dd>
+      <dt><kbd>W</kbd></dt><dd>Full-screen warning — raises itself on a correlation, and recalls whatever the unit currently holds. Clear room shows a green all-clear instead.</dd>
       <dt><kbd>H</kbd></dt><dd>Hide the button row for a clean shot</dd>
       <dt><kbd>F</kbd></dt><dd>Full screen</dd>
       <dt><kbd>?</kbd> <kbd>Esc</kbd></dt><dd>Open / close this card</dd>
@@ -1008,31 +1093,41 @@
   }
 
   /* ── Audio ─────────────────────────────────────────────────── */
-  let ac = null, toneOsc = null, toneGain = null;
-  let nextClick = 0, nextPing = 0, nextBreath = 0, nextWarble = 0;
+  let ac = null, bus = null, toneOsc = null, toneGain = null;
+  let nextClick = 0, nextPing = 0, nextBreath = 0, nextKlaxon = 0;
+
   function audioCtx(){
-    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ac){
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      bus = ac.createGain(); bus.gain.value = 2.6;
+      const comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -14; comp.knee.value = 12; comp.ratio.value = 7;
+      comp.attack.value = 0.003; comp.release.value = 0.18;
+      bus.connect(comp).connect(ac.destination);
+    }
     if (ac.state === "suspended") ac.resume();
     return ac;
   }
+  const out = () => bus;
+
   function click(gain){
     const c = audioCtx(), t = c.currentTime;
     const o = c.createOscillator(), g = c.createGain();
     o.type = "square"; o.frequency.setValueAtTime(1500 + Math.random() * 400, t);
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(gain, t + 0.001);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-    o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    o.connect(g).connect(out()); o.start(t); o.stop(t + 0.06);
   }
-  function beep(hz, when, dur){
+  function beep(hz, when, dur, vol){
     if (!st.audio) return;
-    const c = audioCtx(), t = c.currentTime + (when || 0);
+    const c = audioCtx(), t = c.currentTime + (when || 0), d = dur || 0.16;
     const o = c.createOscillator(), g = c.createGain();
     o.type = "triangle"; o.frequency.setValueAtTime(hz, t);
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.07, t + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.16));
-    o.connect(g).connect(c.destination); o.start(t); o.stop(t + (dur || 0.16) + 0.03);
+    g.gain.linearRampToValueAtTime(vol || 0.16, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(out()); o.start(t); o.stop(t + d + 0.03);
   }
   function ping(urgent){
     if (!st.audio) return;
@@ -1043,9 +1138,9 @@
     o.frequency.exponentialRampToValueAtTime(urgent ? 660 : 540, t + 0.34);
     f.type = "bandpass"; f.frequency.value = 780; f.Q.value = 1.8;
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(urgent ? 0.075 : 0.055, t + 0.02);
+    g.gain.linearRampToValueAtTime(urgent ? 0.20 : 0.14, t + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.44);
-    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + 0.5);
+    o.connect(f).connect(g).connect(out()); o.start(t); o.stop(t + 0.5);
   }
   function breath(){
     if (!st.audio) return;
@@ -1054,11 +1149,26 @@
     o.type = "sine"; o.frequency.setValueAtTime(96, t);
     o.frequency.exponentialRampToValueAtTime(62, t + 0.26);
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.05, t + 0.04);
+    g.gain.linearRampToValueAtTime(0.13, t + 0.04);
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
-    o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.36);
+    o.connect(g).connect(out()); o.start(t); o.stop(t + 0.36);
   }
-  function warble(){ beep(742, 0, .17); beep(556, .19, .19); }
+  // two-tone klaxon — the loud one, four blasts per cycle
+  function klaxon(){
+    if (!st.audio) return;
+    const c = audioCtx();
+    for (const [d, hz] of [[0, 782], [0.30, 588], [0.60, 782], [0.90, 588]]){
+      const t = c.currentTime + d;
+      const o = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(hz, t);
+      lp.type = "lowpass"; lp.frequency.value = 2400; lp.Q.value = 0.7;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.34, t + 0.015);
+      g.gain.setValueAtTime(0.34, t + 0.22);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.29);
+      o.connect(lp).connect(g).connect(out()); o.start(t); o.stop(t + 0.32);
+    }
+  }
 
   function setTone(on, hz){
     if (!st.audio){ if (toneOsc){ try{ toneOsc.stop(); }catch(e){} toneOsc = null; } return; }
@@ -1066,11 +1176,11 @@
     if (on && !toneOsc){
       toneOsc = c.createOscillator(); toneGain = c.createGain();
       toneOsc.type = "sine"; toneGain.gain.value = 0;
-      toneOsc.connect(toneGain).connect(c.destination); toneOsc.start();
+      toneOsc.connect(toneGain).connect(out()); toneOsc.start();
     }
     if (toneOsc){
       toneOsc.frequency.setTargetAtTime(hz, c.currentTime, .08);
-      toneGain.gain.setTargetAtTime(on ? 0.035 : 0, c.currentTime, .12);
+      toneGain.gain.setTargetAtTime(on ? 0.075 : 0, c.currentTime, .12);
       if (!on){ const o = toneOsc; toneOsc = null; setTimeout(() => { try{ o.stop(); }catch(e){} }, 400); }
     }
   }
@@ -1121,6 +1231,76 @@
     beep(660, 0, .12);
   }
 
+  /* ── Full-screen warning ───────────────────────────────────── */
+  function warningState(){
+    const bug = st.planted.length ? BUGS[st.planted[0]] : null;
+    const body = st.bodies.length ? BODIES[st.bodies[0]] : null;
+    const p = st.prox;
+    if (isFused()) return {
+      kind:"fuse", tag:"Correlated contact",
+      head:"Surveillance device detected",
+      sub:"Active transmitter co-located with a concealed human form",
+      warn:"Do not speak — device is live",
+      stats:[
+        {l:"Frequency", v:bug.f.toFixed(3) + " MHz"},
+        {l:"Surface temp", v:irStats.contact.toFixed(1) + " °C"},
+        {l:"Range", v:body.dist}
+      ]};
+    if (bug) return {
+      kind:"fuse", tag:"Unregistered transmitter", head:"Active device in room",
+      sub:bug.name + " — no registration match",
+      warn:"Do not speak — device is live",
+      stats:[
+        {l:"Frequency", v:bug.f.toFixed(3) + " MHz"},
+        {l:"Level", v:(bug.base + p * 0.42).toFixed(1) + " dBm"},
+        {l:"Modulation", v:bug.mod}
+      ]};
+    if (body) return {
+      kind:"fuse", tag:"Thermal contact", head:"Human presence detected",
+      sub:body.name + " — " + body.where,
+      warn:"Occupied space beyond partition",
+      stats:[
+        {l:"Surface temp", v:irStats.contact.toFixed(1) + " °C"},
+        {l:"Respiration", v:body.resp + " /min"},
+        {l:"Range", v:body.dist}
+      ]};
+    return {
+      kind:"clear", tag:"Sweep complete", head:"Room reads clear",
+      sub:"No unregistered emitter and no thermal contact",
+      warn:"Space is cold — safe to speak",
+      stats:[
+        {l:"Sweeps", v:String(st.sweeps).padStart(4, "0")},
+        {l:"Registered", v:String(AMBIENT.length)},
+        {l:"Noise floor", v:"−101 dBm"}
+      ]};
+  }
+
+  function paintWarning(){
+    const w = warningState(), el = $("klax");
+    el.classList.toggle("clear", w.kind === "clear");
+    $("klaxTag").textContent = w.tag;
+    $("klaxHead").textContent = w.head;
+    $("klaxSub").textContent = w.sub;
+    $("klaxWarn").textContent = w.warn;
+    $("klaxStats").innerHTML = w.stats.map(x => `<div><span>${x.l}</span><b>${x.v}</b></div>`).join("");
+    return w;
+  }
+
+  function showWarning(){
+    const w = paintWarning();
+    $("klax").classList.add("show");
+    $("klax").setAttribute("aria-hidden", "false");
+    if (w.kind !== "clear"){ nextKlaxon = 0; } else { beep(660, 0, .18, .12); beep(880, .2, .26, .12); }
+  }
+  function hideWarning(){
+    $("klax").classList.remove("show");
+    $("klax").setAttribute("aria-hidden", "true");
+  }
+  function toggleWarning(){
+    $("klax").classList.contains("show") ? hideWarning() : showWarning();
+  }
+  const warningUp = () => $("klax").classList.contains("show");
+
   function updateDetLed(){
     const hot = ($("alertbar").classList.contains("show") || $("irbar").classList.contains("show"));
     $("ledDet").className = "led" + (hot ? " alert" : "");
@@ -1133,6 +1313,7 @@
     st.hold.fill(DB_BOT);
     $("alertbar").classList.remove("show");
     $("irbar").classList.remove("show");
+    hideWarning();
     updateDetLed();
     setTone(false, 400);
     log("CLEAR — flag register wiped, RF and thermal both nominal", "w");
@@ -1221,13 +1402,13 @@
         $("alertMsg").textContent = "Correlated contact — transmitter co-located with human form";
         $("alertbar").classList.add("show");
         log("CORRELATE — RF bearing coincides with thermal contact, same room volume", "a");
-        beep(880, 0, .14); beep(660, .17, .14); beep(880, .34, .22);
+        showWarning();
       } else if (st.planted.length){
         $("alertMsg").textContent = "Unregistered transmitter — " + BUGS[st.planted[0]].name;
       }
     }
 
-    /* Audio — RF clicks, thermal sonar and breath, fusion warble */
+    /* Audio — RF clicks, thermal sonar and breath, klaxon under the warning screen */
     if (st.audio){
       if (st.planted.length && now > nextClick){
         click(0.05 + p / 100 * 0.09);
@@ -1237,13 +1418,18 @@
         if (now > nextPing){ ping(fused); nextPing = now + (fused ? 950 : 1650); }
         if (now > nextBreath){ breath(); nextBreath = now + 60000 / BODIES[st.bodies[0]].resp; }
       }
-      if (fused && now > nextWarble){ warble(); nextWarble = now + 2600; }
+      if (warningUp() && !$("klax").classList.contains("clear") && now > nextKlaxon){
+        klaxon(); nextKlaxon = now + 1750;
+      }
       setTone(st.planted.length > 0 && p > 72, 300 + p * 4);
     } else setTone(false, 300);
 
     /* Rail refresh at 4 Hz — the numbers should settle, not flicker */
     uiAcc += dt;
-    if (uiAcc > 0.25){ uiAcc = 0; updatePrimary(); refreshContacts(); }
+    if (uiAcc > 0.25){
+      uiAcc = 0; updatePrimary(); refreshContacts();
+      if (warningUp()) paintWarning();
+    }
 
     /* Housekeeping */
     acc += dt;
@@ -1303,8 +1489,10 @@
   $("btnAudio").addEventListener("click", toggleAudio);
   $("btnPeak").addEventListener("click", togglePeak);
   $("btnClear").addEventListener("click", clearAll);
+  $("btnWarn").addEventListener("click", toggleWarning);
   $("btnFull").addEventListener("click", fullscreen);
   $("cue").addEventListener("click", e => { if (e.target === $("cue")) toggleCue(); });
+  $("klax").addEventListener("click", hideWarning);
 
   document.addEventListener("keydown", e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1321,10 +1509,14 @@
       case "p": case "P": togglePeak(); break;
       case "i": case "I": toggleIr(); break;
       case "t": case "T": cyclePalette(); break;
+      case "w": case "W": toggleWarning(); break;
       case "f": case "F": fullscreen(); break;
       case "h": case "H": document.querySelector(".deck").classList.toggle("hidden"); break;
       case "?": case "/": toggleCue(); e.preventDefault(); break;
-      case "Escape": $("cue").classList.remove("show"); break;
+      case "Escape":
+        if (warningUp()) hideWarning();
+        else $("cue").classList.remove("show");
+        break;
     }
   });
 
