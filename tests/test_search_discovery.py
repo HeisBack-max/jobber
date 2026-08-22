@@ -147,8 +147,37 @@ def test_aggregator_only_jobs_lose_confidence(temp_db):
         session.add(JobSourceRecord(job_id=job_id, source="remotive", source_url="u", source_type="aggregator", quality_rank=4))
 
     with temp_db.session_scope() as session:
-        assert _is_aggregator_only(session, job_id) is True
+        job = session.query(Job).filter_by(id=job_id).one()
+        assert _is_aggregator_only(job) is True
         session.add(JobSourceRecord(job_id=job_id, source="greenhouse", source_url="u2", source_type="official_ats", quality_rank=1))
 
     with temp_db.session_scope() as session:
-        assert _is_aggregator_only(session, job_id) is False
+        job = session.query(Job).filter_by(id=job_id).one()
+        assert _is_aggregator_only(job) is False
+
+
+def test_max_queries_per_run_is_actually_applied():
+    """The knob that bounds outbound request volume has to reach the
+    source - it was previously read from config by nothing, so editing it
+    changed no behaviour at all."""
+    source = build_search_sources(enabled=["remotive"], families=["ai_training", "cybersecurity"])[0]
+    assert len(source.queries) <= 8
+
+    two_queries = build_search_sources(enabled=["remotive"], families=["ai_training"])[0]
+    assert two_queries.queries  # config-driven, not hard-coded
+
+
+def test_max_queries_per_run_reaches_the_source(monkeypatch):
+    import jobintel.discovery.search as search_module
+
+    original = search_module.load_search_queries()
+    patched = {
+        **original,
+        "search_discovery": {
+            **original["search_discovery"],
+            "backends": {"remotive": True},
+            "max_queries_per_run": 2,
+        },
+    }
+    monkeypatch.setattr(search_module, "load_search_queries", lambda: patched)
+    assert len(build_search_sources()[0].queries) == 2

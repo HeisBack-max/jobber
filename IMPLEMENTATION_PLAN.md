@@ -304,23 +304,58 @@ collectors ship muted: unreachable from here, therefore unproven.
 ### 8.3 Vector-space semantic retrieval
 
 `matching/embeddings.py` adds sparse TF-IDF vectors over word unigrams,
-word bigrams and character 4-grams, compared by cosine similarity and
-fitted on the *profile corpus* (the role taxonomy plus the CV evidence
-map). It is a lexical embedding, not a neural one - no model download, no
-external API, deterministic and offline, so the app still runs with zero
-API keys configured. A neural embedder can be dropped in behind the
-`TextEmbedder` interface without touching anything else.
+word bigrams and character 4-grams, fitted on the *profile corpus* (the
+role taxonomy plus the CV evidence map). It is a lexical embedding, not a
+neural one - no model download, no external API, deterministic and
+offline, so the app still runs with zero API keys configured. A neural
+embedder can be dropped in behind the `TextEmbedder` interface without
+touching anything else.
 
-It is wired in as a third matching channel (weights in
-`config/scoring.yaml` under `semantic_matching`), never as a replacement:
-title similarity still gates entry and the anchor-term rules from §7.3
-still apply, so recall widens without reopening that false-positive
-class. It also powers a real Stage 2 gate - `stage2_semantic_prescore_
-min_to_advance` was a config value nothing read until now.
+**What the measurement changed.** The first cut of this used absolute
+document similarity as a relevance score, normalized against a fixed
+reference, with a "semantic rescue" path that let strong content
+similarity admit a family whose title did not clear the floor. Measuring
+it against 650 real postings showed that design was wrong in two ways:
 
-Character n-grams are what give it reach the keyword matcher structurally
-cannot have: "train"/"trainer"/"training"/"trainings" share n-grams, so a
-posting does not have to inflect words the way the CV does.
+- Absolute similarity barely discriminates. Full-length ATS postings
+  (median 7.4 kB here) all land in a 0.10-0.19 band, relevant or not: an
+  accounts-receivable role at an AI company scores like an AI-training
+  role, because the boilerplate every posting shares - benefits, EEO
+  text, interview process, "customer", "enterprise", "technical" -
+  dominates the vector. Windowing the document to its best passage
+  narrowed the gap rather than widening it. A 15-document profile corpus
+  simply cannot learn which English words are informative.
+- Consequently the rescue threshold was unreachable in practice, and the
+  Stage 2 gate that depended on the same number admitted 97% of postings
+  while ranking generic customer-success roles highest. Both looked like
+  working controls and were not.
+
+So the design changed to match what the measure is actually good at:
+
+- **Two passes.** Title similarity and anchor terms decide which families
+  are plausible; the semantic index then ranks *only those candidates*
+  against each other, min-max normalized. Comparing two families for one
+  posting is reliable in a way that scoring one posting in the abstract
+  is not.
+- **No rescue path.** It is deleted rather than left in with a threshold
+  tuned to never fire. A rescue built on a measure that cannot separate
+  relevant from irrelevant text would either do nothing or do harm, and
+  the honest answer is to say so. Recall for "same job, different words"
+  therefore still depends on the title clearing the floor; that is a real
+  remaining limitation, not a solved problem.
+- **No free bonus.** With a single surviving candidate there is nothing
+  to compare, so the semantic weight is redistributed across title and
+  keyword instead of granted. Handing out a constant is a disguised
+  threshold change - and while calibrating, it was enough to let "Senior
+  Accountant" clear the match floor.
+- **The Stage 2 gate uses the combined match confidence instead.** On the
+  same 650 postings that admits 221 (34%) and gives everything else
+  exactly 0 - an actual cost control rather than one in name only.
+
+Character n-grams still earn their place: they give the matcher
+morphological reach ("train"/"trainer"/"training"/"trainings" share
+n-grams), so a posting does not have to inflect words the way the CV
+does.
 
 ### 8.4 Gig work, without scraping a login-only platform
 
@@ -413,3 +448,54 @@ CV evidences English only. These are now a **mandatory** mismatch rather
 than a soft gap, and `find_mismatches()` reads the job title as well as
 the description, because the language marker is frequently in the title
 alone.
+
+## 10. Independent review pass (2026-08-22)
+
+The completed work was put through an adversarial review before being
+finalised. Six defects were confirmed, all of which the 157 passing tests
+missed, and all are fixed. Recording them here because five of the six
+are the same species of bug: **a control that looks like it works,
+measured against nothing.**
+
+1. **The Stage 2 cost gate was a no-op** (and, on long postings, an
+   accidental blanket block). Fixed by re-founding it on the combined
+   match confidence and calibrating both against 650 real postings - see
+   §8.3.
+2. **The semantic rescue path was unreachable**, and its test passed for
+   the wrong reason: the posting it used had a fuzzy title ratio of 1.0,
+   so the rescue branch never ran. The path is deleted and the test now
+   asserts the real, measured limitation instead of a capability the code
+   never had.
+3. **The anti-fabrication guardrails missed the most natural phrasings.**
+   The claim-verb list had `completed|holds|earned|my` but not `have`, so
+   *"I have an MSc in Data Analytics"* - the single most likely way for a
+   model to state the exact claim the guardrail exists to prevent -
+   validated clean. The same gap covered `"I have a PhD"`. Separately,
+   the guardrail's language list had drifted to 14 entries against the
+   negative matcher's ~50, so a letter could claim fluent Dutch, Polish,
+   Croatian, Swedish or Ukrainian. Both lists are now one list, and the
+   verb list is shared across rules.
+4. **The language-requirement rule fired on postings requiring only
+   English.** "Fluent English required; German is a plus", "you will
+   support our Spanish speaking customers", even "proficient with French
+   press coffee machines" each produced a *mandatory* mismatch - which
+   hard-caps the score at 55 and deletes an eligible role from the feed.
+   Worse, the tailoring generator then quoted the invented requirement
+   back at the employer. Now clause-scoped and requirement-scoped: a
+   language counts only when its own clause also carries a requirement
+   marker, and "a plus"/"nice to have" downgrades it to a preferred gap.
+5. **`search_discovery.max_queries_per_run` was read by nothing** - the
+   knob bounding outbound request volume silently had no effect.
+6. **One `job_sources` SELECT per known posting per run**, purely to pick
+   a minimum over a handful of rows. Now reads the already-loaded
+   relationship.
+
+Two further fixes came out of chasing (1)-(2): a single-word example
+title stripped of stopwords ("Training Content Developer" -> "content")
+was matching unrelated titles at the character level, which let "Senior
+Accountant" match `technical_instructional_design` at 0.71; a shared-word
+requirement now gates that. And the cover letter no longer presents this
+app's paraphrase of a requirement as a quotation from the employer's
+advert - it says "As I read the role, it calls for X", because putting
+words in an employer's mouth in a letter addressed to them is its own
+kind of fabrication.

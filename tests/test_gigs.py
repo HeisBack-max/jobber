@@ -257,3 +257,40 @@ def test_language_specific_project_is_a_mandatory_mismatch():
         job_title="AI Security Trainer",
     )
     assert not any("English only" in m for m in english_role.mandatory_mismatches)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # A mandatory mismatch hard-caps the score at 55, so each of these
+        # false positives silently deleted an eligible role from the feed -
+        # and the tailoring generator then quoted the invented requirement
+        # back at the employer in a cover letter.
+        "Fluent English required; German is a plus.",
+        "You will support our Spanish speaking customers. All internal communication is in English.",
+        "Our German speaking market is growing fast; you will build training content in English for it.",
+        "Proficient with French press coffee machines.",
+        "Deliver AI security training in English to enterprise customers across EMEA.",
+    ],
+)
+def test_language_rule_ignores_postings_that_require_only_english(text):
+    from jobintel.matching.negative_matcher import find_mismatches
+
+    mismatches = find_mismatches(text).mandatory_mismatches
+    assert not any("English only" in m for m in mismatches), mismatches
+
+
+@pytest.mark.parametrize(
+    ("description", "title"),
+    [
+        ("This role requires native-level Japanese and business-level English proficiency.", "Support Specialist"),
+        ("We are looking for a native Korean speaker to record voice samples.", "Voice Specialist"),
+        ("Fluency in German is required for this role.", "Trainer"),
+        ("Join our team as an Independent Contractor. Record voice samples.", "[Croatian] - Voice Recording Specialist"),
+    ],
+)
+def test_language_rule_still_catches_real_requirements(description, title):
+    from jobintel.matching.negative_matcher import find_mismatches
+
+    mismatches = find_mismatches(description, job_title=title).mandatory_mismatches
+    assert any("English only" in m for m in mismatches), mismatches

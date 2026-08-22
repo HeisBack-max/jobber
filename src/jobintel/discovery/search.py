@@ -223,7 +223,15 @@ def build_search_sources(enabled: list[str] | None = None, families: list[str] |
     if enabled is None:
         enabled = [name for name, on in (config.get("backends") or {}).items() if on]
     families = families if families is not None else config.get("families")
-    return [SEARCH_BACKENDS[name](families=families) for name in enabled if name in SEARCH_BACKENDS]
+    # `max_queries_per_run` is the knob that bounds outbound request
+    # volume, so it has to actually reach the source - it was previously
+    # read from config by nothing and silently left at the default.
+    max_queries = int(config.get("max_queries_per_run", 8))
+    return [
+        SEARCH_BACKENDS[name](families=families, max_queries=max_queries)
+        for name in enabled
+        if name in SEARCH_BACKENDS
+    ]
 
 
 def _parse_dt(value) -> datetime | None:

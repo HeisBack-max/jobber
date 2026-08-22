@@ -177,11 +177,6 @@ def score_career_opportunity(
     strengths = []
     if role_match.role_family:
         strengths.append(f"Role-family match: {role_match.label} ({role_match.tier} priority).")
-        if role_match.matched_via == "semantic_rescue":
-            strengths.append(
-                "Matched on job content rather than job title - the posting describes this work "
-                "using different terminology than the role taxonomy lists."
-            )
         if role_match.semantic_terms:
             strengths.append(
                 "Shared vocabulary with your evidence: " + ", ".join(role_match.semantic_terms[:5]) + "."
@@ -212,7 +207,7 @@ def score_career_opportunity(
         reasoning_parts.append(
             f"Matched role family '{role_match.label}' "
             f"(title {role_match.title_score:.2f}, keywords {role_match.keyword_score:.2f}, "
-            f"semantic {role_match.semantic_score:.2f}, via {role_match.matched_via})."
+            f"content-vs-sibling-families {role_match.semantic_score:.2f})."
         )
     reasoning_parts.append(f"Geographic eligibility: {final_eligible.value} ({geo_evidence.classification.value}).")
     if mismatches.mandatory_mismatches:

@@ -144,22 +144,28 @@ async def run_collection() -> CollectionSummary:
     return summary
 
 
-def _is_aggregator_only(session, job_id: str) -> bool:
+def _is_aggregator_only(job: Job) -> bool:
     """True when the only place this vacancy has ever been seen is an
     aggregator - which costs confidence (spec §53), because aggregator
     copies are frequently stale, truncated, or stripped of the
     employer's own geography and travel language."""
-    records = session.query(JobSourceRecord).filter_by(job_id=job_id).all()
+    records = job.sources
     if not records:
         return False
     return all(r.source_type in {"aggregator", "board", "unknown"} for r in records)
 
 
-def _best_source_type(session, job_id: str) -> str:
+def _best_source_type(job: Job) -> str:
     """The most authoritative source this job has already been seen
     through - an aggregator copy must not overwrite text that came from
-    the employer's own ATS (spec §35)."""
-    records = session.query(JobSourceRecord).filter_by(job_id=job_id).all()
+    the employer's own ATS (spec §35).
+
+    Reads the loaded `job.sources` relationship rather than issuing its
+    own query: in steady state almost every posting from every board
+    takes this path on every run, so a query here is thousands of extra
+    round-trips per daily run to pick a minimum over a handful of rows.
+    """
+    records = job.sources
     if not records:
         return "unknown"
     return min(records, key=lambda r: SOURCE_QUALITY_RANK.get(r.source_type, SOURCE_QUALITY_RANK["unknown"])).source_type
@@ -234,7 +240,7 @@ def _persist_normalized_job(
         return
 
     existing.last_seen_at = now
-    best_existing_source_type = _best_source_type(session, existing.id)
+    best_existing_source_type = _best_source_type(existing)
     if existing.content_hash != normalized.content_hash:
         if should_overwrite(best_existing_source_type, source_type):
             existing.job_description_clean = normalized.job_description_clean
@@ -376,7 +382,7 @@ async def _run_evaluation_async() -> EvaluationSummary:
                 salary_max=job.salary_max,
                 is_strategic_company=job.company_name.strip().lower() in strategic_names,
                 full_description_available=bool(job.job_description_clean),
-                source_is_aggregator_only=_is_aggregator_only(session, job.id),
+                source_is_aggregator_only=_is_aggregator_only(job),
             )
 
             # Two independent gates before spending money on an LLM call

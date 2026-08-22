@@ -26,7 +26,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from jobintel.matching.embeddings import cosine_similarity, get_role_family_index
-from jobintel.matching.negative_matcher import find_mismatches
+from jobintel.matching.negative_matcher import find_mismatches, requirement_phrase
 from jobintel.matching.role_matcher import match_role_family
 from jobintel.settings import load_cv_evidence_map, load_profile
 from jobintel.tailoring.guardrails import (
@@ -197,11 +197,6 @@ def build_tailoring_brief(job_title: str, company_name: str, description_text: s
             "No role family matched confidently - treat this brief as a starting point and "
             "check the posting yourself before applying."
         )
-    if role_match.matched_via == "semantic_rescue":
-        honesty_notes.append(
-            "This posting matched on content rather than job title, so its title may not be "
-            "the wording to mirror in your CV headline."
-        )
 
     return TailoringBrief(
         job_title=job_title,
@@ -253,15 +248,16 @@ def build_cover_letter(brief: TailoringBrief) -> CoverLetterDraft:
 
     gaps = ""
     if brief.unsupported_requirements:
-        # Naming a gap plainly is more credible than papering over it,
-        # and it is the only honest option when the CV genuinely lacks
-        # something the posting asks for. The stored mismatch strings are
-        # full sentences ("A completed master's degree is required - ..."),
-        # so only the part before the explanation is quoted here.
-        requirements = "; ".join(r.split(" - ")[0].rstrip(".") for r in brief.unsupported_requirements[:2])
+        # Naming a gap plainly is more credible than papering over it.
+        # Phrased as *our* reading of the posting, never as a quotation:
+        # the stored strings are this app's paraphrase of a detected
+        # requirement, and presenting a paraphrase as the employer's own
+        # words would put a false statement about their advert into a
+        # letter addressed to them.
+        requirements = "; ".join(requirement_phrase(r) for r in brief.unsupported_requirements[:2])
         gaps = (
-            f"\n\nOne note on fit. This posting states: {requirements}. "
-            "I would rather say plainly that this is not part of my background than imply otherwise."
+            f"\n\nOne note on fit. As I read the role, it calls for {requirements}, which is not "
+            "part of my background. I would rather say so plainly than imply otherwise."
         )
 
     closing = f"\n\nI would welcome the chance to discuss the role.\n\nKind regards,\n{name}"

@@ -42,6 +42,22 @@ from jobintel.settings import load_cv_evidence_map, load_roles, register_cache_c
 
 CHAR_NGRAM_SIZE = 4
 
+# A whole job description is the wrong unit to compare against a short
+# role-family profile. Real ATS descriptions run 5-10 kB, most of which
+# is company boilerplate, benefits, EEO statements and interview-process
+# text, and every word of that dilutes the vector: cosine against the
+# *full* document falls as the posting gets longer, so the most detailed
+# postings - the ones most worth scoring well - score lowest. Measured
+# over 650 real postings, whole-document similarity compressed every job
+# into a 0.10-0.19 band with almost no separation between an AI-training
+# role and an accounts-receivable one.
+#
+# Comparing the best *window* instead removes the length bias: a relevant
+# posting has one strongly on-topic passage (its responsibilities or
+# requirements section), and boilerplate windows simply lose.
+WINDOW_WORDS = 90
+WINDOW_STRIDE_WORDS = 45
+
 # Tokens too generic to carry meaning in *any* job posting. Unlike the
 # role_matcher's stopword list (which exists to stop one shared business
 # word from anchoring a title match), this one only trims noise that
@@ -73,6 +89,23 @@ def _features(text: str) -> Counter:
         for i in range(max(0, len(condensed) - CHAR_NGRAM_SIZE + 1))
     )
     return features
+
+
+def text_windows(text: str, window_words: int = WINDOW_WORDS, stride: int = WINDOW_STRIDE_WORDS) -> list[str]:
+    """Overlapping word windows over a document.
+
+    Overlapping matters: a relevant passage split across a hard boundary
+    would otherwise be halved and score like boilerplate.
+    """
+    words = (text or "").split()
+    if not words:
+        return []
+    if len(words) <= window_words:
+        return [" ".join(words)]
+    return [
+        " ".join(words[start:start + window_words])
+        for start in range(0, max(1, len(words) - window_words + 1), stride)
+    ]
 
 
 class TextEmbedder(ABC):
@@ -132,6 +165,58 @@ class RoleFamilyIndex:
 
     def similarity(self, family_key: str, text_vector: dict[str, float]) -> float:
         return cosine_similarity(self.vectors.get(family_key, {}), text_vector)
+
+    def windowed_similarity(self, family_key: str, text: str) -> float:
+        """Best-window similarity: the length-robust measure (see
+        WINDOW_WORDS above). Falls back to whole-text similarity for text
+        shorter than one window."""
+        family_vector = self.vectors.get(family_key, {})
+        if not family_vector:
+            return 0.0
+        return max(
+            (cosine_similarity(family_vector, self.embedder.embed(window)) for window in text_windows(text)),
+            default=0.0,
+        )
+
+    def relative_standing(self, text: str, candidates: list[str]) -> dict[str, float]:
+        """How strongly the text favours each candidate family, 0-1.
+
+        Min-max normalized *across the candidates only*, which is the one
+        thing this measure is actually good for. Absolute similarity is
+        not: measured across 650 real postings, best-window cosine sits
+        in a 0.10-0.19 band for relevant and irrelevant postings alike
+        (an accounts-receivable role and an AI-training role are equally
+        "similar" to the taxonomy in absolute terms, because a 15-document
+        profile corpus cannot tell which English words are informative).
+        What *is* reliable is the comparison between two families for the
+        same text: the family whose vocabulary the posting genuinely
+        shares wins by a clear margin.
+
+        So this is a tie-breaker among families that already passed the
+        title floor and anchor gate - never a standalone relevance score.
+        """
+        if not candidates:
+            return {}
+        windows = [self.embedder.embed(window) for window in text_windows(text)]
+        sims = {
+            family: max((cosine_similarity(self.vectors.get(family, {}), window) for window in windows), default=0.0)
+            for family in candidates
+        }
+        top, bottom = max(sims.values()), min(sims.values())
+        spread = top - bottom
+        if spread <= 1e-9:
+            # A single candidate, or an exact tie: nothing to discriminate.
+            return dict.fromkeys(candidates, 1.0)
+        return {family: (value - bottom) / spread for family, value in sims.items()}
+
+    def rank_windowed(self, text: str, top_n: int = 5) -> list[tuple[str, float]]:
+        windows = [self.embedder.embed(window) for window in text_windows(text)]
+        scored = [
+            (family, max((cosine_similarity(vector, window) for window in windows), default=0.0))
+            for family, vector in self.vectors.items()
+        ]
+        scored.sort(key=lambda item: item[1], reverse=True)
+        return scored[:top_n]
 
     def rank(self, text: str, top_n: int = 5) -> list[tuple[str, float]]:
         """Most semantically similar role families for arbitrary text.
@@ -219,10 +304,11 @@ register_cache_clearer(get_cv_vector.cache_clear)
 
 
 def semantic_similarity_to_cv(text: str) -> float:
-    """0-1 similarity between a vacancy and the CV evidence corpus.
-
-    Used as the Stage 2 semantic pre-score (spec §45): cheap, local, and
-    good enough to decide whether a posting is worth a paid LLM call.
-    """
+    """0-1 similarity between a vacancy and the CV evidence corpus,
+    measured over the best window rather than the whole document."""
     index = get_role_family_index()
-    return cosine_similarity(get_cv_vector(), index.embedder.embed(text))
+    cv_vector = get_cv_vector()
+    return max(
+        (cosine_similarity(cv_vector, index.embedder.embed(window)) for window in text_windows(text)),
+        default=0.0,
+    )

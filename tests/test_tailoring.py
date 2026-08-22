@@ -77,8 +77,12 @@ def test_unsupported_requirements_are_surfaced_not_hidden():
     assert any("master" in r.lower() for r in brief.unsupported_requirements)
 
     letter = build_cover_letter(brief)
-    # The letter must name the gap rather than quietly omitting it.
+    # The letter must name the gap rather than quietly omitting it...
     assert "master" in letter.content.lower()
+    # ...but must not present this app's paraphrase of the requirement as
+    # a quotation from the employer's advert.
+    assert "this posting states" not in letter.content.lower()
+    assert "as i read the role" in letter.content.lower()
     assert not letter.violations
 
 
@@ -214,3 +218,49 @@ def test_materials_are_persisted_with_their_evidence_ids(temp_db):
         for material in materials:
             assert material.evidence_ids
             assert material.content
+
+
+@pytest.mark.parametrize(
+    ("text", "rule"),
+    [
+        # Every one of these passed validation before the claim-verb list
+        # was unified - "have" was simply missing, so the most natural
+        # phrasing of the exact claim the guardrail exists to stop went
+        # straight through.
+        ("I have an MSc in Data Analytics from the University of Cumbria.", "msc_must_be_in_progress"),
+        ("I am an MSc graduate in Data Analytics.", "msc_must_be_in_progress"),
+        ("With an MSc in Data Analytics behind me, I bring depth.", "msc_must_be_in_progress"),
+        ("I have a master's degree in Data Analytics.", "msc_must_be_in_progress"),
+        ("I have a PhD in machine learning.", "no_phd_claim"),
+        # The language list here had drifted from the negative matcher's,
+        # so anything outside its 14 entries was claimable.
+        ("I am fluent in Dutch.", "no_unevidenced_languages"),
+        ("I am fluent in Croatian.", "no_unevidenced_languages"),
+        ("I have native Polish language skills.", "no_unevidenced_languages"),
+        ("Professional working proficiency in Swedish.", "no_unevidenced_languages"),
+        ("I am a native Ukrainian speaker.", "no_unevidenced_languages"),
+    ],
+)
+def test_guardrails_catch_natural_phrasings_of_each_claim(text, rule):
+    assert rule in {v.rule for v in validate_generated_text(text)}, f"{rule} not flagged for {text!r}"
+
+
+def test_guardrail_language_list_matches_the_negative_matcher():
+    """One list, not two: they had diverged, and the shorter one decided
+    what a generated letter was allowed to claim."""
+    from jobintel.matching.negative_matcher import LANGUAGES_NOT_EVIDENCED
+    from jobintel.tailoring import guardrails
+
+    for language in ("dutch", "polish", "croatian", "swedish", "ukrainian", "arabic"):
+        assert language in LANGUAGES_NOT_EVIDENCED
+        assert any(language in pattern.pattern.lower() for _, pattern, _, _ in guardrails._RULES)
+
+
+def test_naming_a_requirement_as_a_gap_is_not_treated_as_claiming_it():
+    """The other half of the guardrail's job: it must not block the
+    letter from saying plainly what the CV does not support."""
+    honest = (
+        "As I read the role, it calls for a completed master's degree, which is not part of my "
+        "background. I would rather say so plainly than imply otherwise."
+    )
+    assert validate_generated_text(honest) == []

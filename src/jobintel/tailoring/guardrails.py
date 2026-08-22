@@ -27,7 +27,22 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from jobintel.matching.negative_matcher import LANGUAGES_NOT_EVIDENCED
 from jobintel.settings import load_cv_evidence_map
+
+# Verbs and possessives that turn a mention into a claim. Kept as one
+# list because the earlier per-rule spellings diverged and let the most
+# natural phrasing through: "I have an MSc in Data Analytics" was not
+# caught, because the list had `completed|holds|earned|my` but not
+# `have`. Anything that asserts possession belongs here.
+_CLAIM_VERBS = (
+    # Deliberately no bare "a/an": "the role calls for a completed
+    # master's degree" is a statement about the *posting*, not a claim
+    # about the candidate, and blocking it would stop the letter from
+    # naming the gap honestly. Possession is what makes it a claim.
+    r"(?:completed|complete|holds?|holding|held|have|has|having|earned|obtained|received|"
+    r"awarded|finished|gained|achieved|possess(?:es)?|my|with an?)"
+)
 
 
 @dataclass(frozen=True)
@@ -50,18 +65,30 @@ _RULES: list[tuple[str, re.Pattern, str, re.Pattern | None]] = [
     (
         "msc_must_be_in_progress",
         re.compile(
-            r"\b(?:completed|holds?|holding|earned|obtained|awarded|finished|my)\s+"
-            r"(?:[\w\s,'-]{0,30}\s)?(?:msc|master'?s)\b",
+            rf"\b{_CLAIM_VERBS}\s+(?:[\w\s,'-]{{0,30}}\s)?(?:msc|m\.sc\.?|master'?s)\b"
+            r"|\b(?:msc|master'?s)\s+(?:degree\s+)?(?:graduate|holder|qualified)\b"
+            r"|\bgraduated\s+(?:with\s+)?(?:an?\s+)?(?:msc|master'?s)\b",
             re.I,
         ),
         "The MSc Data Analytics is in progress (expected 2027) and must never be presented as completed or held.",
-        re.compile(r"\b(?:in progress|in-progress|ongoing|expected|studying|towards|due to complete|not yet completed)\b", re.I),
+        re.compile(
+            # Honest framings that must not be blocked: the qualification
+            # described as in progress, or a requirement named as a gap.
+            r"\b(?:in progress|in-progress|ongoing|expected|studying|towards|due to complete|"
+            r"not yet completed|not part of my background|do not hold|have not completed|"
+            r"outside my background)\b",
+            re.I,
+        ),
     ),
     (
         "no_unevidenced_languages",
         re.compile(
-            r"\b(?:fluent|fluency|proficient|proficiency|native|conversational|bilingual)\b[^.]{0,40}\b"
-            r"(?:arabic|russian|thai|khmer|kazakh|french|german|spanish|mandarin|chinese|japanese|korean|portuguese|italian)\b",
+            # One shared language list with the negative matcher: the two
+            # had drifted, and the shorter list here let a cover letter
+            # claim fluent Dutch, Polish, Croatian, Swedish or Ukrainian.
+            rf"\b(?:fluent|fluency|proficient|proficiency|native|conversational|bilingual|speaks?|"
+            rf"speaking|command of)\b[^.]{{0,40}}\b(?:{LANGUAGES_NOT_EVIDENCED})\b"
+            rf"|\b(?:{LANGUAGES_NOT_EVIDENCED})\b[^.]{{0,25}}\b(?:language skills|speaker|fluency|proficiency)\b",
             re.I,
         ),
         "The CV evidences no language other than English; working in a country is not evidence of speaking its language.",
@@ -85,15 +112,15 @@ _RULES: list[tuple[str, re.Pattern, str, re.Pattern | None]] = [
     ),
     (
         "no_phd_claim",
-        re.compile(r"\b(?:my|holds?|completed|earned)\s+(?:[\w\s,'-]{0,20}\s)?ph\.?d\b", re.I),
+        re.compile(rf"\b{_CLAIM_VERBS}\s+(?:[\w\s,'-]{{0,20}}\s)?ph\.?\s?d\b|\bph\.?\s?d\s+(?:graduate|holder)\b", re.I),
         "The CV evidences no PhD, held or in progress.",
         None,
     ),
     (
         "no_production_engineering_claim",
         re.compile(
-            r"\b(?:years? of|my|extensive)\b[^.]{0,40}\b(?:production software engineering|professional software development|"
-            r"backend engineering|full[- ]stack engineering)\b",
+            r"\b(?:years? of|my|extensive|have|has|with)\b[^.]{0,40}\b(?:production software engineering|"
+            r"professional software development|backend engineering|full[- ]stack engineering)\b",
             re.I,
         ),
         "The CV does not evidence professional production software engineering experience.",

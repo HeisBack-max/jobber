@@ -120,13 +120,24 @@ is set and the job clears *both* cost-control gates in
 `stage4_deep_analysis_min_score`) - sends it for a bounded LLM refinement
 pass.
 
-Matching combines three channels, all weighted in
-`config/scoring.yaml` under `semantic_matching`: fuzzy title similarity,
-keyword overlap, and vector-space document similarity (TF-IDF cosine over
-word and character n-grams, fitted on the role taxonomy plus your CV
-evidence). The third channel is what lets a posting match on meaning when
-it does not reuse the CV's vocabulary - and what stops boilerplate
-keyword noise from inflating a borderline title match.
+Matching runs in two passes. First, title similarity and anchor terms
+decide which role families are plausible at all. Then vector-space
+document similarity (TF-IDF cosine over word and character n-grams,
+fitted on the role taxonomy plus your CV evidence) decides which of those
+plausible families the posting's *content* actually favours. Weights are
+in `config/scoring.yaml` under `semantic_matching`.
+
+The ordering is deliberate and measured: across 650 real ATS postings,
+absolute document similarity does **not** separate relevant from
+irrelevant work - full-length postings all land in a narrow band, because
+the boilerplate every posting shares dominates the vector. What it does
+reliably is compare two candidate families for the *same* posting. So it
+is used as a tie-breaker, never as a standalone relevance score, and it
+can never admit a family that the title gate rejected.
+
+The Stage 2 cost gate uses the combined match confidence for the same
+reason: on those 650 postings it admits about a third, and a posting
+matching no role family scores exactly 0.
 
 ## Gigs and project work
 
