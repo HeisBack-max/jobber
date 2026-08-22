@@ -9,7 +9,6 @@
     --case:#151B24;
     --case-hi:#1D2530;
     --screen:#0A0F15;
-    --screen-2:#0D131B;
     --bezel:#2A3441;
     --rule:#212A35;
     --ink:#D7DFE9;
@@ -31,32 +30,22 @@
   body{
     margin:0;
     background:var(--ground);
-    background-image:
-      radial-gradient(120% 90% at 50% -10%, #16202B 0%, #080B10 62%);
+    background-image:radial-gradient(120% 90% at 50% -10%, #16202B 0%, #080B10 62%);
     color:var(--ink);
     font-family:var(--body);
     -webkit-font-smoothing:antialiased;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display:flex;align-items:center;justify-content:center;
     padding:clamp(8px,2vw,28px);
   }
 
   /* ── Hardware case ───────────────────────────────────────── */
   .unit{
-    width:min(1180px,100%);
+    width:min(1340px,100%);
     background:linear-gradient(180deg,var(--case-hi),var(--case) 22%,#10161E);
-    border:1px solid #2E3846;
-    border-radius:10px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,.06) inset,
-      0 40px 90px -30px #000,
-      0 0 0 1px #05080C;
+    border:1px solid #2E3846;border-radius:10px;
+    box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 40px 90px -30px #000,0 0 0 1px #05080C;
     padding:clamp(10px,1.4vw,18px);
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
+    position:relative;display:flex;flex-direction:column;gap:12px;
   }
   .screw{
     position:absolute;width:9px;height:9px;border-radius:50%;
@@ -68,28 +57,13 @@
   .screw.bl{bottom:7px;left:7px}.screw.br{bottom:7px;right:7px}
 
   /* ── Top identity bar ────────────────────────────────────── */
-  .idbar{
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:0 6px 10px;border-bottom:1px solid var(--rule);
-  }
+  .idbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:0 6px 10px;border-bottom:1px solid var(--rule)}
   .brand{display:flex;align-items:baseline;gap:9px}
-  .brand b{
-    font-family:var(--cond);font-weight:700;font-size:20px;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--ink);
-  }
-  .brand span{
-    font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--amber);
-  }
-  .brand small{
-    font-family:var(--cond);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
-    color:var(--ink-faint);
-  }
+  .brand b{font-family:var(--cond);font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase}
+  .brand span{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--amber)}
+  .brand small{font-family:var(--cond);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint)}
   .idbar .spacer{flex:1}
-  .stat{
-    display:flex;align-items:center;gap:6px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-dim);
-    text-transform:uppercase;
-  }
+  .stat{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-dim);text-transform:uppercase}
   .stat b{color:var(--ink);font-weight:500}
   .led{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);box-shadow:0 0 0 1px #05080C}
   .led.on{background:var(--ok);box-shadow:0 0 7px var(--ok),0 0 0 1px #05080C}
@@ -98,9 +72,7 @@
   @keyframes blip{50%{opacity:.2;box-shadow:none}}
 
   .batt{display:flex;align-items:center;gap:5px}
-  .batt-cell{
-    width:26px;height:10px;border:1px solid var(--ink-faint);border-radius:2px;position:relative;padding:1px;
-  }
+  .batt-cell{width:26px;height:10px;border:1px solid var(--ink-faint);border-radius:2px;position:relative;padding:1px}
   .batt-cell::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:4px;background:var(--ink-faint)}
   .batt-fill{height:100%;background:var(--ok);transition:width .6s linear}
 
@@ -108,40 +80,39 @@
   .alertbar{
     display:none;align-items:center;gap:12px;
     background:linear-gradient(90deg,var(--alert-deep),#3A0D08 70%,#25080550);
-    border:1px solid var(--alert);
-    border-radius:4px;padding:8px 12px;
+    border:1px solid var(--alert);border-radius:4px;padding:8px 12px;
     font-family:var(--cond);text-transform:uppercase;letter-spacing:.16em;
   }
   .alertbar.show{display:flex;animation:alertpulse 1.1s ease-in-out infinite}
   @keyframes alertpulse{0%,100%{border-color:var(--alert)}50%{border-color:#8E2418}}
-  .alertbar .tag{
-    background:var(--alert);color:#180402;font-weight:700;font-size:12px;
-    padding:3px 8px;border-radius:2px;letter-spacing:.14em;
-  }
+  .alertbar .tag{background:var(--alert);color:#180402;font-weight:700;font-size:12px;padding:3px 8px;border-radius:2px;letter-spacing:.14em}
   .alertbar .msg{font-weight:600;font-size:15px;color:#FFD9D3}
-  .alertbar .frq{
-    margin-left:auto;font-family:var(--mono);font-size:15px;letter-spacing:.04em;
-    color:#FF9A8C;font-variant-numeric:tabular-nums;
-  }
+  .alertbar .frq{margin-left:auto;font-family:var(--mono);font-size:15px;letter-spacing:.04em;color:#FF9A8C;font-variant-numeric:tabular-nums}
 
   /* ── Main grid ───────────────────────────────────────────── */
   .grid{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) 286px;
-    gap:12px;
+    display:grid;gap:12px;
+    grid-template-columns:minmax(0,1fr) 330px 286px;
+    grid-template-areas:"spec ir rail";
   }
-  @media (max-width:900px){ .grid{grid-template-columns:minmax(0,1fr)} }
+  @media (max-width:1240px){
+    .grid{grid-template-columns:minmax(0,1fr) 286px;grid-template-areas:"spec rail" "ir rail"}
+    .rail{align-self:start}
+  }
+  @media (max-width:900px){
+    .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"spec" "ir" "rail"}
+  }
+  .col-spec{grid-area:spec;align-self:start}
+  .col-ir{grid-area:ir}
+  .rail{grid-area:rail;display:flex;flex-direction:column;gap:12px;min-width:0}
 
   .screenwrap{
-    background:var(--screen);
-    border:1px solid var(--bezel);
-    border-radius:5px;
+    background:var(--screen);border:1px solid var(--bezel);border-radius:5px;
     box-shadow:0 0 0 1px #05080C, 0 10px 24px -14px #000 inset;
-    overflow:hidden;
-    display:flex;flex-direction:column;
+    overflow:hidden;display:flex;flex-direction:column;min-width:0;
   }
   .screenhead{
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
     padding:7px 10px;border-bottom:1px solid var(--rule);
     background:linear-gradient(180deg,#101720,#0B1119);
   }
@@ -151,32 +122,48 @@
   }
   .chip b{font-family:var(--mono);font-size:11px;color:var(--ink);letter-spacing:.02em;font-weight:500}
   .chip.live{color:var(--amber);border-color:#4A3616}
+  .chip.ir{color:var(--teal);border-color:#1E4A45}
 
   canvas{display:block;width:100%}
   #spectrum{height:clamp(190px,26vh,290px)}
-  #waterfall{height:clamp(96px,15vh,156px);border-top:1px solid var(--rule)}
+  #waterfall{height:clamp(120px,18vh,190px);border-top:1px solid var(--rule)}
+  #thermal{height:clamp(240px,38vh,352px);background:#05070A}
 
   .axis{
-    display:flex;justify-content:space-between;
-    padding:4px 10px 6px;
+    display:flex;justify-content:space-between;padding:4px 10px 6px;
     font-family:var(--mono);font-size:10px;color:var(--ink-faint);
-    letter-spacing:.04em;font-variant-numeric:tabular-nums;
-    border-top:1px solid var(--rule);
+    letter-spacing:.04em;font-variant-numeric:tabular-nums;border-top:1px solid var(--rule);
   }
 
-  /* ── Right rail ──────────────────────────────────────────── */
-  .rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+  /* thermal readouts */
+  .irfoot{border-top:1px solid var(--rule);padding:7px 10px 9px}
+  .irbar{
+    display:none;align-items:center;gap:8px;margin-bottom:7px;
+    background:#2A0B07;border:1px solid var(--alert);border-radius:3px;padding:4px 8px;
+    font-family:var(--cond);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#FFC9C1;
+  }
+  .irbar.show{display:flex;animation:alertpulse 1.1s ease-in-out infinite}
+  .irbar .dot{width:6px;height:6px;border-radius:50%;background:var(--alert);box-shadow:0 0 8px var(--alert)}
+  .irbar .r{margin-left:auto;font-family:var(--mono);letter-spacing:.02em;color:#FF9A8C;font-variant-numeric:tabular-nums}
+  .irgrid{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 12px;
+  }
+  .irgrid > div{display:flex;flex-direction:column;gap:1px;min-width:0}
+  .irgrid > div.wide{grid-column:1 / -1}
+  .irgrid span{font-family:var(--cond);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  .irgrid b{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .irgrid b.hot{color:var(--alert)}
+
+  /* ── Rail panels ─────────────────────────────────────────── */
   .panel{
     background:linear-gradient(180deg,#111821,#0C1219);
     border:1px solid var(--bezel);border-radius:5px;
-    box-shadow:0 0 0 1px #05080C;
-    overflow:hidden;
+    box-shadow:0 0 0 1px #05080C;overflow:hidden;
   }
   .panel > h3{
     margin:0;padding:7px 10px;
-    font-family:var(--cond);font-size:11px;font-weight:600;
-    letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);
-    border-bottom:1px solid var(--rule);
+    font-family:var(--cond);font-size:11px;font-weight:600;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid var(--rule);
     display:flex;align-items:center;gap:7px;
   }
   .panel > h3 .n{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:0}
@@ -188,39 +175,24 @@
   }
   .target.locked .big{color:var(--alert);text-shadow:0 0 18px rgba(255,74,56,.35)}
   .target .unit-lbl{font-family:var(--cond);font-size:12px;color:var(--ink-faint);letter-spacing:.16em;margin-left:5px}
-  .target .sub{
-    margin-top:5px;font-family:var(--cond);font-size:12px;letter-spacing:.13em;
-    text-transform:uppercase;color:var(--ink-dim);
-  }
-  .kv{
-    display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:9px;
-    font-size:11px;
-  }
+  .target .sub{margin-top:5px;font-family:var(--cond);font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-dim)}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:9px;font-size:11px}
   .kv dt{font-family:var(--cond);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
   .kv dd{margin:0;font-family:var(--mono);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
 
   .prox{padding:10px}
   .meter{
     height:16px;border:1px solid var(--rule);border-radius:2px;
-    background:
-      repeating-linear-gradient(90deg,#0E141B 0 6px,#0A1017 6px 7px);
-    position:relative;overflow:hidden;
+    background:repeating-linear-gradient(90deg,#0E141B 0 6px,#0A1017 6px 7px);
+    position:relative;overflow:hidden;cursor:ew-resize;
   }
-  .meter-fill{
-    height:100%;width:0%;
-    background:linear-gradient(90deg,#2F6E5F,#4FB3A5 45%,var(--amber) 78%,var(--alert));
-    transition:width .16s linear;
-  }
+  .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,#2F6E5F,#4FB3A5 45%,var(--amber) 78%,var(--alert));transition:width .16s linear}
   .meter-ticks{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 25%}
   .meter-ticks i{width:1px;background:#05080C99}
-  .prox .row{
-    display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;
-    font-family:var(--mono);font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums;
-  }
+  .prox .row{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
   .prox .row b{color:var(--ink);font-weight:500}
 
-  /* signal table */
-  .siglist{max-height:236px;overflow-y:auto}
+  .siglist{max-height:200px;overflow-y:auto}
   .siglist table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
   .siglist th{
     position:sticky;top:0;background:#0D131B;
@@ -235,27 +207,20 @@
   .siglist tr.flag td:first-child{color:var(--alert)}
   .cls{font-family:var(--cond);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
 
-  /* ── Log strip ───────────────────────────────────────────── */
-  .log{
-    height:78px;overflow-y:auto;padding:6px 10px;
-    font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-faint);
-  }
+  .log{height:78px;overflow-y:auto;padding:6px 10px;font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-faint)}
   .log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .log .t{color:#3D4854;margin-right:8px}
   .log .w{color:var(--amber)}
   .log .a{color:var(--alert)}
+  .log .i{color:var(--teal)}
 
   /* ── Control deck ────────────────────────────────────────── */
-  .deck{
-    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-    padding:10px 6px 2px;border-top:1px solid var(--rule);
-  }
+  .deck{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 6px 2px;border-top:1px solid var(--rule)}
   button{
     font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.15em;
     text-transform:uppercase;color:var(--ink-dim);
     background:linear-gradient(180deg,#1C242F,#141A23);
-    border:1px solid #2E3846;border-radius:3px;
-    padding:8px 13px;cursor:pointer;
+    border:1px solid #2E3846;border-radius:3px;padding:8px 13px;cursor:pointer;
     box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 2px 4px -2px #000;
     transition:color .12s,border-color .12s,transform .05s;
   }
@@ -263,11 +228,10 @@
   button:active{transform:translateY(1px)}
   button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   button.armed{color:var(--amber);border-color:var(--amber-deep);box-shadow:0 0 12px -4px var(--amber),0 1px 0 rgba(255,255,255,.06) inset}
+  button.ir.armed{color:var(--teal);border-color:#1E4A45;box-shadow:0 0 12px -4px var(--teal)}
   button.danger.armed{color:var(--alert);border-color:#7A2117;box-shadow:0 0 12px -4px var(--alert)}
   .deck .spacer{flex:1}
-  .deck .hint{
-    font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
-  }
+  .deck .hint{font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
   kbd{
     font-family:var(--mono);font-size:10px;color:var(--ink-dim);
     background:#0E141B;border:1px solid #2A3441;border-bottom-width:2px;border-radius:3px;
@@ -275,22 +239,18 @@
   }
 
   /* ── Cue card ────────────────────────────────────────────── */
-  .cue{
-    position:fixed;inset:0;background:#04060Aee;z-index:40;
-    display:none;align-items:center;justify-content:center;padding:20px;
-  }
+  .cue{position:fixed;inset:0;background:#04060Aee;z-index:40;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto}
   .cue.show{display:flex}
   .cue-inner{
-    max-width:600px;width:100%;
-    background:var(--case);border:1px solid var(--bezel);border-radius:8px;
-    padding:22px 24px;box-shadow:0 40px 90px -30px #000;
+    max-width:640px;width:100%;background:var(--case);
+    border:1px solid var(--bezel);border-radius:8px;padding:22px 24px;
+    box-shadow:0 40px 90px -30px #000;
   }
-  .cue h2{
-    margin:0 0 3px;font-family:var(--cond);font-size:19px;font-weight:700;
-    letter-spacing:.18em;text-transform:uppercase;color:var(--amber);
-  }
-  .cue p{margin:0 0 16px;font-size:13px;color:var(--ink-dim);line-height:1.55;max-width:60ch}
-  .cue dl{display:grid;grid-template-columns:104px 1fr;gap:7px 14px;margin:0;align-items:baseline}
+  .cue h2{margin:0 0 3px;font-family:var(--cond);font-size:19px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+  .cue h4{margin:18px 0 8px;font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);border-top:1px solid var(--rule);padding-top:14px}
+  .cue h4:first-of-type{border-top:0;padding-top:0}
+  .cue p{margin:0 0 16px;font-size:13px;color:var(--ink-dim);line-height:1.55;max-width:62ch}
+  .cue dl{display:grid;grid-template-columns:108px 1fr;gap:7px 14px;margin:0;align-items:baseline}
   .cue dt{text-align:right}
   .cue dd{margin:0;font-size:13px;color:var(--ink)}
   .cue dd em{font-style:normal;color:var(--ink-dim)}
@@ -308,11 +268,12 @@
 
   <header class="idbar">
     <div class="brand">
-      <b>Kestrel</b><span>RF-9</span><small>Counter-Surveillance Sweep Unit</small>
+      <b>Kestrel</b><span>RF-9</span><small>RF &amp; Thermal Sweep Unit</small>
     </div>
     <div class="spacer"></div>
-    <div class="stat"><i class="led on" id="ledPwr"></i> PWR</div>
+    <div class="stat"><i class="led on"></i> PWR</div>
     <div class="stat"><i class="led warn" id="ledScan"></i> SCAN</div>
+    <div class="stat"><i class="led on" id="ledIr"></i> IR</div>
     <div class="stat"><i class="led" id="ledDet"></i> DET</div>
     <div class="stat">ANT <b>OMNI-B</b></div>
     <div class="stat">SWP <b id="swpCount">0000</b></div>
@@ -330,20 +291,46 @@
   </div>
 
   <div class="grid">
-    <section class="screenwrap">
+    <!-- RF spectrum -->
+    <section class="screenwrap col-spec">
       <div class="screenhead">
         <span class="chip live">Mode <b>WIDE SWEEP</b></span>
         <span class="chip">Span <b>20 – 6000 MHz</b></span>
         <span class="chip">RBW <b>300 kHz</b></span>
         <span class="chip">Ref <b>−20 dBm</b></span>
         <span class="chip">Att <b>0 dB</b></span>
-        <span class="chip">Gain <b id="gainLbl">+18 dB</b></span>
       </div>
       <canvas id="spectrum"></canvas>
       <canvas id="waterfall"></canvas>
       <div class="axis" id="axis"></div>
     </section>
 
+    <!-- Thermal imager -->
+    <section class="screenwrap col-ir">
+      <div class="screenhead">
+        <span class="chip ir">IR <b>640 × 480</b></span>
+        <span class="chip">Rate <b>9 Hz</b></span>
+        <span class="chip">ε <b>0.95</b></span>
+        <span class="chip" id="palChip">Palette <b>IRONBOW</b></span>
+      </div>
+      <canvas id="thermal"></canvas>
+      <div class="irfoot">
+        <div class="irbar" id="irbar">
+          <i class="dot"></i><span id="irbarMsg">Human form beyond partition</span>
+          <span class="r" id="irbarRange">—</span>
+        </div>
+        <div class="irgrid">
+          <div><span>Spot</span><b id="irSpot">19.4 °C</b></div>
+          <div><span>Scene max</span><b id="irMax">26.1 °C</b></div>
+          <div><span>Scene min</span><b id="irMin">18.2 °C</b></div>
+          <div><span>Δ ambient</span><b id="irDelta">+0.0 K</b></div>
+          <div><span>Respiration</span><b id="irResp">—</b></div>
+          <div class="wide"><span>Classification</span><b id="irClass">NO HUMAN FORM</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data rail -->
     <aside class="rail">
       <div class="panel">
         <h3>Locked target</h3>
@@ -390,6 +377,8 @@
 
   <div class="deck">
     <button id="btnSweep" class="armed">Sweep · Run</button>
+    <button id="btnIr" class="ir armed">Thermal · On</button>
+    <button id="btnPal" class="ir">Palette</button>
     <button id="btnAudio">Audio Off</button>
     <button id="btnPeak" class="armed">Max hold</button>
     <button id="btnClear" class="danger">Clear flags</button>
@@ -402,22 +391,39 @@
 <div class="cue" id="cue">
   <div class="cue-inner">
     <h2>Cue card — stage prop</h2>
-    <p>This unit is a theatrical prop. It measures nothing; every reading is generated on the spot. Keep this card off the projector — these are your cues.</p>
+    <p>This unit is a theatrical prop. It senses nothing; every reading, trace and heat signature is generated on the spot. Keep this card off the projector — these are your cues.</p>
+
+    <h4>RF — plant a transmitter</h4>
     <dl>
-      <dt><kbd>1</kbd></dt><dd>Plant bug — <em>433.920 MHz, analog FM body mic</em></dd>
-      <dt><kbd>2</kbd></dt><dd>Plant bug — <em>1268.500 MHz, burst telemetry</em></dd>
-      <dt><kbd>3</kbd></dt><dd>Plant bug — <em>2437.000 MHz, unassociated Wi-Fi camera</em></dd>
-      <dt><kbd>4</kbd></dt><dd>Plant bug — <em>5745.000 MHz, analog video downlink</em></dd>
-      <dt><kbd>0</kbd></dt><dd>Clear every flagged signal, back to a clean room</dd>
+      <dt><kbd>1</kbd></dt><dd>433.920 MHz — <em>analog FM body mic</em></dd>
+      <dt><kbd>2</kbd></dt><dd>1268.500 MHz — <em>burst telemetry</em></dd>
+      <dt><kbd>3</kbd></dt><dd>2437.000 MHz — <em>unassociated Wi-Fi camera</em></dd>
+      <dt><kbd>4</kbd></dt><dd>5745.000 MHz — <em>analog video downlink</em></dd>
       <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Walk toward / away — drives the meter and the click rate</dd>
-      <dt><kbd>Space</kbd></dt><dd>Hold / resume the sweep</dd>
+    </dl>
+
+    <h4>Thermal — put a body in the room</h4>
+    <dl>
+      <dt><kbd>5</kbd></dt><dd>Someone standing <em>directly behind the door</em>, still</dd>
+      <dt><kbd>6</kbd></dt><dd>Someone <em>seated against the left wall</em></dd>
+      <dt><kbd>7</kbd></dt><dd>Someone <em>lying low on the floor, right</em></dd>
+      <dt><kbd>8</kbd></dt><dd>The figure behind the door <em>shifts its weight</em> — one clean movement spike</dd>
+      <dt><kbd>T</kbd></dt><dd>Cycle palette: ironbow → white-hot → night green</dd>
+      <dt><kbd>I</kbd></dt><dd>Thermal channel on / off</dd>
+    </dl>
+
+    <h4>Unit</h4>
+    <dl>
+      <dt><kbd>0</kbd></dt><dd>Clear everything — RF flags and bodies. Clean room.</dd>
+      <dt><kbd>Space</kbd></dt><dd>Hold / resume the RF sweep</dd>
       <dt><kbd>A</kbd></dt><dd>Audio on or off (clicks build as you close in)</dd>
       <dt><kbd>H</kbd></dt><dd>Hide the button row for a clean shot</dd>
       <dt><kbd>F</kbd></dt><dd>Full screen</dd>
       <dt><kbd>?</kbd> <kbd>Esc</kbd></dt><dd>Open / close this card</dd>
     </dl>
+
     <footer>
-      Blocking note: proximity decays on its own, so a bug found and then abandoned goes quiet — walk back in with <kbd>↑</kbd> and it wakes up again. Audio needs one click anywhere on the page before it will sound; press <kbd>A</kbd> during your pre-set.
+      Blocking notes: the door reads slightly cooler than the wall, so it is always visible — a body behind it blooms through as a soft, diffuse shape rather than a sharp one, which is what a real through-partition read looks like. Give the box a beat to settle: confidence climbs from 0.6 to 0.9 over about two seconds. RF proximity decays on its own, so an abandoned bug goes quiet; walk back in with <kbd>↑</kbd>. Audio needs one click on the page before it will sound — press <kbd>A</kbd> during your pre-set.
     </footer>
   </div>
 </div>
@@ -426,90 +432,117 @@
 (() => {
   "use strict";
 
-  // ── Fixed instrument parameters ────────────────────────────
-  const F_MIN = 20, F_MAX = 6000;         // MHz displayed span
-  const BINS  = 600;                       // trace resolution
-  const DB_TOP = -20, DB_BOT = -115;       // vertical scale
-
   const $ = id => document.getElementById(id);
+  const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
 
-  // ── Ambient RF environment — always present, never flagged ─
+  /* ═══════════════════════════════════════════════════════════
+     RF SECTION
+     ═══════════════════════════════════════════════════════════ */
+  const F_MIN = 20, F_MAX = 6000, BINS = 600, DB_TOP = -20, DB_BOT = -115;
+
   const AMBIENT = [
-    {f:  98.1, bw: 14,  lvl: -52, name:"FM broadcast",        mod:"WBFM"},
-    {f: 191.5, bw: 8,   lvl: -68, name:"DAB block 9B",        mod:"OFDM"},
-    {f: 433.9, bw: 1.2, lvl: -84, name:"ISM telemetry",       mod:"OOK",  intermittent:true},
-    {f: 796.0, bw: 10,  lvl: -61, name:"LTE band 20 downlink",mod:"OFDMA"},
-    {f: 942.4, bw: 6,   lvl: -58, name:"GSM-900 beacon",      mod:"GMSK"},
-    {f:1842.0, bw: 15,  lvl: -63, name:"LTE band 3 downlink", mod:"OFDMA"},
-    {f:1881.8, bw: 1.7, lvl: -72, name:"DECT base station",   mod:"GFSK", intermittent:true},
-    {f:2412.0, bw: 20,  lvl: -57, name:"WLAN ch 1 · assoc.",  mod:"OFDM"},
-    {f:2462.0, bw: 20,  lvl: -66, name:"WLAN ch 11 · assoc.", mod:"OFDM"},
-    {f:2480.0, bw: 2,   lvl: -78, name:"BT LE advertising",   mod:"GFSK", intermittent:true},
-    {f:5220.0, bw: 40,  lvl: -70, name:"WLAN ch 44 · assoc.", mod:"OFDM"},
-    {f:5805.0, bw: 40,  lvl: -76, name:"WLAN ch 161 · assoc.",mod:"OFDM"}
+    {f:  98.1, bw: 14,  lvl: -52, name:"FM broadcast",         mod:"WBFM"},
+    {f: 191.5, bw: 8,   lvl: -68, name:"DAB block 9B",         mod:"OFDM"},
+    {f: 433.9, bw: 1.2, lvl: -84, name:"ISM telemetry",        mod:"OOK",  intermittent:true},
+    {f: 796.0, bw: 10,  lvl: -61, name:"LTE band 20 downlink", mod:"OFDMA"},
+    {f: 942.4, bw: 6,   lvl: -58, name:"GSM-900 beacon",       mod:"GMSK"},
+    {f:1842.0, bw: 15,  lvl: -63, name:"LTE band 3 downlink",  mod:"OFDMA"},
+    {f:1881.8, bw: 1.7, lvl: -72, name:"DECT base station",    mod:"GFSK", intermittent:true},
+    {f:2412.0, bw: 20,  lvl: -57, name:"WLAN ch 1 · assoc.",   mod:"OFDM"},
+    {f:2462.0, bw: 20,  lvl: -66, name:"WLAN ch 11 · assoc.",  mod:"OFDM"},
+    {f:2480.0, bw: 2,   lvl: -78, name:"BT LE advertising",    mod:"GFSK", intermittent:true},
+    {f:5220.0, bw: 40,  lvl: -70, name:"WLAN ch 44 · assoc.",  mod:"OFDM"},
+    {f:5805.0, bw: 40,  lvl: -76, name:"WLAN ch 161 · assoc.", mod:"OFDM"}
   ];
 
-  // ── Plantable covert transmitters (the actor's cues) ───────
   const BUGS = {
-    "1":{f: 433.920, bw:0.18, base:-88, name:"Analog FM body mic",      mod:"NBFM",  duty:"CONT 100%",
-         note:"continuous carrier, no protocol handshake"},
-    "2":{f:1268.500, bw:0.75, base:-91, name:"Burst telemetry link",    mod:"2-FSK", duty:"BURST 4.1 s",
-         note:"periodic burst outside licensed allocation"},
-    "3":{f:2437.000, bw:9.0,  base:-84, name:"Wi-Fi camera, unassoc.",  mod:"OFDM",  duty:"CONT 92%",
-         note:"video-rate uplink with no gateway association"},
-    "4":{f:5745.000, bw:6.5,  base:-86, name:"Analog video downlink",   mod:"AM-VSB",duty:"CONT 100%",
-         note:"vestigial-sideband video, FPV band"}
+    "1":{f: 433.920, bw:0.18, base:-88, name:"Analog FM body mic",     mod:"NBFM",  duty:"CONT 100%", note:"continuous carrier, no protocol handshake"},
+    "2":{f:1268.500, bw:0.75, base:-91, name:"Burst telemetry link",   mod:"2-FSK", duty:"BURST 4.1 s", note:"periodic burst outside licensed allocation"},
+    "3":{f:2437.000, bw:9.0,  base:-84, name:"Wi-Fi camera, unassoc.", mod:"OFDM",  duty:"CONT 92%",  note:"video-rate uplink with no gateway association"},
+    "4":{f:5745.000, bw:6.5,  base:-86, name:"Analog video downlink",  mod:"AM-VSB",duty:"CONT 100%", note:"vestigial-sideband video, FPV band"}
   };
 
-  // ── Runtime state ──────────────────────────────────────────
+  /* ═══════════════════════════════════════════════════════════
+     THERMAL SECTION
+     ═══════════════════════════════════════════════════════════ */
+  const TW = 96, TH = 72;                 // sensor grid, upscaled on draw
+  const T_AMBIENT = 19.2;
+  const T_LO = 16.5, T_HI = 37.5;         // palette range
+
+  // Fixed room furniture — always in frame, proves the imager is live
+  const SCENE = {
+    door:    {x0:0.36, x1:0.64, y0:0.12, y1:0.97, temp:18.5, frame:19.9},
+    floor:   {y0:0.88, temp:18.4},
+    rad:     {x:0.09, y:0.845, rx:0.085, ry:0.038, delta:7.4},   // radiator, bottom left
+    kit:     {x:0.86, y:0.26, rx:0.035, ry:0.045, delta:11.0}, // equipment, top right
+    handle:  {x:0.585, y:0.55, rx:0.018, ry:0.024}
+  };
+
+  // Bodies the operator can place
+  const BODIES = {
+    "5":{key:"5", x:0.500, y:0.48, pose:"standing", behind:true,  resp:14, dist:"1.9 m", seed:0.0,
+         name:"Human form — standing", where:"beyond the door panel"},
+    "6":{key:"6", x:0.190, y:0.50, pose:"seated",   behind:false, resp:12, dist:"3.4 m", seed:2.1,
+         name:"Human form — seated",   where:"against the left wall"},
+    "7":{key:"7", x:0.800, y:0.755, pose:"prone",    behind:false, resp:10, dist:"4.1 m", seed:4.4,
+         name:"Human form — prone",    where:"at floor level, right"}
+  };
+
+  const PALETTES = ["IRONBOW", "WHITE-HOT", "NIGHT GREEN"];
+
+  /* ── Runtime state ─────────────────────────────────────────── */
   const st = {
-    running:true, audio:false, maxHold:true,
+    running:true, audio:false, maxHold:true, irOn:true, pal:0,
     sweepPos:0, sweeps:0, batt:87,
     prox:0, proxTarget:0,
-    planted:[],            // active bug keys
-    trace:new Float32Array(BINS),
-    hold:new Float32Array(BINS),
-    lock:null,             // locked bug object
-    logged:new Set()
+    planted:[], lock:null,
+    bodies:[], conf:0, motion:0,
+    trace:new Float32Array(BINS), hold:new Float32Array(BINS)
   };
   st.trace.fill(DB_BOT); st.hold.fill(DB_BOT);
 
-  const binOf = f => Math.round((f - F_MIN) / (F_MAX - F_MIN) * (BINS - 1));
+  const binOf  = f => Math.round((f - F_MIN) / (F_MAX - F_MIN) * (BINS - 1));
   const freqOf = b => F_MIN + b / (BINS - 1) * (F_MAX - F_MIN);
-  const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
 
-  // ── Canvas plumbing ────────────────────────────────────────
-  const spec = $("spectrum"), wf = $("waterfall");
-  const sx = spec.getContext("2d"), wx = wf.getContext("2d");
-  let W = 0, H = 0, WW = 0, WH = 0, dpr = 1;
+  /* ── Canvas plumbing ───────────────────────────────────────── */
+  const spec = $("spectrum"), wf = $("waterfall"), ir = $("thermal");
+  const sx = spec.getContext("2d"), wx = wf.getContext("2d"), ix = ir.getContext("2d");
+  let W=0, H=0, WW=0, WH=0, IW=0, IH=0, dpr=1;
+
+  const tCanvas = document.createElement("canvas");
+  tCanvas.width = TW; tCanvas.height = TH;
+  const tx = tCanvas.getContext("2d");
+  const tImg = tx.createImageData(TW, TH);
+  const field = new Float32Array(TW * TH);
 
   function resize(){
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    for (const [c, ctx] of [[spec, sx], [wf, wx]]){
+    for (const [c, ctx] of [[spec, sx], [wf, wx], [ir, ix]]){
       const r = c.getBoundingClientRect();
       c.width  = Math.max(1, Math.round(r.width  * dpr));
       c.height = Math.max(1, Math.round(r.height * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    const rs = spec.getBoundingClientRect(), rw = wf.getBoundingClientRect();
-    W = rs.width; H = rs.height; WW = rw.width; WH = rw.height;
+    const rs = spec.getBoundingClientRect(), rw = wf.getBoundingClientRect(), ri = ir.getBoundingClientRect();
+    W = rs.width; H = rs.height; WW = rw.width; WH = rw.height; IW = ri.width; IH = ri.height;
     wx.fillStyle = "#080D13"; wx.fillRect(0, 0, WW, WH);
+    ix.imageSmoothingEnabled = true;
+    prefillWaterfall();
   }
-  new ResizeObserver(resize).observe(spec);
+  const ro = new ResizeObserver(resize);
+  ro.observe(spec); ro.observe(wf); ro.observe(ir);
   window.addEventListener("resize", resize);
 
-  // frequency axis labels
   (() => {
     const marks = [20, 1000, 2000, 3000, 4000, 5000, 6000];
     $("axis").innerHTML = marks
-      .map(m => `<span>${m >= 1000 ? (m/1000).toFixed(1) + " GHz" : m + " MHz"}</span>`)
-      .join("");
+      .map(m => `<span>${m >= 1000 ? (m/1000).toFixed(1) + " GHz" : m + " MHz"}</span>`).join("");
   })();
 
-  // ── Signal synthesis ───────────────────────────────────────
+  /* ── RF synthesis ──────────────────────────────────────────── */
   const t0 = performance.now();
-  function shape(binIdx, f, bwMHz, peakDb, now){
-    // gaussian-ish skirt in bin space
+
+  function shape(binIdx, f, bwMHz, peakDb){
     const c = binOf(f);
     const halfBins = Math.max(1.1, bwMHz / (F_MAX - F_MIN) * BINS * 0.6);
     const d = (binIdx - c) / halfBins;
@@ -518,99 +551,71 @@
   }
 
   function levelAt(binIdx, now){
-    // thermal noise floor, tilted slightly up at the low end
     const f = freqOf(binIdx);
-    let floor = -101 + (f < 300 ? (300 - f) / 300 * 7 : 0);
+    const floor = -101 + (f < 300 ? (300 - f) / 300 * 7 : 0);
     let v = floor + (Math.random() + Math.random() + Math.random() - 1.5) * 4.2;
 
     for (const e of AMBIENT){
       let lvl = e.lvl;
       if (e.intermittent){
-        const phase = Math.sin(now / 1000 * (0.6 + e.f % 3) + e.f) ;
+        const phase = Math.sin(now / 1000 * (0.6 + e.f % 3) + e.f);
         if (phase < 0.25) continue;
         lvl -= (1 - phase) * 14;
       }
-      lvl += Math.sin(now / 700 + e.f) * 1.8;      // slow fading
-      v = Math.max(v, shape(binIdx, e.f, e.bw, lvl, now));
+      lvl += Math.sin(now / 700 + e.f) * 1.8;
+      v = Math.max(v, shape(binIdx, e.f, e.bw, lvl));
     }
-
     for (const k of st.planted){
       const b = BUGS[k];
-      // amplitude rides the proximity meter: far away it hides in the grass
       let lvl = b.base + st.prox * 0.42;
-      if (b.duty.startsWith("BURST")){
-        const on = (now / 1000) % 4.1 < 1.15;
-        if (!on) lvl -= 30;
-      }
+      if (b.duty.startsWith("BURST") && (now / 1000) % 4.1 >= 1.15) lvl -= 30;
       lvl += Math.sin(now / 430 + b.f) * 1.4;
-      v = Math.max(v, shape(binIdx, b.f, b.bw, lvl, now));
+      v = Math.max(v, shape(binIdx, b.f, b.bw, lvl));
     }
     return v;
   }
 
-  // ── Rendering ──────────────────────────────────────────────
+  /* ── RF rendering ──────────────────────────────────────────── */
   const yOf = db => (DB_TOP - db) / (DB_TOP - DB_BOT) * H;
 
   function drawSpectrum(){
-    sx.clearRect(0, 0, W, H);
     sx.fillStyle = "#0A0F15"; sx.fillRect(0, 0, W, H);
 
-    // graticule
-    sx.strokeStyle = "#16202B"; sx.lineWidth = 1;
-    sx.beginPath();
+    sx.strokeStyle = "#16202B"; sx.lineWidth = 1; sx.beginPath();
     for (let db = DB_TOP; db >= DB_BOT; db -= 10){
-      const y = Math.round(yOf(db)) + .5;
-      sx.moveTo(0, y); sx.lineTo(W, y);
+      const y = Math.round(yOf(db)) + .5; sx.moveTo(0, y); sx.lineTo(W, y);
     }
     for (let g = 0; g <= 6000; g += 500){
-      const x = Math.round((g - F_MIN) / (F_MAX - F_MIN) * W) + .5;
-      sx.moveTo(x, 0); sx.lineTo(x, H);
+      const x = Math.round((g - F_MIN) / (F_MAX - F_MIN) * W) + .5; sx.moveTo(x, 0); sx.lineTo(x, H);
     }
     sx.stroke();
 
-    // dB labels
     sx.font = "10px 'IBM Plex Mono', monospace";
     sx.fillStyle = "#3E4A58"; sx.textBaseline = "bottom";
-    for (let db = DB_TOP - 10; db > DB_BOT; db -= 20){
-      sx.fillText(db, 4, yOf(db) - 2);
-    }
+    for (let db = DB_TOP - 10; db > DB_BOT; db -= 20) sx.fillText(db, 4, yOf(db) - 2);
 
-    // detection threshold
     sx.setLineDash([4, 4]); sx.strokeStyle = "#4E3A16"; sx.beginPath();
-    sx.moveTo(0, yOf(-80) + .5); sx.lineTo(W, yOf(-80) + .5); sx.stroke();
-    sx.setLineDash([]);
+    sx.moveTo(0, yOf(-80) + .5); sx.lineTo(W, yOf(-80) + .5); sx.stroke(); sx.setLineDash([]);
 
     const xOf = i => i / (BINS - 1) * W;
 
-    // max-hold trace
     if (st.maxHold){
       sx.strokeStyle = "rgba(79,179,165,.55)"; sx.lineWidth = 1; sx.beginPath();
-      for (let i = 0; i < BINS; i++){
-        const y = yOf(st.hold[i]);
-        i ? sx.lineTo(xOf(i), y) : sx.moveTo(xOf(i), y);
-      }
+      for (let i = 0; i < BINS; i++){ const y = yOf(st.hold[i]); i ? sx.lineTo(xOf(i), y) : sx.moveTo(xOf(i), y); }
       sx.stroke();
     }
 
-    // live trace + fill
     const grad = sx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, "rgba(255,174,59,.30)");
-    grad.addColorStop(1, "rgba(255,174,59,.02)");
+    grad.addColorStop(0, "rgba(255,174,59,.30)"); grad.addColorStop(1, "rgba(255,174,59,.02)");
     sx.beginPath(); sx.moveTo(0, H);
     for (let i = 0; i < BINS; i++) sx.lineTo(xOf(i), yOf(st.trace[i]));
-    sx.lineTo(W, H); sx.closePath();
-    sx.fillStyle = grad; sx.fill();
+    sx.lineTo(W, H); sx.closePath(); sx.fillStyle = grad; sx.fill();
 
     sx.beginPath();
-    for (let i = 0; i < BINS; i++){
-      const y = yOf(st.trace[i]);
-      i ? sx.lineTo(xOf(i), y) : sx.moveTo(xOf(i), y);
-    }
+    for (let i = 0; i < BINS; i++){ const y = yOf(st.trace[i]); i ? sx.lineTo(xOf(i), y) : sx.moveTo(xOf(i), y); }
     sx.strokeStyle = "#FFAE3B"; sx.lineWidth = 1.2;
-    sx.shadowColor = "rgba(255,174,59,.5)"; sx.shadowBlur = 5;
-    sx.stroke(); sx.shadowBlur = 0;
+    sx.shadowColor = "rgba(255,174,59,.5)"; sx.shadowBlur = 5; sx.stroke(); sx.shadowBlur = 0;
 
-    // flagged markers
     for (const k of st.planted){
       const b = BUGS[k];
       const x = Math.round(binOf(b.f) / (BINS - 1) * W) + .5;
@@ -620,12 +625,10 @@
       sx.fillStyle = "#FF4A38";
       sx.beginPath(); sx.moveTo(x, y - 5); sx.lineTo(x - 4, y - 12); sx.lineTo(x + 4, y - 12); sx.closePath(); sx.fill();
       sx.font = "10px 'IBM Plex Mono', monospace"; sx.textBaseline = "top";
-      const lbl = b.f.toFixed(3);
-      const tw = sx.measureText(lbl).width;
+      const lbl = b.f.toFixed(3), tw = sx.measureText(lbl).width;
       sx.fillText(lbl, clamp(x - tw / 2, 2, W - tw - 2), 10);
     }
 
-    // sweep cursor
     const cx = st.sweepPos / (BINS - 1) * W;
     const cg = sx.createLinearGradient(cx - 60, 0, cx, 0);
     cg.addColorStop(0, "rgba(255,174,59,0)"); cg.addColorStop(1, "rgba(255,174,59,.16)");
@@ -635,15 +638,25 @@
   }
 
   function wfColor(db){
-    const t = clamp((db - (-104)) / 60, 0, 1);
-    if (t < .35) { const u = t / .35; return `rgb(${8 + u * 12},${13 + u * 46},${19 + u * 52})`; }
-    if (t < .62) { const u = (t - .35) / .27; return `rgb(${20 + u * 130},${59 + u * 68},${71 - u * 44})`; }
-    const u = (t - .62) / .38;
-    return `rgb(${150 + u * 105},${127 + u * 90},${27 + u * 150})`;
+    const t = clamp((db + 104) / 60, 0, 1);
+    if (t < .35){ const u = t / .35;        return `rgb(${8+u*12},${13+u*46},${19+u*52})`; }
+    if (t < .62){ const u = (t - .35)/.27;  return `rgb(${20+u*130},${59+u*68},${71-u*44})`; }
+    const u = (t - .62) / .38;              return `rgb(${150+u*105},${127+u*90},${27+u*150})`;
+  }
+  function prefillWaterfall(){
+    // synthesise the last few minutes of history so the display is never an empty slab
+    const rows = Math.min(Math.round(WH), 420), cw = WW / BINS, tmp = new Float32Array(BINS);
+    for (let row = rows - 1; row >= 0; row--){
+      const past = -(row + 1) * 62;
+      for (let i = 0; i < BINS; i++) tmp[i] = levelAt(i, past);
+      for (let i = 0; i < BINS; i++){
+        wx.fillStyle = wfColor(tmp[i]);
+        wx.fillRect(i * cw, row, Math.ceil(cw) + .5, 1.2);
+      }
+    }
   }
 
   function pushWaterfall(){
-    // scroll down 1px, paint newest row on top
     wx.drawImage(wf, 0, 0, wf.width, wf.height - dpr, 0, 1, WW, WH - 1);
     const cw = WW / BINS;
     for (let i = 0; i < BINS; i++){
@@ -652,21 +665,211 @@
     }
   }
 
-  // ── Detection / classification ─────────────────────────────
-  function classify(f){
-    for (const e of AMBIENT) if (Math.abs(e.f - f) < Math.max(e.bw, 2)) return e;
-    return null;
+  /* ── Thermal synthesis ─────────────────────────────────────── */
+  function blob(cx, cy, rx, ry, peak, sharp){
+    const k = sharp || 1.15;
+    const x0 = Math.max(0, Math.floor((cx - rx * 2.6) * TW)), x1 = Math.min(TW - 1, Math.ceil((cx + rx * 2.6) * TW));
+    const y0 = Math.max(0, Math.floor((cy - ry * 2.6) * TH)), y1 = Math.min(TH - 1, Math.ceil((cy + ry * 2.6) * TH));
+    for (let y = y0; y <= y1; y++){
+      const dy = ((y + .5) / TH - cy) / ry;
+      for (let x = x0; x <= x1; x++){
+        const dx = ((x + .5) / TW - cx) / rx;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > 7) continue;
+        const v = peak * Math.exp(-d2 * k);
+        const i = y * TW + x;
+        if (v > 0.02) field[i] = Math.max(field[i], T_AMBIENT + (field[i] - T_AMBIENT) * 0.35 + v);
+      }
+    }
   }
 
+  function human(b, t){
+    const sway = Math.sin(t * 0.55 + b.seed) * 0.005 + st.motion * Math.sin(t * 7.5) * 0.012;
+    const bx = b.x + sway;
+    const br = 1 + Math.sin(t * 2 * Math.PI * b.resp / 60 + b.seed) * 0.035;
+    const k = (b.behind ? 0.42 : 1) * (0.86 + st.conf * 0.16);   // partition attenuation
+    const s = b.behind ? 1.24 : 1;                                // and diffusion
+    const q = b.behind ? 1.45 : 1.20;                              // falloff sharpness
+
+    if (b.pose === "standing"){
+      blob(bx,         b.y - 0.200, 0.027*s,    0.036*s,    15.2*k, q);   // head
+      blob(bx,         b.y - 0.132, 0.052*s,    0.019*s,    13.4*k, q);   // shoulders
+      blob(bx,         b.y - 0.015, 0.048*s*br, 0.086*s*br, 15.8*k, q);   // torso
+      blob(bx - 0.062, b.y - 0.020, 0.015*s,    0.070*s,    11.0*k, q);   // arms
+      blob(bx + 0.062, b.y - 0.020, 0.015*s,    0.070*s,    11.0*k, q);
+      blob(bx,         b.y + 0.070, 0.044*s,    0.036*s,    12.4*k, q);   // hips
+      blob(bx - 0.025, b.y + 0.175, 0.019*s,    0.100*s,     9.8*k, q);   // legs
+      blob(bx + 0.025, b.y + 0.175, 0.019*s,    0.100*s,     9.8*k, q);
+    } else if (b.pose === "seated"){
+      blob(bx,         b.y - 0.158, 0.032*s,    0.042*s,    15.0*k, q);   // head
+      blob(bx,         b.y - 0.098, 0.058*s,    0.034*s,    13.6*k, q);   // shoulders
+      blob(bx,         b.y - 0.008, 0.062*s*br, 0.092*s*br, 15.4*k, q);   // torso
+      blob(bx + 0.030, b.y + 0.082, 0.084*s,    0.046*s,    11.8*k, q);   // lap and thighs
+      blob(bx + 0.094, b.y + 0.156, 0.030*s,    0.056*s,     8.8*k, q);   // shins down
+    } else {
+      blob(bx - 0.108, b.y - 0.020, 0.032*s,    0.034*s,    14.8*k, q);   // head
+      blob(bx - 0.020, b.y + 0.004, 0.088*s*br, 0.046*s*br, 15.2*k, q);   // torso and shoulders
+      blob(bx + 0.084, b.y + 0.020, 0.078*s,    0.034*s,    10.4*k, q);   // hips and legs
+    }
+  }
+
+  function computeField(t){
+    const d = SCENE.door;
+    for (let y = 0; y < TH; y++){
+      const ny = (y + .5) / TH;
+      for (let x = 0; x < TW; x++){
+        const nx = (x + .5) / TW;
+        let v = T_AMBIENT;
+        if (ny > SCENE.floor.y0) v = SCENE.floor.temp;
+        if (ny > d.y0 && ny < d.y1 && nx > d.x0 && nx < d.x1){
+          const edge = Math.min(nx - d.x0, d.x1 - nx, ny - d.y0) ;
+          v = edge < 0.012 ? d.frame : d.temp;
+        }
+        v += (Math.random() - 0.5) * 0.30 + Math.sin(nx * 9 + t * 0.3) * 0.12;  // sensor noise + drift
+        field[y * TW + x] = v;
+      }
+    }
+    blob(SCENE.rad.x, SCENE.rad.y, SCENE.rad.rx, SCENE.rad.ry, SCENE.rad.delta, 0.95);
+    blob(SCENE.kit.x, SCENE.kit.y, SCENE.kit.rx, SCENE.kit.ry, SCENE.kit.delta, 1.3);
+
+    for (const key of st.bodies){
+      const b = BODIES[key];
+      human(b, t);
+      if (b.behind) blob(SCENE.handle.x, SCENE.handle.y, SCENE.handle.rx, SCENE.handle.ry, 2.6 * st.conf, 1.8);
+    }
+  }
+
+  function paletteRGB(u){
+    u = clamp(u, 0, 1);
+    if (st.pal === 1){ const g = Math.round(6 + u * 249); return [g, g, Math.round(6 + u * 249)]; }
+    if (st.pal === 2){ return [Math.round(u * u * 90), Math.round(14 + u * 226), Math.round(u * u * 70)]; }
+    const stops = [[0,4,10],[38,10,84],[124,25,109],[196,54,74],[236,110,38],[250,186,52],[255,250,225]];
+    const p = u * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(p)), f = p - i;
+    return [0,1,2].map(c => Math.round(stops[i][c] + (stops[i+1][c] - stops[i][c]) * f));
+  }
+
+  let irStats = {min:T_AMBIENT, max:T_AMBIENT, spot:T_AMBIENT, contact:0, peaks:{}};
+
+  function bboxOf(b){
+    if (b.pose === "standing") return {x:b.x - 0.095, y:b.y - 0.252, w:0.190, h:0.545};
+    if (b.pose === "seated")   return {x:b.x - 0.090, y:b.y - 0.208, w:0.240, h:0.415};
+    return {x:b.x - 0.158, y:b.y - 0.070, w:0.330, h:0.150};
+  }
+
+  function peakIn(box){
+    const x0 = clamp(Math.floor(box.x * TW), 0, TW - 1), x1 = clamp(Math.ceil((box.x + box.w) * TW), 0, TW - 1);
+    const y0 = clamp(Math.floor(box.y * TH), 0, TH - 1), y1 = clamp(Math.ceil((box.y + box.h) * TH), 0, TH - 1);
+    let mx = -999;
+    for (let y = y0; y <= y1; y++)
+      for (let x = x0; x <= x1; x++)
+        if (field[y * TW + x] > mx) mx = field[y * TW + x];
+    return mx;
+  }
+
+  function renderField(){
+    const px = tImg.data;
+    let mn = 999, mx = -999;
+    for (let i = 0; i < TW * TH; i++){
+      const v = field[i];
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+      const [r, g, b] = paletteRGB((v - T_LO) / (T_HI - T_LO));
+      const o = i * 4;
+      px[o] = r; px[o+1] = g; px[o+2] = b; px[o+3] = 255;
+    }
+    tx.putImageData(tImg, 0, 0);
+    const ci = Math.floor(TH / 2) * TW + Math.floor(TW / 2);
+    const peaks = {};
+    for (const key of st.bodies) peaks[key] = peakIn(bboxOf(BODIES[key]));
+    const contact = st.bodies.length ? peaks[st.bodies[0]] : 0;
+    irStats = {min:mn, max:mx, spot:field[ci], contact, peaks};
+  }
+
+  function drawThermal(){
+    if (!st.irOn){
+      ix.fillStyle = "#05070A"; ix.fillRect(0, 0, IW, IH);
+      ix.fillStyle = "#2C3743"; ix.font = "600 12px 'Barlow Condensed', sans-serif";
+      ix.textAlign = "center"; ix.textBaseline = "middle";
+      ix.fillText("THERMAL CHANNEL OFF", IW / 2, IH / 2);
+      ix.textAlign = "left";
+      return;
+    }
+    ix.drawImage(tCanvas, 0, 0, IW, IH);
+
+    // scan-line texture
+    ix.fillStyle = "rgba(0,0,0,.13)";
+    for (let y = 0; y < IH; y += 3) ix.fillRect(0, y, IW, 1);
+
+    // door outline overlay so the audience reads the geometry
+    const d = SCENE.door;
+    ix.strokeStyle = "rgba(180,205,225,.20)"; ix.lineWidth = 1;
+    ix.strokeRect(d.x0 * IW + .5, d.y0 * IH + .5, (d.x1 - d.x0) * IW, (d.y1 - d.y0) * IH);
+    ix.font = "500 9px 'IBM Plex Mono', monospace"; ix.fillStyle = "rgba(190,215,235,.42)";
+    ix.textBaseline = "top"; ix.fillText("DOOR / 44 mm PANEL", d.x0 * IW + 4, d.y0 * IH + 4);
+
+    // spot meter reticle
+    const cx = IW / 2, cy = IH / 2;
+    ix.strokeStyle = "rgba(255,255,255,.65)"; ix.lineWidth = 1; ix.beginPath();
+    ix.moveTo(cx - 9, cy + .5); ix.lineTo(cx - 3, cy + .5);
+    ix.moveTo(cx + 3, cy + .5); ix.lineTo(cx + 9, cy + .5);
+    ix.moveTo(cx + .5, cy - 9); ix.lineTo(cx + .5, cy - 3);
+    ix.moveTo(cx + .5, cy + 3); ix.lineTo(cx + .5, cy + 9);
+    ix.stroke();
+
+    // detection boxes
+    for (const key of st.bodies){
+      const b = BODIES[key];
+      const box = bboxOf(b);
+      const X = box.x * IW, Y = box.y * IH, BW = box.w * IW, BH = box.h * IH;
+      const a = 0.35 + st.conf * 0.6;
+      ix.strokeStyle = `rgba(255,74,56,${a})`; ix.lineWidth = 1.4;
+      const c = Math.min(14, BW / 3);
+      ix.beginPath();
+      ix.moveTo(X, Y + c); ix.lineTo(X, Y); ix.lineTo(X + c, Y);
+      ix.moveTo(X + BW - c, Y); ix.lineTo(X + BW, Y); ix.lineTo(X + BW, Y + c);
+      ix.moveTo(X + BW, Y + BH - c); ix.lineTo(X + BW, Y + BH); ix.lineTo(X + BW - c, Y + BH);
+      ix.moveTo(X + c, Y + BH); ix.lineTo(X, Y + BH); ix.lineTo(X, Y + BH - c);
+      ix.stroke();
+
+      const pk = irStats.peaks[key] || irStats.contact;
+      const label = `HUMAN ${st.conf.toFixed(2)} · ${pk.toFixed(1)}°`;
+      ix.font = "500 9px 'IBM Plex Mono', monospace";
+      const tw2 = ix.measureText(label).width;
+      ix.fillStyle = "rgba(255,74,56,.85)";
+      const ly = Y - 16 < 0 ? Y + 2 : Y - 16;
+      ix.fillRect(X, ly, tw2 + 8, 12);
+      ix.fillStyle = "#1A0402"; ix.textBaseline = "top";
+      ix.fillText(label, X + 4, ly + 2);
+    }
+
+    // temperature scale
+    const sw = 8, sh = IH * 0.44, sxp = IW - sw - 10, syp = IH * 0.10;
+    for (let i = 0; i < sh; i++){
+      const [r, g, b] = paletteRGB(1 - i / sh);
+      ix.fillStyle = `rgb(${r},${g},${b})`; ix.fillRect(sxp, syp + i, sw, 1);
+    }
+    ix.strokeStyle = "rgba(255,255,255,.25)"; ix.strokeRect(sxp + .5, syp + .5, sw, sh);
+    ix.fillStyle = "rgba(230,240,250,.7)"; ix.font = "500 9px 'IBM Plex Mono', monospace";
+    ix.textAlign = "right"; ix.textBaseline = "middle";
+    ix.fillText(T_HI.toFixed(0) + "°", sxp - 4, syp + 4);
+    ix.fillText(T_LO.toFixed(0) + "°", sxp - 4, syp + sh - 4);
+    ix.textAlign = "left";
+
+    // corner telemetry
+    ix.fillStyle = "rgba(220,235,250,.55)"; ix.textBaseline = "bottom";
+    ix.fillText(`SPOT ${irStats.spot.toFixed(1)}°C`, 8, IH - 8);
+    ix.textAlign = "right";
+    ix.fillText(st.bodies.length ? "TRACKING" : "SCANNING", IW - 10, IH - 8);
+    ix.textAlign = "left";
+  }
+
+  /* ── Signal table ──────────────────────────────────────────── */
   function refreshSignals(){
     const rows = [];
-    for (const e of AMBIENT){
-      const idx = clamp(binOf(e.f), 0, BINS - 1);
-      rows.push({f:e.f, lvl:st.hold[idx], cls:"KNOWN", name:e.name, flag:false});
-    }
+    for (const e of AMBIENT) rows.push({f:e.f, lvl:st.hold[clamp(binOf(e.f),0,BINS-1)], cls:"KNOWN", name:e.name, flag:false});
     for (const k of st.planted){
-      const b = BUGS[k], idx = clamp(binOf(b.f), 0, BINS - 1);
-      rows.push({f:b.f, lvl:st.hold[idx], cls:"UNREG", name:b.name, flag:true});
+      const b = BUGS[k];
+      rows.push({f:b.f, lvl:st.hold[clamp(binOf(b.f),0,BINS-1)], cls:"UNREG", name:b.name, flag:true});
     }
     rows.sort((a, c) => (c.flag - a.flag) || (c.lvl - a.lvl));
     $("sigBody").innerHTML = rows.map(r => `
@@ -678,11 +881,10 @@
     $("sigCount").textContent = rows.length;
   }
 
-  // ── Log ────────────────────────────────────────────────────
+  /* ── Log ───────────────────────────────────────────────────── */
   function stamp(){
     const d = new Date();
-    return [d.getHours(), d.getMinutes(), d.getSeconds()]
-      .map(n => String(n).padStart(2, "0")).join(":");
+    return [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, "0")).join(":");
   }
   function log(msg, kind){
     const el = document.createElement("div");
@@ -693,7 +895,7 @@
     box.scrollTop = box.scrollHeight;
   }
 
-  // ── Audio: proximity clicks + lock tone ────────────────────
+  /* ── Audio ─────────────────────────────────────────────────── */
   let ac = null, toneOsc = null, toneGain = null, nextClick = 0;
   function audioCtx(){
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -709,12 +911,22 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
     o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.05);
   }
+  function beep(hz, when, dur){
+    if (!st.audio) return;
+    const c = audioCtx(), t = c.currentTime + (when || 0);
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle"; o.frequency.setValueAtTime(hz, t);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.07, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.16));
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + (dur || 0.16) + 0.03);
+  }
   function setTone(on, hz){
-    if (!st.audio){ if (toneOsc){ toneOsc.stop(); toneOsc = null; } return; }
+    if (!st.audio){ if (toneOsc){ try{ toneOsc.stop(); }catch(e){} toneOsc = null; } return; }
     const c = audioCtx();
     if (on && !toneOsc){
       toneOsc = c.createOscillator(); toneGain = c.createGain();
-      toneOsc.type = "sine"; toneGain.gain.value = 0.0;
+      toneOsc.type = "sine"; toneGain.gain.value = 0;
       toneOsc.connect(toneGain).connect(c.destination); toneOsc.start();
     }
     if (toneOsc){
@@ -724,7 +936,7 @@
     }
   }
 
-  // ── Cue actions ────────────────────────────────────────────
+  /* ── Cue actions: RF ───────────────────────────────────────── */
   function plant(key){
     const b = BUGS[key];
     if (!b || st.planted.includes(key)) return;
@@ -732,61 +944,91 @@
     st.proxTarget = Math.max(st.proxTarget, 34);
     log(`ANOMALY — energy at ${b.f.toFixed(3)} MHz above floor, no registration match`, "w");
     setTimeout(() => log(`CLASSIFY — ${b.mod}, ${b.note}`, "a"), 900);
-    setTimeout(() => { lockOn(key); }, 1700);
+    setTimeout(() => lockOn(key), 1700);
   }
-
   function lockOn(key){
     const b = BUGS[key];
     st.lock = {key, since: stamp()};
     $("target").classList.add("locked");
     $("tFreq").textContent = b.f.toFixed(3);
     $("tName").textContent = b.name;
-    $("tBw").textContent = (b.bw < 1 ? (b.bw * 1000).toFixed(0) + " kHz" : b.bw.toFixed(1) + " MHz");
+    $("tBw").textContent = b.bw < 1 ? (b.bw * 1000).toFixed(0) + " kHz" : b.bw.toFixed(1) + " MHz";
     $("tMod").textContent = b.mod;
     $("tDuty").textContent = b.duty;
     $("tSeen").textContent = st.lock.since;
     $("alertbar").classList.add("show");
     $("alertMsg").textContent = "Unregistered transmitter — " + b.name;
     $("alertFrq").textContent = b.f.toFixed(3) + " MHz";
-    $("ledDet").className = "led alert";
+    updateDetLed();
     log(`LOCK — target held at ${b.f.toFixed(3)} MHz · walk the room to localise`, "a");
   }
 
+  /* ── Cue actions: thermal ──────────────────────────────────── */
+  function placeBody(key){
+    const b = BODIES[key];
+    if (!b || st.bodies.includes(key)) return;
+    if (!st.irOn) toggleIr();
+    st.bodies.push(key);
+    st.conf = Math.min(st.conf, 0.55);
+    st.motion = 0.5;
+    log(`IR — thermal gradient rising ${b.where}`, "i");
+    beep(880, 0, .1); beep(1180, .13, .12);
+    setTimeout(() => log(`IR — Δ+15.3 K over ambient, contour consistent with torso and head`, "w"), 800);
+    setTimeout(() => {
+      $("irbar").classList.add("show");
+      updateDetLed();
+      log(`IR LOCK — ${b.name.toUpperCase()} · respiration ${b.resp}/min · range ${b.dist}`, "a");
+      beep(1320, 0, .18);
+    }, 1900);
+  }
+  function nudgeBody(){
+    if (!st.bodies.length){ log("IR — no thermal contact to track", "i"); return; }
+    st.motion = 1;
+    log("IR — movement spike, contact shifted weight", "w");
+    beep(660, 0, .12);
+  }
+
+  function updateDetLed(){
+    const hot = ($("alertbar").classList.contains("show") || $("irbar").classList.contains("show"));
+    $("ledDet").className = "led" + (hot ? " alert" : "");
+  }
+
   function clearAll(){
-    if (!st.planted.length){ log("SWEEP — no flagged emitters to clear"); return; }
-    st.planted.length = 0; st.lock = null; st.proxTarget = 0;
+    if (!st.planted.length && !st.bodies.length){ log("SWEEP — nothing flagged, room reads clean"); return; }
+    st.planted.length = 0; st.bodies.length = 0;
+    st.lock = null; st.proxTarget = 0; st.conf = 0; st.motion = 0;
     st.hold.fill(DB_BOT);
     $("target").classList.remove("locked");
     $("tFreq").textContent = "———.———";
     $("tName").textContent = "No target — sweeping";
     ["tLevel","tBw","tMod","tDuty","tSeen"].forEach(id => $(id).textContent = "—");
     $("alertbar").classList.remove("show");
-    $("ledDet").className = "led";
+    $("irbar").classList.remove("show");
+    updateDetLed();
     setTone(false, 400);
-    log("CLEAR — flag register wiped, room reads clean", "w");
+    log("CLEAR — flag register wiped, RF and thermal both nominal", "w");
     refreshSignals();
   }
 
-  // ── Main loop ──────────────────────────────────────────────
-  let last = performance.now(), acc = 0, wfAcc = 0;
+  /* ── Main loop ─────────────────────────────────────────────── */
+  let last = performance.now(), acc = 0, wfAcc = 0, irAcc = 0;
 
   function frame(now){
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const t = (now - t0) / 1000;
 
-    // proximity easing + natural decay when the operator stands still
+    /* RF */
     st.proxTarget = clamp(st.proxTarget - (st.planted.length ? 2.4 : 9) * dt, 0, 100);
     st.prox += (st.proxTarget - st.prox) * Math.min(1, dt * 4);
 
     if (st.running){
-      // advance the sweep, refilling bins behind the cursor
       const step = Math.max(1, Math.round(BINS * dt * 1.15));
       for (let n = 0; n < step; n++){
         const i = (st.sweepPos + n) % BINS;
         const v = levelAt(i, now - t0);
         st.trace[i] = st.trace[i] * 0.25 + v * 0.75;
-        if (st.trace[i] > st.hold[i]) st.hold[i] = st.trace[i];
-        else st.hold[i] -= 0.06;
+        if (st.trace[i] > st.hold[i]) st.hold[i] = st.trace[i]; else st.hold[i] -= 0.06;
       }
       const wrapped = st.sweepPos + step >= BINS;
       st.sweepPos = (st.sweepPos + step) % BINS;
@@ -794,44 +1036,68 @@
         st.sweeps++;
         $("swpCount").textContent = String(st.sweeps).padStart(4, "0");
         if (st.sweeps % 4 === 0) refreshSignals();
-        if (st.sweeps % 9 === 0 && !st.planted.length)
+        if (st.sweeps % 9 === 0 && !st.planted.length && !st.bodies.length)
           log(`SWEEP ${String(st.sweeps).padStart(4,"0")} — 20–6000 MHz nominal, ${AMBIENT.length} registered emitters`);
       }
-
       wfAcc += dt;
       if (wfAcc > 0.06){ pushWaterfall(); wfAcc = 0; }
     }
-
     drawSpectrum();
 
-    // proximity panel
+    /* Thermal */
+    st.motion = Math.max(0, st.motion - dt * 0.9);
+    st.conf = st.bodies.length
+      ? Math.min(0.94, st.conf + dt * 0.19)
+      : Math.max(0, st.conf - dt * 1.4);
+
+    if (st.irOn){
+      irAcc += dt;
+      if (irAcc > 1 / 9){ computeField(t); renderField(); irAcc = 0; }
+    }
+    drawThermal();
+
+    /* Readouts */
     const p = st.prox;
     $("proxFill").style.width = p.toFixed(1) + "%";
     $("proxVal").textContent = (p * 0.0184).toFixed(2) + " mV/m";
     $("proxRange").textContent = st.planted.length
-      ? (p < 4 ? "> 12 m" : (12 * Math.exp(-p / 34)).toFixed(1) + " m")
-      : "—";
+      ? (p < 4 ? "> 12 m" : (12 * Math.exp(-p / 34)).toFixed(1) + " m") : "—";
     $("proxState").textContent = !st.planted.length ? "STANDBY"
       : p > 78 ? "AT SOURCE" : p > 45 ? "CLOSING" : "SEARCHING";
 
-    if (st.lock){
-      const b = BUGS[st.lock.key];
-      $("tLevel").textContent = (b.base + p * 0.42).toFixed(1) + " dBm";
+    if (st.lock) $("tLevel").textContent = (BUGS[st.lock.key].base + p * 0.42).toFixed(1) + " dBm";
+
+    if (st.irOn){
+      const body = st.bodies.length ? BODIES[st.bodies[0]] : null;
+      $("irSpot").textContent = irStats.spot.toFixed(1) + " °C";
+      $("irMax").textContent  = irStats.max.toFixed(1) + " °C";
+      $("irMin").textContent  = irStats.min.toFixed(1) + " °C";
+      const dK = (body ? irStats.contact : irStats.max) - T_AMBIENT;
+      $("irDelta").textContent = (dK >= 0 ? "+" : "") + dK.toFixed(1) + " K";
+      if (body){
+        $("irbarMsg").textContent = body.name + " · " + body.where
+          + (st.bodies.length > 1 ? ` · +${st.bodies.length - 1} more` : "");
+        $("irbarRange").textContent = body.dist + " · " + irStats.contact.toFixed(1) + " °C";
+      }
+      $("irDelta").className = body ? "hot" : "";
+      $("irResp").textContent = body ? `${(body.resp + Math.sin(t * .3) * 1.2).toFixed(0)} /min` : "—";
+      $("irClass").textContent = body
+        ? `HUMAN ×${st.bodies.length} · ${st.conf.toFixed(2)}`
+        : "NO HUMAN FORM";
+      $("irClass").className = body ? "hot" : "";
     }
 
-    // audio: click rate rides proximity, tone confirms lock
+    /* Audio */
     if (st.audio && st.planted.length){
-      const rate = 1.2 + Math.pow(p / 100, 1.7) * 26;    // clicks per second
+      const rate = 1.2 + Math.pow(p / 100, 1.7) * 26;
       if (now > nextClick){
         click(0.05 + p / 100 * 0.09);
         nextClick = now + 1000 / rate * (0.82 + Math.random() * 0.36);
       }
       setTone(p > 72, 300 + p * 4);
-    } else {
-      setTone(false, 300);
-    }
+    } else setTone(false, 300);
 
-    // housekeeping
+    /* Housekeeping */
     acc += dt;
     if (acc > 1){
       acc = 0;
@@ -843,13 +1109,25 @@
     }
   }
 
-  // ── Controls ───────────────────────────────────────────────
+  /* ── Controls ──────────────────────────────────────────────── */
   function toggleSweep(){
     st.running = !st.running;
     $("btnSweep").classList.toggle("armed", st.running);
     $("btnSweep").textContent = st.running ? "Sweep · Run" : "Sweep · Hold";
-    $("ledScan").className = "led " + (st.running ? "warn" : "");
+    $("ledScan").className = "led" + (st.running ? " warn" : "");
     log(st.running ? "SWEEP — resumed" : "SWEEP — held by operator", "w");
+  }
+  function toggleIr(){
+    st.irOn = !st.irOn;
+    $("btnIr").classList.toggle("armed", st.irOn);
+    $("btnIr").textContent = st.irOn ? "Thermal · On" : "Thermal · Off";
+    $("ledIr").className = "led" + (st.irOn ? " on" : "");
+    log("IR — microbolometer " + (st.irOn ? "online, shutter calibrated" : "parked"), "i");
+  }
+  function cyclePalette(){
+    st.pal = (st.pal + 1) % PALETTES.length;
+    $("palChip").innerHTML = "Palette <b>" + PALETTES[st.pal] + "</b>";
+    log("IR — palette " + PALETTES[st.pal].toLowerCase(), "i");
   }
   function toggleAudio(){
     st.audio = !st.audio;
@@ -866,13 +1144,14 @@
     log("TRACE — max hold " + (st.maxHold ? "on" : "cleared"));
   }
   function fullscreen(){
-    const el = document.documentElement;
-    if (!document.fullscreenElement) el.requestFullscreen?.();
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
   }
   function toggleCue(){ $("cue").classList.toggle("show"); }
 
   $("btnSweep").addEventListener("click", toggleSweep);
+  $("btnIr").addEventListener("click", toggleIr);
+  $("btnPal").addEventListener("click", cyclePalette);
   $("btnAudio").addEventListener("click", toggleAudio);
   $("btnPeak").addEventListener("click", togglePeak);
   $("btnClear").addEventListener("click", clearAll);
@@ -882,14 +1161,18 @@
   document.addEventListener("keydown", e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
-    if (BUGS[k]) { plant(k); e.preventDefault(); return; }
+    if (BUGS[k]){ plant(k); e.preventDefault(); return; }
+    if (BODIES[k]){ placeBody(k); e.preventDefault(); return; }
     switch (k){
+      case "8": nudgeBody(); break;
       case "0": clearAll(); break;
       case "ArrowUp":   st.proxTarget = clamp(st.proxTarget + 7, 0, 100); e.preventDefault(); break;
       case "ArrowDown": st.proxTarget = clamp(st.proxTarget - 9, 0, 100); e.preventDefault(); break;
       case " ": toggleSweep(); e.preventDefault(); break;
       case "a": case "A": toggleAudio(); break;
       case "p": case "P": togglePeak(); break;
+      case "i": case "I": toggleIr(); break;
+      case "t": case "T": cyclePalette(); break;
       case "f": case "F": fullscreen(); break;
       case "h": case "H": document.querySelector(".deck").classList.toggle("hidden"); break;
       case "?": case "/": toggleCue(); e.preventDefault(); break;
@@ -897,31 +1180,32 @@
     }
   });
 
-  // mouse/touch drag on the meter also drives proximity, for hand props
+  // drag the proximity meter for hand-prop operation
   const meter = document.querySelector(".meter");
+  let dragging = false;
   const dragTo = e => {
     const r = meter.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-    st.proxTarget = clamp(x / r.width * 100, 0, 100);
+    st.proxTarget = clamp((e.clientX - r.left) / r.width * 100, 0, 100);
   };
-  let dragging = false;
   meter.addEventListener("pointerdown", e => { dragging = true; meter.setPointerCapture(e.pointerId); dragTo(e); });
   meter.addEventListener("pointermove", e => { if (dragging) dragTo(e); });
   meter.addEventListener("pointerup",   () => { dragging = false; });
 
-  // ── Boot sequence ──────────────────────────────────────────
+  /* ── Boot ──────────────────────────────────────────────────── */
   resize();
+  computeField(0); renderField();
   refreshSignals();
   const boot = [
     "KESTREL RF-9 · firmware 4.18b · serial K9-2214-EU",
     "SELF TEST — synth lock OK · LO drift 0.4 ppm · preamp OK",
+    "IR — microbolometer 640×480, NETD 42 mK, shutter calibrated",
     "ANTENNA — omnidirectional B-element, VSWR 1.3:1",
-    "CALIBRATION — noise floor referenced at −101 dBm",
+    "CALIBRATION — noise floor −101 dBm · ambient 19.2 °C",
     "REGISTRY — 12 licensed emitters loaded for this location",
     "SWEEP — continuous mode, 20–6000 MHz, 300 kHz RBW"
   ];
-  boot.forEach((line, i) => setTimeout(() => log(line, i === 1 ? "w" : ""), 260 * i));
-  setTimeout(() => log("READY — room baseline established, no anomalies", "w"), 260 * boot.length + 200);
+  boot.forEach((line, i) => setTimeout(() => log(line, i === 2 ? "i" : i === 1 ? "w" : ""), 240 * i));
+  setTimeout(() => log("READY — room baseline established, no anomalies", "w"), 240 * boot.length + 200);
 
   requestAnimationFrame(frame);
 })();
