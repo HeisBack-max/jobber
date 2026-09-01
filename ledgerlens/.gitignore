@@ -1,0 +1,6 @@
+node_modules/
+package-lock.json
+test/*.png
+test/*.pdf
+test/engine.js
+test/ui.js

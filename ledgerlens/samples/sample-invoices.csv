@@ -1,0 +1,21 @@
+Invoice No,Date,Customer,Description,Amount
+INV-2041,2026-06-02,Harborview Hotels Ltd,May management fee,"4,250.00"
+INV-2042,2026-06-03,Kestrel Logistics,Freight audit - May,"1,875.50"
+INV-2043,2026-06-05,Bluepine Cafe Group,POS reconciliation,640.00
+INV-2044,2026-06-08,Harborview Hotels Ltd,Ad-hoc consulting,"1,200.00"
+INV-2045,2026-06-09,Northgate Dental,Monthly retainer,950.00
+INV-2046,2026-06-11,Kestrel Logistics,Freight audit - June,"1,875.50"
+INV-2047,2026-06-12,Sable and Moore LLP,Trust account review,"3,400.00"
+INV-2048,2026-06-15,Bluepine Cafe Group,POS reconciliation,640.00
+INV-2049,2026-06-16,Vantage Fitness,Membership audit,"2,100.00"
+INV-2050,2026-06-18,Northgate Dental,Monthly retainer,950.00
+INV-2051,2026-06-19,Harborview Hotels Ltd,June management fee,"4,250.00"
+INV-2052,2026-06-22,Orchard Supply Co,Stock variance review,"1,340.75"
+INV-2053,2026-06-23,Sable and Moore LLP,Trust account review,"3,400.00"
+INV-2054,2026-06-25,Vantage Fitness,Membership audit,"2,100.00"
+INV-2055,2026-06-26,Kestrel Logistics,Late fee recovery,425.00
+INV-2056,2026-06-29,Orchard Supply Co,Stock variance review - July,"1,415.00"
+INV-2057,2026-06-30,Meridian Clinic,Claims reconciliation,"5,600.00"
+INV-2058,2026-07-01,Bluepine Cafe Group,POS reconciliation,640.00
+INV-2059,2026-07-02,Northgate Dental,Monthly retainer,950.00
+INV-2060,2026-07-03,Harborview Hotels Ltd,Ad-hoc consulting,"1,200.00"

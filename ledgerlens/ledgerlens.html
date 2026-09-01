@@ -1,0 +1,1924 @@
+<title>Ledgerlens</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600&display=swap">
+
+<style>
+:root{
+  --paper:#F1F3F0; --card:#FBFCFA; --card-2:#F6F8F5;
+  --ink:#131C19; --ink-2:#3D4A45; --ink-3:#6B7873;
+  --rule:#D6DED8; --rule-strong:#B4C0B9;
+  --accent:#00704A; --accent-ink:#00563A; --accent-soft:#E3EDE8;
+  --ok:#00704A; --warn:#B4741C; --crit:#A62639;
+  --ok-ink:#00563A; --warn-ink:#8A5810; --crit-ink:#8C1F30;
+  --tint-ok:#E4EFE9; --tint-warn:#F7EEDF; --tint-crit:#F6E7E9;
+  --shadow:0 1px 0 rgba(19,28,25,.05);
+  --f-serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+  --f-sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1412; --card:#151D1A; --card-2:#111815;
+    --ink:#E7EEE9; --ink-2:#AEBDB6; --ink-3:#7D8D86;
+    --rule:#26332E; --rule-strong:#3B4B45;
+    --accent:#4FBF92; --accent-ink:#63C79C; --accent-soft:#172A22;
+    --ok:#2E9A70; --warn:#B87F10; --crit:#D9455F;
+    --ok-ink:#63C79C; --warn-ink:#E0A63F; --crit-ink:#F08296;
+    --tint-ok:#14261F; --tint-warn:#2A2113; --tint-crit:#2B1A1E;
+    --shadow:0 1px 0 rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1412; --card:#151D1A; --card-2:#111815;
+  --ink:#E7EEE9; --ink-2:#AEBDB6; --ink-3:#7D8D86;
+  --rule:#26332E; --rule-strong:#3B4B45;
+  --accent:#4FBF92; --accent-ink:#63C79C; --accent-soft:#172A22;
+  --ok:#2E9A70; --warn:#B87F10; --crit:#D9455F;
+  --ok-ink:#63C79C; --warn-ink:#E0A63F; --crit-ink:#F08296;
+  --tint-ok:#14261F; --tint-warn:#2A2113; --tint-crit:#2B1A1E;
+  --shadow:0 1px 0 rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--f-sans); font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance; font-family:var(--f-serif); font-weight:600; letter-spacing:-.01em}
+p{margin:0}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.num{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+
+.wrap{max-width:1180px; margin:0 auto; padding:0 28px 96px}
+
+/* ---------- masthead ---------- */
+.mast{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  padding:34px 0 18px; border-bottom:2px solid var(--ink);
+}
+.brand{display:flex; align-items:baseline; gap:12px}
+.brand h1{font-size:1.55rem}
+.brand .tag{
+  font-family:var(--f-mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3);
+}
+.safe{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--f-mono); font-size:.68rem; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--accent-ink); background:var(--accent-soft);
+  border:1px solid var(--rule); padding:6px 10px;
+}
+.safe svg{width:13px;height:13px;flex:none}
+
+/* ---------- stepper ---------- */
+.steps{display:flex; gap:0; border-bottom:1px solid var(--rule); margin-bottom:30px}
+.step{
+  display:flex; align-items:baseline; gap:9px; padding:13px 20px 12px;
+  font-family:var(--f-mono); font-size:.72rem; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); border-bottom:2px solid transparent; margin-bottom:-1px;
+  background:none; border-top:0; border-left:0; border-right:0; cursor:default;
+}
+.step[data-clickable="1"]{cursor:pointer}
+.step .n{font-size:.68rem; color:var(--ink-3)}
+.step[aria-current="true"]{color:var(--ink); border-bottom-color:var(--ink)}
+.step[aria-current="true"] .n{color:var(--accent-ink)}
+.step[data-done="1"]{color:var(--ink-2)}
+
+/* ---------- generic blocks ---------- */
+.lede{max-width:64ch; color:var(--ink-2); margin-bottom:26px}
+.lede strong{color:var(--ink); font-weight:600}
+.label{
+  font-family:var(--f-mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-3); display:block; margin-bottom:7px;
+}
+.panel{background:var(--card); border:1px solid var(--rule); box-shadow:var(--shadow)}
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:20px}
+
+/* ---------- segmented control ---------- */
+.seg{display:inline-flex; border:1px solid var(--rule-strong); background:var(--card); margin-bottom:26px}
+.seg button{
+  border:0; background:none; padding:11px 18px; cursor:pointer; color:var(--ink-3);
+  font-family:var(--f-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+}
+.seg button + button{border-left:1px solid var(--rule-strong)}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+
+/* ---------- drop panels ---------- */
+.drop{padding:22px}
+.drop h3{font-size:1.05rem; margin-bottom:3px}
+.drop .sub{color:var(--ink-3); font-size:.85rem; margin-bottom:16px}
+.zone{
+  border:1px dashed var(--rule-strong); background:var(--card-2);
+  padding:30px 20px; text-align:center; cursor:pointer; transition:border-color .12s, background .12s;
+}
+.zone:hover,.zone.over{border-color:var(--accent); background:var(--accent-soft)}
+.zone .big{font-weight:600; margin-bottom:4px}
+.zone .small{color:var(--ink-3); font-size:.82rem}
+.loaded{border:1px solid var(--rule); background:var(--card-2); padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:14px}
+.loaded .fn{font-family:var(--f-mono); font-size:.82rem; word-break:break-all}
+.loaded .meta{color:var(--ink-3); font-size:.78rem; font-family:var(--f-mono)}
+.linkbtn{background:none; border:0; padding:0; color:var(--accent-ink); text-decoration:underline; text-underline-offset:3px; cursor:pointer; font-size:.82rem}
+textarea.paste{
+  width:100%; min-height:130px; margin-top:12px; padding:11px; background:var(--card-2);
+  border:1px solid var(--rule); color:var(--ink); font-family:var(--f-mono); font-size:.78rem; resize:vertical;
+}
+
+/* ---------- actions ---------- */
+.actions{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:26px}
+.btn{
+  border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+  padding:11px 20px; cursor:pointer; font-weight:600; font-size:.9rem;
+}
+.btn:disabled{opacity:.35; cursor:not-allowed}
+.btn.ghost{background:none; color:var(--ink); border-color:var(--rule-strong); font-weight:500}
+.btn.ghost:hover:not(:disabled){border-color:var(--ink)}
+.note{color:var(--ink-3); font-size:.82rem}
+
+/* ---------- mapping ---------- */
+.map{padding:20px 22px 22px}
+.map h3{font-size:1.02rem; margin-bottom:2px}
+.map .file{font-family:var(--f-mono); font-size:.74rem; color:var(--ink-3); margin-bottom:16px; word-break:break-all}
+.fields{display:grid; grid-template-columns:120px 1fr; gap:9px 14px; align-items:center}
+.fields label{font-family:var(--f-mono); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
+select{
+  width:100%; padding:8px 9px; background:var(--card-2); color:var(--ink);
+  border:1px solid var(--rule); font-family:var(--f-mono); font-size:.8rem;
+}
+.preview{margin-top:18px; border-top:1px solid var(--rule); padding-top:14px; overflow-x:auto}
+.preview table{width:100%; border-collapse:collapse; font-size:.78rem}
+.preview th{
+  text-align:left; font-family:var(--f-mono); font-size:.64rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:400; padding:0 10px 6px 0; white-space:nowrap;
+}
+.preview td{padding:5px 10px 5px 0; border-top:1px solid var(--rule); white-space:nowrap}
+.preview td.r{text-align:right; font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+.warnrow{color:var(--warn-ink); font-size:.8rem; margin-top:10px}
+
+.settings{display:flex; gap:26px; flex-wrap:wrap; padding:18px 22px; margin-top:20px}
+.settings .fld{display:flex; flex-direction:column; gap:5px}
+.settings input{
+  width:96px; padding:7px 9px; background:var(--card-2); color:var(--ink);
+  border:1px solid var(--rule); font-family:var(--f-mono); font-size:.82rem;
+}
+.settings .hint{font-size:.72rem; color:var(--ink-3); max-width:16ch}
+
+/* ---------- report ---------- */
+.rephead{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:0}
+.rephead h2{font-size:1.35rem}
+.clientname{
+  border:0; border-bottom:1px dashed var(--rule-strong); background:none; color:var(--ink);
+  font-family:var(--f-serif); font-size:1.35rem; font-weight:600; padding:0 2px 2px; min-width:min(340px,70vw);
+}
+.clientname::placeholder{color:var(--ink-3); font-style:italic}
+.preparedby{display:flex; align-items:baseline; gap:8px; margin-top:8px}
+.preparedby span{font-family:var(--f-mono); font-size:.64rem; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3)}
+.preparedby input{
+  border:0; border-bottom:1px dashed var(--rule-strong); background:none; color:var(--ink);
+  font-family:var(--f-sans); font-size:.88rem; padding:0 2px 2px; min-width:220px;
+}
+.preparedby input::placeholder{color:var(--ink-3); font-style:italic}
+.curcode{
+  width:52px; background:none; border:0; border-bottom:1px dashed var(--rule-strong); color:var(--ink);
+  font-family:var(--f-mono); font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; text-align:right; padding:0 2px;
+}
+.curcode::placeholder{color:var(--ink-3)}
+.period{font-family:var(--f-mono); font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); text-align:right}
+
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); border:1px solid var(--rule); border-top:0; background:var(--card)}
+.kpi{padding:18px 20px 16px; border-left:1px solid var(--rule)}
+.kpi:first-child{border-left:0}
+.kpi .k{font-family:var(--f-mono); font-size:.65rem; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3); margin-bottom:9px}
+.kpi .v{font-family:var(--f-mono); font-variant-numeric:tabular-nums; font-size:1.55rem; font-weight:600; line-height:1.1; letter-spacing:-.02em}
+.kpi .v small{font-size:.78rem; font-weight:400; color:var(--ink-3); margin-right:2px}
+.kpi .s{font-size:.78rem; color:var(--ink-3); margin-top:5px}
+.kpi.hero .v{color:var(--crit-ink); font-size:1.9rem}
+.kpi.hero.zero .v{color:var(--ok-ink)}
+
+.coverage{margin-top:28px}
+.bar{display:flex; height:26px; margin:12px 0 10px; background:var(--card-2); border:1px solid var(--rule)}
+.bar span{display:block; height:100%; border-right:2px solid var(--card)}
+.bar span:last-child{border-right:0}
+.legend{display:flex; gap:20px; flex-wrap:wrap; font-size:.8rem; color:var(--ink-2)}
+.legend i{display:inline-block; width:11px; height:11px; margin-right:7px; vertical-align:-1px}
+.legend .n{font-family:var(--f-mono); font-variant-numeric:tabular-nums; color:var(--ink)}
+
+.headline{margin-top:26px; border-left:2px solid var(--ink); padding-left:16px; display:flex; flex-direction:column; gap:8px}
+.headline p{font-family:var(--f-serif); font-size:1.02rem; line-height:1.5; max-width:62ch}
+.headline p .num{font-family:var(--f-mono)}
+
+@media (max-width:620px){
+  .fhead{grid-template-columns:4px 1fr auto; gap:0 10px}
+  .fsev{grid-column:2; padding-left:0; padding-top:11px}
+  .fmain{grid-column:2; padding-top:2px}
+  .fmoney{grid-row:1 / span 2; padding-left:0}
+  .fbody{padding-left:18px}
+  .kpi{border-left:0; border-top:1px solid var(--rule)}
+  .kpi:first-child{border-top:0}
+}
+
+.secthead{display:flex; align-items:baseline; justify-content:space-between; gap:18px; flex-wrap:wrap; margin:44px 0 4px}
+.secthead h3{font-size:1.12rem}
+.secthead .count{font-family:var(--f-mono); font-size:.72rem; color:var(--ink-3); letter-spacing:.06em}
+.filters{display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 14px}
+.chip{
+  border:1px solid var(--rule-strong); background:var(--card); padding:6px 12px; cursor:pointer;
+  font-family:var(--f-mono); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3);
+}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.search{
+  flex:1; min-width:190px; padding:6px 11px; background:var(--card); border:1px solid var(--rule);
+  color:var(--ink); font-size:.85rem;
+}
+
+.findings{border:1px solid var(--rule); background:var(--card)}
+.finding{border-top:1px solid var(--rule); display:block}
+.finding:first-child{border-top:0}
+.fhead{
+  width:100%; display:grid; grid-template-columns:4px 108px 1fr auto; gap:0 16px; align-items:center;
+  background:none; border:0; padding:0; cursor:pointer; text-align:left;
+}
+.fstripe{align-self:stretch; background:var(--ink-3)}
+.finding.sev-high .fstripe{background:var(--crit)}
+.finding.sev-medium .fstripe{background:var(--warn)}
+.finding.sev-low .fstripe{background:var(--rule-strong)}
+.fsev{
+  font-family:var(--f-mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:3px 0 3px 14px;
+}
+.sev-high .fsev{color:var(--crit-ink)}
+.sev-medium .fsev{color:var(--warn-ink)}
+.sev-low .fsev{color:var(--ink-3)}
+.fmain{padding:14px 0; min-width:0}
+.ftitle{display:block; font-weight:600; font-size:.95rem}
+.fmeta{display:block; font-family:var(--f-mono); font-size:.74rem; color:var(--ink-3); margin-top:3px}
+.fmoney{padding:14px 18px 14px 10px; text-align:right; font-family:var(--f-mono); font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap}
+.sev-high .fmoney{color:var(--crit-ink)}
+.fbody{padding:0 18px 20px 128px; display:none}
+.finding[open] .fbody{display:block}
+.fbody .why{color:var(--ink-2); font-size:.88rem; max-width:70ch; margin-bottom:14px}
+.fbody .act{
+  border-left:2px solid var(--accent); padding:2px 0 2px 12px; font-size:.88rem; color:var(--ink);
+  margin-bottom:16px; max-width:70ch;
+}
+.fbody .act b{font-family:var(--f-mono); font-size:.66rem; letter-spacing:.11em; text-transform:uppercase; color:var(--accent-ink); display:block; margin-bottom:3px}
+.evid{overflow-x:auto}
+.evid table{width:100%; border-collapse:collapse; font-size:.78rem}
+.evid th{
+  text-align:left; font-family:var(--f-mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:400; padding:0 12px 6px 0; white-space:nowrap;
+}
+.evid td{padding:6px 12px 6px 0; border-top:1px solid var(--rule); vertical-align:top}
+.evid td.r{text-align:right; font-family:var(--f-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.evid .src{font-family:var(--f-mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); white-space:nowrap}
+
+.matched{border:1px solid var(--rule); background:var(--card); overflow-x:auto}
+.matched table{width:100%; border-collapse:collapse; font-size:.8rem}
+.matched th{
+  text-align:left; font-family:var(--f-mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:400; padding:12px 16px; border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+.matched td{padding:9px 16px; border-top:1px solid var(--rule); white-space:nowrap}
+.matched td.r{text-align:right; font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+.matched .how{font-family:var(--f-mono); font-size:.68rem; color:var(--ink-3)}
+.emptystate{padding:36px 20px; text-align:center; color:var(--ink-3)}
+.emptystate b{display:block; color:var(--ok-ink); font-family:var(--f-serif); font-size:1.1rem; margin-bottom:5px}
+
+.method{margin-top:44px; border-top:1px solid var(--rule); padding-top:20px; columns:2; column-gap:44px; font-size:.84rem; color:var(--ink-2)}
+.method h4{font-family:var(--f-mono); font-size:.66rem; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3); margin:0 0 6px; font-weight:400; break-after:avoid}
+.method p{margin:0 0 14px; break-inside:avoid; max-width:52ch}
+@media (max-width:720px){.method{columns:1}}
+
+.exportbox{margin-top:18px; padding:18px 20px}
+.exportbox pre{
+  max-height:230px; overflow:auto; background:var(--card-2); border:1px solid var(--rule);
+  padding:12px; font-family:var(--f-mono); font-size:.72rem; margin:12px 0 0; white-space:pre;
+}
+.toast{
+  position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+  background:var(--ink); color:var(--paper); padding:10px 18px; font-size:.85rem;
+  font-family:var(--f-mono); letter-spacing:.04em; opacity:0; pointer-events:none; transition:opacity .18s;
+}
+.toast.on{opacity:1}
+
+.foot{margin-top:52px; padding-top:18px; border-top:1px solid var(--rule); color:var(--ink-3); font-size:.78rem; display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap}
+
+.hide{display:none !important}
+
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+
+@media print{
+  body{background:#fff; color:#000; font-size:11pt}
+  .mast .safe,.steps,.filters,.actions,.exportbox,.seg,.toast,.noprint{display:none !important}
+  .wrap{max-width:none; padding:0}
+  .fbody{display:block !important; padding-left:128px}
+  .finding{break-inside:avoid}
+  .panel,.findings,.kpis,.matched{border-color:#bbb; box-shadow:none}
+  .method{columns:2}
+  a{text-decoration:none; color:#000}
+  input{outline:none !important; border-bottom-color:#ccc !important}
+  .kpi{border-color:#ddd}
+}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">
+      <h1>Ledgerlens</h1>
+      <span class="tag">Find the money that doesn&rsquo;t line up</span>
+    </div>
+    <span class="safe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/></svg>
+      Runs in this browser &middot; nothing is uploaded
+    </span>
+  </header>
+
+  <nav class="steps" aria-label="Progress">
+    <button class="step" id="st1" aria-current="true"><span class="n">01</span> Load</button>
+    <button class="step" id="st2"><span class="n">02</span> Map columns</button>
+    <button class="step" id="st3"><span class="n">03</span> Report</button>
+  </nav>
+
+  <!-- ============ STAGE 1 ============ -->
+  <section id="stage1">
+    <p class="lede">Two exports, side by side: <strong>what you think happened</strong> and <strong>what the bank says happened</strong>. Ledgerlens matches them line by line and reports everything that doesn&rsquo;t agree &mdash; unpaid invoices, payments that arrived short, charges that landed twice, deposits with nothing behind them.</p>
+
+    <div class="seg" role="group" aria-label="Direction">
+      <button id="dirIn" aria-pressed="true">Money coming in</button>
+      <button id="dirOut" aria-pressed="false">Money going out</button>
+    </div>
+
+    <div class="grid2">
+      <div class="panel drop">
+        <h3 id="h-ledger">Your records</h3>
+        <p class="sub" id="sub-ledger">Invoices or sales &mdash; exported from your accounting system as CSV.</p>
+        <div id="slot-ledger"></div>
+      </div>
+      <div class="panel drop">
+        <h3>Bank or processor</h3>
+        <p class="sub" id="sub-bank">A bank statement, or a Stripe / PayPal / Square payout export, as CSV.</p>
+        <div id="slot-bank"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="toMap" disabled>Map the columns</button>
+      <button class="btn ghost" id="loadDemo">Load the worked example</button>
+      <span class="note" id="loadNote">Both files are read in this tab. Nothing is sent anywhere and nothing is saved.</span>
+    </div>
+  </section>
+
+  <!-- ============ STAGE 2 ============ -->
+  <section id="stage2" class="hide">
+    <p class="lede">Ledgerlens has guessed which column is which. <strong>Check the preview under each file</strong> &mdash; if the dates or amounts look wrong there, fix the mapping before you reconcile.</p>
+    <div class="grid2">
+      <div class="panel map" id="map-ledger"></div>
+      <div class="panel map" id="map-bank"></div>
+    </div>
+
+    <div class="panel settings">
+      <div class="fld">
+        <span class="label">Date window</span>
+        <input type="number" id="cfgWindow" min="0" max="120" value="10">
+        <span class="hint">Days a payment may lag its invoice</span>
+      </div>
+      <div class="fld">
+        <span class="label">Amount tolerance</span>
+        <input type="number" id="cfgTol" min="0" max="25" step="0.5" value="4">
+        <span class="hint">% gap still treated as the same payment</span>
+      </div>
+      <div class="fld">
+        <span class="label">Overdue after</span>
+        <input type="number" id="cfgAging" min="1" max="365" value="30">
+        <span class="hint">Days before an open item is serious</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="runBtn">Reconcile</button>
+      <button class="btn ghost" id="backTo1">Back</button>
+      <span class="note" id="runNote"></span>
+    </div>
+  </section>
+
+  <!-- ============ STAGE 3 ============ -->
+  <section id="stage3" class="hide">
+    <div class="rephead">
+      <div>
+        <span class="label">Reconciliation report</span>
+        <input class="clientname" id="clientName" placeholder="Client or business name" aria-label="Client or business name">
+        <div class="preparedby"><span>Prepared by</span><input id="preparedBy" placeholder="your name or firm" aria-label="Prepared by"></div>
+      </div>
+      <div class="period" id="period"></div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="headline" id="headline"></div>
+
+    <div class="coverage">
+      <span class="label">Coverage of your records</span>
+      <div class="bar" id="covBar" role="img" aria-label="Coverage of records"></div>
+      <div class="legend" id="covLegend"></div>
+    </div>
+
+    <div class="secthead">
+      <h3>Exceptions</h3>
+      <span class="count" id="excCount"></span>
+    </div>
+    <div class="filters noprint">
+      <button class="chip" data-sev="all" aria-pressed="true">All</button>
+      <button class="chip" data-sev="high" aria-pressed="false">Serious</button>
+      <button class="chip" data-sev="medium" aria-pressed="false">Worth checking</button>
+      <button class="chip" data-sev="low" aria-pressed="false">Notes</button>
+      <input class="search" id="fsearch" type="search" placeholder="Filter by reference or name" aria-label="Filter exceptions">
+    </div>
+    <div class="findings" id="findings"></div>
+
+    <div class="secthead">
+      <h3>What matched</h3>
+      <span class="count" id="matchCount"></span>
+    </div>
+    <div class="matched" id="matched"></div>
+
+    <div class="method" id="method"></div>
+
+    <div class="actions noprint">
+      <button class="btn" id="printBtn">Print or save as PDF</button>
+      <button class="btn ghost" id="expExc">Copy exceptions as CSV</button>
+      <button class="btn ghost" id="expAll">Copy full workings as CSV</button>
+      <button class="btn ghost" id="restart">Start over</button>
+    </div>
+    <div class="panel exportbox hide" id="exportBox"></div>
+  </section>
+
+  <footer class="foot">
+    <span>Ledgerlens &middot; reconciliation that never sees your data. Every figure above came from the two files you loaded in this tab.</span>
+    <span id="stamp"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Ledgerlens reconciliation engine — dependency-free, runs in a browser or in node. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.RA = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  /* ============================ CSV ============================ */
+
+  function stripBOM(s) { return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; }
+
+  function mode(arr) {
+    var m = {}, best = arr[0], bestN = 0;
+    for (var i = 0; i < arr.length; i++) m[arr[i]] = (m[arr[i]] || 0) + 1;
+    Object.keys(m).forEach(function (k) {
+      var v = +k, n = m[k];
+      if (n > bestN || (n === bestN && v > best)) { bestN = n; best = v; }
+    });
+    return best;
+  }
+
+  function detectDelimiter(text) {
+    var sample = text.split(/\r?\n/).slice(0, 25).join('\n');
+    var cands = [',', ';', '\t', '|'];
+    var best = ',', bestScore = -1;
+    for (var i = 0; i < cands.length; i++) {
+      var d = cands[i], inQ = false, counts = {}, line = 0;
+      for (var j = 0; j < sample.length; j++) {
+        var c = sample[j];
+        if (c === '"') inQ = !inQ;
+        else if (!inQ && c === '\n') line++;
+        else if (!inQ && c === d) counts[line] = (counts[line] || 0) + 1;
+      }
+      var vals = Object.keys(counts).map(function (k) { return counts[k]; });
+      if (!vals.length) continue;
+      var modal = mode(vals);
+      var consistency = vals.filter(function (v) { return v === modal; }).length / vals.length;
+      var score = modal * consistency;
+      if (score > bestScore) { bestScore = score; best = d; }
+    }
+    return best;
+  }
+
+  function labelish(cells) {
+    var textCells = 0, filled = 0;
+    for (var i = 0; i < cells.length; i++) {
+      var v = String(cells[i]).trim();
+      if (!v) continue;
+      filled++;
+      if (!/^[-+(]?[\d.,\/\s]+\)?$/.test(v)) textCells++;
+    }
+    return filled >= 2 && textCells >= Math.max(2, Math.ceil(filled * 0.5));
+  }
+
+  function parseCSV(text, delim) {
+    text = stripBOM(String(text));
+    var d = delim || detectDelimiter(text);
+    var rows = [], row = [], field = '', inQ = false, i = 0, n = text.length;
+    while (i < n) {
+      var c = text[i];
+      if (inQ) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+          inQ = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if (c === '"') { inQ = true; i++; continue; }
+      if (c === d) { row.push(field); field = ''; i++; continue; }
+      if (c === '\r') { i++; continue; }
+      if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+      field += c; i++;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    rows = rows.filter(function (r) { return r.some(function (v) { return String(v).trim() !== ''; }); });
+    if (!rows.length) return { headers: [], rows: [], delimiter: d };
+
+    var widths = rows.map(function (r) { return r.length; });
+    var modal = mode(widths);
+    var hIdx = 0;
+    for (var k = 0; k < rows.length; k++) {
+      if (rows[k].length === modal && labelish(rows[k])) { hIdx = k; break; }
+    }
+    var headers = rows[hIdx].map(function (h, ix) {
+      var t = String(h).trim();
+      return t || ('Column ' + (ix + 1));
+    });
+    var seenH = {};
+    headers = headers.map(function (h) {
+      if (seenH[h]) { seenH[h]++; return h + ' (' + seenH[h] + ')'; }
+      seenH[h] = 1; return h;
+    });
+    var data = [];
+    for (var r2 = hIdx + 1; r2 < rows.length; r2++) {
+      if (rows[r2].length < modal - 1) continue;
+      var rec = {};
+      for (var c2 = 0; c2 < headers.length; c2++) {
+        rec[headers[c2]] = (rows[r2][c2] !== undefined ? String(rows[r2][c2]).trim() : '');
+      }
+      rec.__row = r2 + 1;
+      data.push(rec);
+    }
+    return { headers: headers, rows: data, delimiter: d };
+  }
+
+  /* ========================== AMOUNTS ========================== */
+
+  function parseAmount(raw) {
+    if (raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if (!s) return null;
+    var neg = false;
+    if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+    if (/\bDR\b/i.test(s)) neg = true;
+    s = s.replace(/\b(CR|DR)\b/ig, '');
+    if (/-\s*$/.test(s)) neg = true;
+    s = s.replace(/[^\d.,\-]/g, '');
+    if (s.indexOf('-') !== -1) { neg = true; s = s.replace(/-/g, ''); }
+    if (!/\d/.test(s)) return null;
+
+    var lastDot = s.lastIndexOf('.'), lastComma = s.lastIndexOf(',');
+    var dec = -1;
+    if (lastDot !== -1 && lastComma !== -1) dec = Math.max(lastDot, lastComma);
+    else if (lastDot !== -1) dec = /^\d{1,3}(\.\d{3})+$/.test(s) ? -1 : lastDot;
+    else if (lastComma !== -1) dec = /^\d{1,3}(,\d{3})+$/.test(s) ? -1 : lastComma;
+
+    var intPart, fracPart = '';
+    if (dec === -1) { intPart = s.replace(/[.,]/g, ''); }
+    else {
+      intPart = s.slice(0, dec).replace(/[.,]/g, '');
+      fracPart = s.slice(dec + 1).replace(/[.,]/g, '');
+    }
+    if (fracPart.length > 6) { intPart = intPart + fracPart; fracPart = ''; }
+    var cents = Math.round(parseFloat((intPart || '0') + '.' + (fracPart || '0')) * 100);
+    if (!isFinite(cents)) return null;
+    return neg ? -cents : cents;
+  }
+
+  function money(cents, cur) {
+    var sign = cents < 0 ? '-' : '';
+    var v = Math.abs(cents) / 100;
+    return sign + (cur || '') + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  /* =========================== DATES =========================== */
+
+  var MONTHS = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
+  };
+  var DAY = 86400000;
+
+  function monthFromName(s) {
+    if (!s) return 0;
+    return MONTHS[String(s).toLowerCase().slice(0, 3)] || 0;
+  }
+
+  function yr(v) { var n = +v; if (n < 100) n += n < 70 ? 2000 : 1900; return n; }
+
+  function dateComponents(raw) {
+    if (raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if (!s) return null;
+    s = s.replace(/T\d{2}:\d{2}[\d:.]*Z?$/i, '');
+    s = s.replace(/\b\d{1,2}:\d{2}(:\d{2})?\s*(AM|PM)?\b/ig, '').trim();
+    s = s.replace(/,\s*$/, '');
+
+    var m;
+    m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+    if (m) return { y: +m[1], a: +m[2], b: +m[3], order: 'ymd' };
+
+    m = s.match(/^(\d{1,2})[\s\-\/.]+([A-Za-z]{3,9})[\s\-\/.,]+(\d{2,4})$/);
+    if (m) { var mo = monthFromName(m[2]); if (mo) return { y: yr(m[3]), a: mo, b: +m[1], order: 'ymd' }; }
+
+    m = s.match(/^([A-Za-z]{3,9})[\s\-\/.]+(\d{1,2})[\s\-\/.,]+(\d{2,4})$/);
+    if (m) { var mo2 = monthFromName(m[1]); if (mo2) return { y: yr(m[3]), a: mo2, b: +m[2], order: 'ymd' }; }
+
+    m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
+    if (m) return { y: yr(m[3]), a: +m[1], b: +m[2], order: 'amb' };
+
+    if (/^\d{8}$/.test(s)) {
+      var y8 = +s.slice(0, 4);
+      if (y8 > 1990 && y8 < 2100) return { y: y8, a: +s.slice(4, 6), b: +s.slice(6, 8), order: 'ymd' };
+    }
+    if (/^\d{5}(\.\d+)?$/.test(s)) {
+      var serial = parseFloat(s);
+      if (serial > 25000 && serial < 80000) {
+        var dt = new Date(Math.round((serial - 25569) * DAY));
+        return { y: dt.getUTCFullYear(), a: dt.getUTCMonth() + 1, b: dt.getUTCDate(), order: 'ymd' };
+      }
+    }
+    return null;
+  }
+
+  function inferDateOrder(rawValues) {
+    var firstOver12 = 0, secondOver12 = 0, ambiguous = 0, iso = 0;
+    for (var i = 0; i < rawValues.length; i++) {
+      var c = dateComponents(rawValues[i]);
+      if (!c) continue;
+      if (c.order === 'ymd') { iso++; continue; }
+      ambiguous++;
+      if (c.a > 12) firstOver12++;
+      if (c.b > 12) secondOver12++;
+    }
+    if (firstOver12 && !secondOver12) return 'dmy';
+    if (secondOver12 && !firstOver12) return 'mdy';
+    if (!ambiguous && iso) return 'iso';
+    return 'unknown';
+  }
+
+  function toDate(raw, order) {
+    var c = dateComponents(raw);
+    if (!c) return null;
+    var mo, dy;
+    if (c.order === 'ymd') { mo = c.a; dy = c.b; }
+    else if (order === 'mdy') { mo = c.a; dy = c.b; }
+    else { mo = c.b; dy = c.a; }
+    if (mo < 1 || mo > 12 || dy < 1 || dy > 31) {
+      var t = mo; mo = dy; dy = t;
+      if (mo < 1 || mo > 12 || dy < 1 || dy > 31) return null;
+    }
+    var ms = Date.UTC(c.y, mo - 1, dy);
+    if (isNaN(ms)) return null;
+    return ms;
+  }
+
+  var MNAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function fmtDate(ms) {
+    if (ms === null || ms === undefined) return '—';
+    var d = new Date(ms);
+    return String(d.getUTCDate()).padStart(2, '0') + ' ' + MNAMES[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  }
+
+  /* ====================== COLUMN DETECTION ====================== */
+
+  var HINTS = {
+    date: [/^(date|posted|posting date|transaction date|txn date|value date|issue date|invoice date|created)$/i,
+           /\b(date|posted|posting|value dt)\b/i, /date/i],
+    amount: [/^(amount|total|value|gross|net|amount due|invoice total)$/i,
+             /\b(amount|total|value|gross|net|sum)\b/i, /amount|total/i],
+    ref: [/^(invoice|invoice no|invoice number|inv no|ref|reference|number|id|doc no|order no|transaction id)$/i,
+          /\b(invoice|inv|ref|reference|number|doc|receipt|order|txn id)\b/i, /\bno\.?\b|\bid\b/i],
+    party: [/^(customer|client|payer|payee|name|vendor|supplier|counterparty|company|account name)$/i,
+            /\b(customer|client|payer|payee|vendor|supplier|counterparty|company)\b/i, /name/i],
+    desc: [/^(description|details|memo|narrative|particulars|note|remarks|transaction)$/i,
+           /\b(description|details|memo|narrative|particulars|note|remark)\b/i, /desc|detail|memo/i],
+    debit: [/^(debit|withdrawal|withdrawals|money out|paid out|amount out|dr)$/i, /\b(debit|withdrawal|money out|paid out)\b/i],
+    credit: [/^(credit|deposit|deposits|money in|paid in|amount in|received|cr)$/i, /\b(credit|deposit|money in|paid in|received)\b/i]
+  };
+
+  function profileColumns(headers, rows) {
+    var sample = rows.slice(0, 300);
+    return headers.map(function (h) {
+      var vals = sample.map(function (r) { return r[h]; })
+        .filter(function (v) { return v !== undefined && String(v).trim() !== ''; });
+      var dates = 0, amounts = 0, uniq = {}, textLen = 0, numericish = 0;
+      for (var i = 0; i < vals.length; i++) {
+        var v = String(vals[i]);
+        if (dateComponents(v)) dates++;
+        if (/^[\s(]*[-+]?[\d.,]+[)\s]*$/.test(v)) numericish++;
+        if (parseAmount(v) !== null) amounts++;
+        uniq[v] = 1;
+        textLen += v.length;
+      }
+      var n = Math.max(1, vals.length);
+      return {
+        h: h, filled: vals.length, dateRatio: dates / n, amountRatio: amounts / n,
+        numericish: numericish / n, uniqRatio: Object.keys(uniq).length / n, avgLen: textLen / n
+      };
+    });
+  }
+
+  function detectColumns(headers, rows) {
+    var profile = profileColumns(headers, rows);
+
+    function pick(kind, exclude) {
+      var best = null, bestScore = 0;
+      for (var i = 0; i < profile.length; i++) {
+        var p = profile[i];
+        if (exclude && exclude.indexOf(p.h) !== -1) continue;
+        var score = 0, pats = HINTS[kind] || [];
+        for (var j = 0; j < pats.length; j++) {
+          if (pats[j].test(p.h)) { score += (pats.length - j) * 12; break; }
+        }
+        if (kind === 'date') score += p.dateRatio * 45 - (p.dateRatio < 0.5 ? 25 : 0);
+        if (kind === 'amount' || kind === 'debit' || kind === 'credit') {
+          score += p.numericish * 25 - p.dateRatio * 60;
+          if (p.numericish < 0.5) score -= 20;
+        }
+        if (kind === 'ref') score += p.uniqRatio * 14 - p.dateRatio * 40 + (p.avgLen < 24 ? 4 : -6);
+        if (kind === 'party') score += (p.avgLen > 4 && p.avgLen < 60 ? 8 : 0) - p.numericish * 35 - p.dateRatio * 45;
+        if (kind === 'desc') score += (p.avgLen > 12 ? 10 : 0) - p.numericish * 30 - p.dateRatio * 45;
+        if (score > bestScore) { bestScore = score; best = p.h; }
+      }
+      return bestScore >= 10 ? best : null;
+    }
+
+    var used = [], out = {};
+    out.date = pick('date'); if (out.date) used.push(out.date);
+    var deb = pick('debit', used), cre = pick('credit', used);
+    if (deb && cre && deb !== cre) { out.debit = deb; out.credit = cre; used.push(deb, cre); }
+    else { out.amount = pick('amount', used); if (out.amount) used.push(out.amount); }
+    out.ref = pick('ref', used); if (out.ref) used.push(out.ref);
+    out.party = pick('party', used); if (out.party) used.push(out.party);
+    out.desc = pick('desc', used); if (out.desc) used.push(out.desc);
+    return out;
+  }
+
+  /* ====================== NORMALISATION ====================== */
+
+  var SUFFIX = /\b(LTD|LIMITED|LLC|INC|INCORPORATED|CORP|CORPORATION|PTE|PTY|PLC|GMBH|BV|NV|SA|SARL|SRL|AB|AS|OY|CO|COMPANY|GROUP|HOLDINGS|INTERNATIONAL|INTL|LLP|THE|AND)\b/g;
+  var BANKNOISE = /\b(TRF|TRANSFER|PMT|PAYMENT|PAYMENTS|DEP|DEPOSIT|ACH|WIRE|EFT|POS|SEPA|FPS|BACS|CHAPS|DD|SO|REF|INV|INVOICE|SETTLEMENT|PAYOUT|BATCH|CARD|MERCHANT|SVC|SERVICE|FEE|FROM|TO)\b/g;
+
+  function normParty(s) {
+    if (!s) return '';
+    var t = String(s).toUpperCase().replace(/[^A-Z0-9 ]+/g, ' ');
+    t = t.replace(BANKNOISE, ' ').replace(SUFFIX, ' ');
+    t = t.replace(/\b\d+\b/g, ' ');
+    return t.replace(/\s+/g, ' ').trim();
+  }
+
+  function normRef(s) {
+    if (!s) return '';
+    return String(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  }
+
+  function trigrams(s) {
+    var g = {}, t = ' ' + s + ' ';
+    for (var i = 0; i < t.length - 2; i++) g[t.substr(i, 3)] = 1;
+    return g;
+  }
+
+  function similarity(a, b) {
+    if (!a || !b) return 0;
+    if (a === b) return 1;
+    var ta = a.split(' ').filter(Boolean), tb = b.split(' ').filter(Boolean);
+    var setB = {}; tb.forEach(function (x) { setB[x] = 1; });
+    var shared = ta.filter(function (x) { return setB[x] && x.length > 2; }).length;
+    var tokenScore = shared ? (2 * shared) / (ta.length + tb.length) : 0;
+    var ga = trigrams(a), gb = trigrams(b);
+    var ka = Object.keys(ga), kb = Object.keys(gb), inter = 0;
+    for (var i = 0; i < ka.length; i++) if (gb[ka[i]]) inter++;
+    var dice = (ka.length + kb.length) ? (2 * inter) / (ka.length + kb.length) : 0;
+    return Math.max(tokenScore, dice);
+  }
+
+  function normalise(parsed, map, opts) {
+    opts = opts || {};
+    var rows = parsed.rows, out = [];
+    var order = (opts.dateOrder && opts.dateOrder !== 'auto')
+      ? opts.dateOrder
+      : inferDateOrder(rows.map(function (r) { return r[map.date]; }));
+    var inferred = order;
+    if (order === 'unknown' || order === 'iso') order = opts.fallbackOrder || 'dmy';
+
+    var skipped = 0;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i], amt = null;
+      if (map.debit || map.credit) {
+        var dv = map.debit ? parseAmount(r[map.debit]) : null;
+        var cv = map.credit ? parseAmount(r[map.credit]) : null;
+        if (cv !== null && cv !== 0) amt = Math.abs(cv);
+        else if (dv !== null && dv !== 0) amt = -Math.abs(dv);
+        else amt = null;
+      } else {
+        amt = parseAmount(r[map.amount]);
+      }
+      if (amt === null || amt === 0) { skipped++; continue; }
+      var dt = map.date ? toDate(r[map.date], order) : null;
+      var descText = [map.desc ? r[map.desc] : '', map.party ? r[map.party] : '', map.ref ? r[map.ref] : '']
+        .filter(Boolean).join(' ');
+      out.push({
+        i: out.length,
+        row: r.__row,
+        date: dt,
+        dateRaw: map.date ? r[map.date] : '',
+        amount: amt,
+        ref: map.ref ? String(r[map.ref] || '').trim() : '',
+        nref: normRef(map.ref ? r[map.ref] : ''),
+        party: (map.party ? String(r[map.party] || '').trim() : '') || (map.desc ? String(r[map.desc] || '').trim() : ''),
+        nparty: normParty(descText),
+        desc: map.desc ? String(r[map.desc] || '').trim() : '',
+        blob: normRef(descText),
+        raw: r
+      });
+    }
+    return { items: out, dateOrder: order, inferredOrder: inferred, skipped: skipped };
+  }
+
+  /* ========================= MATCHING ========================= */
+
+  var DEFAULTS = {
+    dateWindowDays: 10,
+    tolerancePct: 4,
+    toleranceAbs: 200,
+    agingDays: 30,
+    maxCombo: 5,
+    direction: 'in'
+  };
+
+  function subsetSum(pool, target, tol, maxSize) {
+    var exact = subsetSumPass(pool, target, 0, maxSize);
+    if (exact) return exact;
+    if (!tol) return null;
+    return subsetSumPass(pool, target, tol, maxSize);
+  }
+
+  function subsetSumPass(pool, target, tol, maxSize) {
+    var best = null, nodes = 0, LIMIT = 60000;
+    var suffix = new Array(pool.length + 1).fill(0);
+    for (var i = pool.length - 1; i >= 0; i--) suffix[i] = suffix[i + 1] + pool[i].mag;
+
+    function dfs(idx, remaining, chosen) {
+      if (best || nodes++ > LIMIT) return;
+      if (Math.abs(remaining) <= tol && chosen.length >= 2) { best = chosen.slice(); return; }
+      if (idx >= pool.length || chosen.length >= maxSize) return;
+      if (remaining < -tol) return;
+      if (suffix[idx] < remaining - tol) return;
+      for (var j = idx; j < pool.length; j++) {
+        chosen.push(pool[j]);
+        dfs(j + 1, remaining - pool[j].mag, chosen);
+        chosen.pop();
+        if (best) return;
+      }
+    }
+    dfs(0, target, []);
+    return best;
+  }
+
+  function reconcile(recordsIn, bankIn, cfg) {
+    cfg = Object.assign({}, DEFAULTS, cfg || {});
+    var sign = cfg.direction === 'out' ? -1 : 1;
+
+    var records = recordsIn.map(function (r) { return Object.assign({}, r, { side: 'record', mag: Math.abs(r.amount) }); });
+    var bankAll = bankIn.map(function (b) { return Object.assign({}, b, { side: 'bank', mag: Math.abs(b.amount) }); });
+
+    var hasBothSigns = bankAll.some(function (x) { return x.amount > 0; }) && bankAll.some(function (x) { return x.amount < 0; });
+    var bank = [], bankOther = [];
+    bankAll.forEach(function (b) {
+      if (!hasBothSigns) { bank.push(b); return; }
+      if ((b.amount > 0 ? 1 : -1) === sign) bank.push(b); else bankOther.push(b);
+    });
+    if (!bank.length) { bank = bankAll.slice(); bankOther = []; }
+
+    records.forEach(function (r, ix) { r.k = ix; r.match = null; });
+    bank.forEach(function (b, ix) { b.k = ix; b.match = null; });
+
+    var win = cfg.dateWindowDays * DAY;
+    var sortedBank = bank.slice().sort(function (a, b) { return a.mag - b.mag; });
+
+    function bankInRange(lo, hi) {
+      var res = [], l = 0, r = sortedBank.length - 1, start = sortedBank.length;
+      while (l <= r) { var m = (l + r) >> 1; if (sortedBank[m].mag >= lo) { start = m; r = m - 1; } else l = m + 1; }
+      for (var i = start; i < sortedBank.length && sortedBank[i].mag <= hi; i++) res.push(sortedBank[i]);
+      return res;
+    }
+
+    var pairs = [];
+    records.forEach(function (r) {
+      var tol = Math.max(cfg.toleranceAbs, Math.round(r.mag * cfg.tolerancePct / 100));
+      var cands = bankInRange(r.mag - tol, r.mag + tol);
+      if (r.nref && r.nref.length >= 4) {
+        bank.forEach(function (b) {
+          if (b.blob && b.blob.indexOf(r.nref) !== -1 && cands.indexOf(b) === -1) cands.push(b);
+        });
+      }
+      var scored = [];
+      for (var i = 0; i < cands.length; i++) {
+        var b = cands[i];
+        var diff = b.mag - r.mag, absDiff = Math.abs(diff);
+        var dayDiff = (r.date !== null && b.date !== null) ? Math.round((b.date - r.date) / DAY) : null;
+        if (dayDiff !== null && (b.date - r.date) < -win) continue;
+        if (dayDiff !== null && (b.date - r.date) > win * 3) continue;
+
+        var refHit = !!(r.nref && r.nref.length >= 4 && b.blob && b.blob.indexOf(r.nref) !== -1);
+        var partySim = similarity(r.nparty, b.nparty);
+        var exact = absDiff === 0;
+        var withinTol = absDiff <= tol;
+
+        if (!refHit && !exact && !withinTol) continue;
+        // A near-miss on amount alone proves nothing. Require the counterparty
+        // to corroborate it, otherwise two unrelated numbers that happen to sit
+        // within a few percent of each other get welded together.
+        if (!refHit && !exact && withinTol && partySim < 0.45) continue;
+
+        var score = 0;
+        if (refHit) score += 65;
+        if (exact) score += 32;
+        else if (withinTol) score += 32 * (1 - absDiff / Math.max(1, tol));
+        if (dayDiff !== null) {
+          var dd = Math.abs(dayDiff);
+          score += Math.max(0, 22 * (1 - dd / (cfg.dateWindowDays * 3)));
+          if (dayDiff >= 0 && dayDiff <= cfg.dateWindowDays) score += 6;
+        } else score += 4;
+        score += partySim * 26;
+
+        scored.push({ r: r, b: b, score: score, diff: diff, dayDiff: dayDiff, refHit: refHit, partySim: partySim, exact: exact });
+      }
+      scored.sort(function (x, y) { return y.score - x.score; });
+      pairs = pairs.concat(scored.slice(0, 12));
+    });
+
+    pairs.sort(function (a, b) { return b.score - a.score; });
+    var matches = [];
+    for (var p = 0; p < pairs.length; p++) {
+      var pr = pairs[p];
+      if (pr.r.match || pr.b.match) continue;
+      if (pr.score < 26) continue;
+      pr.r.match = pr; pr.b.match = pr;
+      pr.kind = (pr.refHit && pr.exact) ? 'reference + amount'
+        : pr.refHit ? 'reference'
+        : pr.exact ? 'amount + date'
+        : 'amount within tolerance';
+      pr.confidence = Math.max(1, Math.min(99, Math.round(pr.score)));
+      matches.push(pr);
+    }
+
+    var groups = [];
+    bank.filter(function (b) { return !b.match; }).forEach(function (b) {
+      if (b.match) return;
+      var pool = records.filter(function (r) {
+        if (r.match) return false;
+        if (r.mag > b.mag) return false;
+        if (r.date !== null && b.date !== null) {
+          var d = b.date - r.date;
+          if (d < -win || d > win * 4) return false;
+        }
+        return true;
+      }).sort(function (x, y) { return y.mag - x.mag; }).slice(0, 22);
+      if (pool.length < 2) return;
+      var tol = Math.max(cfg.toleranceAbs, Math.round(b.mag * cfg.tolerancePct / 100));
+      var found = subsetSum(pool, b.mag, tol, cfg.maxCombo);
+      if (found && found.length >= 2) {
+        var sum = found.reduce(function (s, x) { return s + x.mag; }, 0);
+        found.forEach(function (r) { r.match = { group: true }; });
+        b.match = { group: true };
+        groups.push({ bank: b, records: found, diff: b.mag - sum, kind: 'batched payout' });
+      }
+    });
+
+    var splits = [];
+    records.filter(function (r) { return !r.match; }).forEach(function (r) {
+      var pool = bank.filter(function (b) {
+        if (b.match) return false;
+        if (b.mag > r.mag) return false;
+        if (r.date !== null && b.date !== null) {
+          var d = b.date - r.date;
+          if (d < -win || d > win * 6) return false;
+        }
+        return similarity(r.nparty, b.nparty) > 0.5 ||
+          (r.nref && r.nref.length >= 4 && b.blob && b.blob.indexOf(r.nref) !== -1);
+      }).sort(function (x, y) { return y.mag - x.mag; }).slice(0, 18);
+      if (pool.length < 2) return;
+      var tol = Math.max(cfg.toleranceAbs, Math.round(r.mag * cfg.tolerancePct / 100));
+      var found = subsetSum(pool, r.mag, tol, cfg.maxCombo);
+      if (found && found.length >= 2) {
+        var sum = found.reduce(function (s, x) { return s + x.mag; }, 0);
+        found.forEach(function (b) { b.match = { group: true }; });
+        r.match = { group: true };
+        splits.push({ record: r, bank: found, diff: sum - r.mag, kind: 'split payment' });
+      }
+    });
+
+    return {
+      cfg: cfg,
+      records: records, bank: bank, bankOther: bankOther,
+      matches: matches, groups: groups, splits: splits,
+      unmatchedRecords: records.filter(function (r) { return !r.match; }),
+      unmatchedBank: bank.filter(function (b) { return !b.match; })
+    };
+  }
+
+  /* ========================= FINDINGS ========================= */
+
+  function findDuplicates(items, side, title, detail, refIndex) {
+    var out = [], buckets = {};
+    items.forEach(function (x) {
+      var r = x.nref && x.nref.length >= 4 ? x.nref : refFromBlob(x, refIndex);
+      x.__dref = r || '';
+      var k = (r ? 'R:' + r : 'P:' + x.nparty) + '|' + x.mag;
+      (buckets[k] = buckets[k] || []).push(x);
+    });
+    Object.keys(buckets).forEach(function (k) {
+      var g = buckets[k];
+      if (g.length < 2) return;
+      if (!g[0].__dref && !g[0].nparty) return;
+      g.sort(function (a, b) { return (a.date || 0) - (b.date || 0); });
+      for (var i = 1; i < g.length; i++) {
+        var gap = (g[i].date && g[i - 1].date) ? Math.abs(g[i].date - g[i - 1].date) / DAY : 0;
+        if (gap > 10) continue;
+        // Two identical amounts to the same counterparty are only suspicious if
+        // they carry the same reference, or if one of them reconciles to nothing.
+        // Otherwise it is just a customer who pays the same figure every month.
+        var sharedRef = !!g[i].__dref && g[i].__dref === g[i - 1].__dref;
+        var orphan = !g[i].match || !g[i - 1].match;
+        if (!sharedRef && !orphan) continue;
+        out.push({
+          type: side === 'record' ? 'dup_record' : 'dup_bank',
+          severity: 'high',
+          title: title,
+          detail: detail + ' Gap between the two: ' + Math.round(gap) + ' day(s).' +
+            (sharedRef ? ' Both carry reference ' + g[i].__dref + '.' : ''),
+          risk: g[i].mag,
+          party: g[i].party || g[i].desc, ref: g[i].ref, date: g[i].date, amount: g[i].amount,
+          rows: [{ side: side, item: g[i - 1] }, { side: side, item: g[i] }]
+        });
+      }
+    });
+    return out;
+  }
+
+  // Bank lines rarely have a reference column; the reference is buried in the
+  // description. Pull it out by looking for any known ledger reference inside it.
+  function refFromBlob(x, refIndex) {
+    if (!refIndex || !x.blob) return '';
+    for (var i = 0; i < refIndex.length; i++) {
+      if (x.blob.indexOf(refIndex[i]) !== -1) return refIndex[i];
+    }
+    return '';
+  }
+
+  function summarise(res, findings, lags, asOf, incoming) {
+    var recTotal = res.records.reduce(function (s, r) { return s + r.mag; }, 0);
+    var bankTotal = res.bank.reduce(function (s, b) { return s + b.mag; }, 0);
+    var matchedRecs = res.records.length - res.unmatchedRecords.length;
+    var matchedBank = res.bank.length - res.unmatchedBank.length;
+    var matchedValue = res.matches.reduce(function (s, m) { return s + m.r.mag; }, 0)
+      + res.groups.reduce(function (s, g) { return s + g.records.reduce(function (a, r) { return a + r.mag; }, 0); }, 0)
+      + res.splits.reduce(function (s, sp) { return s + sp.record.mag; }, 0);
+
+    var risk = 0, unbooked = 0, fees = 0, dupes = 0, unpaid = 0, over = 0;
+    findings.forEach(function (f) {
+      risk += f.risk || 0;
+      unbooked += f.unbooked || 0;
+      over += f.overpaid || 0;
+      if (f.type === 'short') fees += f.risk || 0;
+      if (f.type === 'dup_record' || f.type === 'dup_bank') dupes += f.risk || 0;
+      if (f.type === 'unpaid' || f.type === 'unpaid_bill') unpaid += f.risk || 0;
+    });
+
+    return {
+      recordCount: res.records.length, bankCount: res.bank.length,
+      recordTotal: recTotal, bankTotal: bankTotal,
+      matchedRecords: matchedRecs, matchedBank: matchedBank,
+      matchRateCount: res.records.length ? matchedRecs / res.records.length : 0,
+      matchRateValue: recTotal ? matchedValue / recTotal : 0,
+      groups: res.groups.length, splits: res.splits.length,
+      exceptions: findings.filter(function (f) { return f.severity !== 'low'; }).length,
+      totalFindings: findings.length,
+      moneyAtRisk: risk, unbooked: unbooked, feeLeakage: fees,
+      duplicateValue: dupes, unpaidValue: unpaid, overpaidValue: over,
+      avgSettlementDays: lags.length ? Math.round(lags.reduce(function (a, b) { return a + b; }, 0) / lags.length) : null,
+      asOf: asOf, incoming: incoming
+    };
+  }
+
+  function analyse(res, cfg) {
+    cfg = Object.assign({}, DEFAULTS, res.cfg || {}, cfg || {});
+    var findings = [];
+    var asOf = 0;
+    res.bank.concat(res.records).forEach(function (x) { if (x.date && x.date > asOf) asOf = x.date; });
+    if (!asOf) asOf = Date.now();
+
+    var incoming = cfg.direction !== 'out';
+    var recNoun = incoming ? 'invoice' : 'bill';
+
+    res.unmatchedRecords.forEach(function (r) {
+      var age = r.date ? Math.round((asOf - r.date) / DAY) : null;
+      findings.push({
+        type: incoming ? 'unpaid' : 'unpaid_bill',
+        severity: (age === null || age >= cfg.agingDays) ? 'high' : 'medium',
+        title: incoming ? 'No deposit found for this ' + recNoun : 'No payment found for this ' + recNoun,
+        detail: (age !== null ? age + ' days old. ' : '') +
+          'Nothing in the bank data matches it on amount, reference or date.',
+        risk: r.mag, age: age,
+        party: r.party, ref: r.ref, date: r.date, amount: r.amount,
+        rows: [{ side: 'record', item: r }]
+      });
+    });
+
+    res.unmatchedBank.forEach(function (b) {
+      findings.push({
+        type: incoming ? 'unrecorded' : 'unexpected_payment',
+        severity: 'medium',
+        title: incoming ? 'Money received with nothing behind it' : 'Money paid out with nothing behind it',
+        detail: 'Present in the bank data but absent from the ledger — unbooked revenue, a misposting, or something nobody logged.',
+        risk: 0, unbooked: b.mag,
+        party: b.party || b.desc, ref: b.ref, date: b.date, amount: b.amount,
+        rows: [{ side: 'bank', item: b }]
+      });
+    });
+
+    res.matches.forEach(function (m) {
+      var d = m.b.mag - m.r.mag;
+      if (Math.abs(d) < 1) return;
+      var pct = m.r.mag ? Math.abs(d) / m.r.mag * 100 : 0;
+      var short = d < 0;
+      findings.push({
+        type: short ? 'short' : 'over',
+        severity: (Math.abs(d) >= 5000 || pct >= 5) ? 'high' : 'low',
+        title: short ? 'Landed short of the ' + recNoun : 'Landed above the ' + recNoun,
+        detail: 'Ledger ' + money(m.r.mag) + ' against bank ' + money(m.b.mag) + ' — a gap of ' +
+          money(Math.abs(d)) + ' (' + pct.toFixed(1) + '%). Usually a processor fee, a bank charge, ' +
+          'an FX spread, or a deduction taken at the other end.',
+        risk: short ? Math.abs(d) : 0,
+        overpaid: short ? 0 : Math.abs(d),
+        pct: pct,
+        party: m.r.party || m.b.party, ref: m.r.ref, date: m.r.date, amount: m.r.amount,
+        rows: [{ side: 'record', item: m.r }, { side: 'bank', item: m.b }]
+      });
+    });
+
+    res.groups.forEach(function (g) {
+      if (Math.abs(g.diff) < 1) return;
+      findings.push({
+        type: 'batch_gap', severity: Math.abs(g.diff) >= 5000 ? 'high' : 'low',
+        title: 'Batched payout does not add up',
+        detail: g.records.length + ' ledger entries totalling ' +
+          money(g.records.reduce(function (s, r) { return s + r.mag; }, 0)) +
+          ' settled as one deposit of ' + money(g.bank.mag) + ' — difference ' + money(Math.abs(g.diff)) + '.',
+        risk: g.diff < 0 ? Math.abs(g.diff) : 0,
+        overpaid: g.diff > 0 ? Math.abs(g.diff) : 0,
+        party: g.bank.party || g.bank.desc, ref: g.bank.ref, date: g.bank.date, amount: g.bank.amount,
+        rows: [{ side: 'bank', item: g.bank }].concat(g.records.map(function (r) { return { side: 'record', item: r }; }))
+      });
+    });
+
+    var refIndex = res.records
+      .map(function (r) { return r.nref; })
+      .filter(function (v) { return v && v.length >= 4; })
+      .sort(function (a, b) { return b.length - a.length; });
+
+    findings = findings.concat(findDuplicates(
+      res.records, 'record',
+      incoming ? 'The same invoice looks raised twice' : 'The same bill looks entered twice',
+      'Same counterparty and same amount within days of each other.', refIndex
+    ));
+    findings = findings.concat(findDuplicates(
+      res.bank, 'bank',
+      'The same bank movement appears twice',
+      'Two identical movements days apart — a genuine repeat, or one transaction processed twice.', refIndex
+    ));
+
+    var lags = [];
+    res.matches.forEach(function (m) { if (m.dayDiff !== null && m.dayDiff >= 0) lags.push(m.dayDiff); });
+    res.matches.forEach(function (m) {
+      if (m.dayDiff !== null && m.dayDiff > cfg.agingDays) {
+        findings.push({
+          type: 'late', severity: 'low',
+          title: 'Settled ' + m.dayDiff + ' days after the ' + recNoun + ' date',
+          detail: 'Matched and paid, but slowly — useful when deciding who to chase first.',
+          risk: 0,
+          party: m.r.party || m.b.party, ref: m.r.ref, date: m.r.date, amount: m.r.amount,
+          rows: [{ side: 'record', item: m.r }, { side: 'bank', item: m.b }]
+        });
+      }
+    });
+
+    // A row already called out as a duplicate does not also need to be reported
+    // as "nothing behind it" — same row, one heading.
+    var dupRows = {};
+    findings.forEach(function (f) {
+      if (f.type === 'dup_record' || f.type === 'dup_bank') {
+        f.rows.forEach(function (r) { dupRows[r.side + ':' + r.item.i] = 1; });
+      }
+    });
+    findings = findings.filter(function (f) {
+      if (f.type !== 'unrecorded' && f.type !== 'unexpected_payment') return true;
+      return !dupRows['bank:' + f.rows[0].item.i];
+    });
+
+    // Grade severity against the size of the ledger, not against fixed cash
+    // thresholds — $57 is noise in one business and a bad week in another.
+    var ledgerTotal = res.records.reduce(function (s, r) { return s + r.mag; }, 0);
+    var material = Math.max(5000, Math.round(ledgerTotal * 0.01));
+    findings.forEach(function (f) {
+      if (f.type === 'late') return;
+      var v = f.risk || f.unbooked || 0;
+      if (f.type === 'short' || f.type === 'over' || f.type === 'batch_gap') {
+        f.severity = (v >= material || (f.pct || 0) >= 5) ? 'high' : 'low';
+      } else if (f.type === 'unrecorded' || f.type === 'unexpected_payment') {
+        f.severity = 'medium';
+      } else if (v >= material) {
+        f.severity = 'high';
+      }
+      f.material = material;
+    });
+
+    var totals = summarise(res, findings, lags, asOf, incoming);
+    var order = { high: 0, medium: 1, low: 2 };
+    findings.sort(function (a, b) {
+      if (order[a.severity] !== order[b.severity]) return order[a.severity] - order[b.severity];
+      return ((b.risk || 0) + (b.unbooked || 0)) - ((a.risk || 0) + (a.unbooked || 0));
+    });
+    findings.forEach(function (f, i) { f.id = 'F' + (i + 1); });
+    return { findings: findings, totals: totals, asOf: asOf, headline: headline(findings, totals, incoming) };
+  }
+
+  function headline(findings, T, incoming) {
+    var out = [];
+    var by = function (t) { return findings.filter(function (f) { return f.type === t; }); };
+    var sum = function (a, k) { return a.reduce(function (s, f) { return s + (f[k] || 0); }, 0); };
+
+    var open = by(incoming ? 'unpaid' : 'unpaid_bill');
+    if (open.length) {
+      out.push(open.length + ' of ' + T.recordCount + ' ' + (incoming ? 'invoices have no deposit behind them' : 'bills have no payment behind them') +
+        ' — ' + money(sum(open, 'risk')) + ' unaccounted for.');
+    }
+    var shorts = by('short');
+    if (shorts.length) {
+      var gap = sum(shorts, 'risk');
+      var avgPct = shorts.reduce(function (s, f) { return s + (f.pct || 0); }, 0) / shorts.length;
+      out.push(shorts.length + ' payment' + (shorts.length > 1 ? 's' : '') + ' landed short by a combined ' + money(gap) +
+        ', averaging ' + avgPct.toFixed(1) + '% below the ledger figure — check who is taking the difference.');
+    }
+    var dups = by('dup_bank').concat(by('dup_record'));
+    if (dups.length) {
+      out.push(dups.length + ' apparent duplicate' + (dups.length > 1 ? 's' : '') + ' worth ' + money(sum(dups, 'risk')) + '.');
+    }
+    var unrec = by('unrecorded').concat(by('unexpected_payment'));
+    if (unrec.length) {
+      out.push(money(sum(unrec, 'unbooked')) + ' moved through the account with nothing in the ledger behind it, across ' +
+        unrec.length + ' row' + (unrec.length > 1 ? 's' : '') + '.');
+    }
+    if (!out.length) {
+      out.push('Every row in the ledger has a matching movement in the bank data, for the right amount, in the right window. Nothing to chase.');
+    }
+    return out;
+  }
+
+  /* ========================= DEMO DATA ========================= */
+
+  function toCSV(rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        return /[",\n]/.test(String(c)) ? '"' + String(c).replace(/"/g, '""') + '"' : String(c);
+      }).join(',');
+    }).join('\n');
+  }
+
+  function demoData() {
+    var ledger = [
+      ['Invoice No', 'Date', 'Customer', 'Description', 'Amount'],
+      ['INV-2041', '2026-06-02', 'Harborview Hotels Ltd', 'May management fee', '4,250.00'],
+      ['INV-2042', '2026-06-03', 'Kestrel Logistics', 'Freight audit - May', '1,875.50'],
+      ['INV-2043', '2026-06-05', 'Bluepine Cafe Group', 'POS reconciliation', '640.00'],
+      ['INV-2044', '2026-06-08', 'Harborview Hotels Ltd', 'Ad-hoc consulting', '1,200.00'],
+      ['INV-2045', '2026-06-09', 'Northgate Dental', 'Monthly retainer', '950.00'],
+      ['INV-2046', '2026-06-11', 'Kestrel Logistics', 'Freight audit - June', '1,875.50'],
+      ['INV-2047', '2026-06-12', 'Sable and Moore LLP', 'Trust account review', '3,400.00'],
+      ['INV-2048', '2026-06-15', 'Bluepine Cafe Group', 'POS reconciliation', '640.00'],
+      ['INV-2049', '2026-06-16', 'Vantage Fitness', 'Membership audit', '2,100.00'],
+      ['INV-2050', '2026-06-18', 'Northgate Dental', 'Monthly retainer', '950.00'],
+      ['INV-2051', '2026-06-19', 'Harborview Hotels Ltd', 'June management fee', '4,250.00'],
+      ['INV-2052', '2026-06-22', 'Orchard Supply Co', 'Stock variance review', '1,340.75'],
+      ['INV-2053', '2026-06-23', 'Sable and Moore LLP', 'Trust account review', '3,400.00'],
+      ['INV-2054', '2026-06-25', 'Vantage Fitness', 'Membership audit', '2,100.00'],
+      ['INV-2055', '2026-06-26', 'Kestrel Logistics', 'Late fee recovery', '425.00'],
+      ['INV-2056', '2026-06-29', 'Orchard Supply Co', 'Stock variance review - July', '1,415.00'],
+      ['INV-2057', '2026-06-30', 'Meridian Clinic', 'Claims reconciliation', '5,600.00'],
+      ['INV-2058', '2026-07-01', 'Bluepine Cafe Group', 'POS reconciliation', '640.00'],
+      ['INV-2059', '2026-07-02', 'Northgate Dental', 'Monthly retainer', '950.00'],
+      ['INV-2060', '2026-07-03', 'Harborview Hotels Ltd', 'Ad-hoc consulting', '1,200.00']
+    ];
+    var bank = [
+      ['Posted', 'Details', 'Money In', 'Money Out', 'Balance'],
+      ['05/06/2026', 'TRF HARBORVIEW HOTELS LTD INV-2041', '4250.00', '', '18420.11'],
+      ['08/06/2026', 'FASTPAY SETTLEMENT KESTREL LOGISTICS INV-2042', '1818.24', '', '20238.35'],
+      ['09/06/2026', 'CARD SETTLEMENT BLUEPINE CAFE GROUP', '620.80', '', '20859.15'],
+      ['12/06/2026', 'TRF HARBORVIEW HOTELS LTD INV-2044', '1200.00', '', '22059.15'],
+      ['12/06/2026', 'DD NORTHGATE DENTAL RETAINER', '950.00', '', '23009.15'],
+      ['16/06/2026', 'FASTPAY SETTLEMENT KESTREL LOGISTICS INV-2046', '1818.24', '', '24827.39'],
+      ['17/06/2026', 'WIRE SABLE AND MOORE LLP INV-2047', '3400.00', '', '28227.39'],
+      ['18/06/2026', 'CARD SETTLEMENT BLUEPINE CAFE GROUP', '620.80', '', '28848.19'],
+      ['22/06/2026', 'TRF VANTAGE FITNESS INV-2049', '2100.00', '', '30948.19'],
+      ['24/06/2026', 'TRF HARBORVIEW HOTELS LTD INV-2051', '4250.00', '', '35198.19'],
+      ['26/06/2026', 'TRF ORCHARD SUPPLY CO INV-2052', '1340.75', '', '36538.94'],
+      ['26/06/2026', 'STRIPE PAYOUT BATCH 88231', '5925.00', '', '42463.94'],
+      ['29/06/2026', 'TRF ORCHARD SUPPLY CO INV-2052', '1340.75', '', '43804.69'],
+      ['30/06/2026', 'MERCHANT SVC FEE JUNE', '', '184.20', '43620.49'],
+      ['02/07/2026', 'TRF MERIDIAN CLINIC CLAIMS PART 1', '2800.00', '', '46420.49'],
+      ['03/07/2026', 'CARD SETTLEMENT BLUEPINE CAFE GROUP', '620.80', '', '47041.29'],
+      ['06/07/2026', 'TRF MERIDIAN CLINIC CLAIMS PART 2', '2800.00', '', '49841.29'],
+      ['07/07/2026', 'DD NORTHGATE DENTAL RETAINER', '950.00', '', '50791.29'],
+      ['08/07/2026', 'INBOUND TRF UNKNOWN REF 99412', '780.00', '', '51571.29']
+    ];
+    return { ledger: toCSV(ledger), bank: toCSV(bank) };
+  }
+
+  /* ========================= PIPELINE ========================= */
+
+  function run(ledgerCSV, bankCSV, opts) {
+    opts = opts || {};
+    var lp = parseCSV(ledgerCSV), bp = parseCSV(bankCSV);
+    var lmap = opts.ledgerMap || detectColumns(lp.headers, lp.rows);
+    var bmap = opts.bankMap || detectColumns(bp.headers, bp.rows);
+    var ln = normalise(lp, lmap, { dateOrder: opts.ledgerDateOrder });
+    var bn = normalise(bp, bmap, { dateOrder: opts.bankDateOrder });
+    var res = reconcile(ln.items, bn.items, opts.cfg);
+    var report = analyse(res, opts.cfg);
+    return {
+      ledgerParsed: lp, bankParsed: bp, ledgerMap: lmap, bankMap: bmap,
+      ledgerNorm: ln, bankNorm: bn, result: res, report: report
+    };
+  }
+
+  return {
+    parseCSV: parseCSV, detectColumns: detectColumns, normalise: normalise,
+    reconcile: reconcile, analyse: analyse, demoData: demoData, run: run,
+    parseAmount: parseAmount, toDate: toDate, fmtDate: fmtDate, money: money, toCSV: toCSV,
+    similarity: similarity, normParty: normParty, normRef: normRef,
+    inferDateOrder: inferDateOrder, DEFAULTS: DEFAULTS
+  };
+});
+
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  var money = RA.money, fmtDate = RA.fmtDate;
+
+  var S = {
+    dir: 'in',
+    ledger: null,   // {name, text, parsed, map, order}
+    bank: null,
+    out: null,
+    sev: 'all',
+    q: ''
+  };
+
+  /* ---------------- toast ---------------- */
+  var toastT;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2200);
+  }
+
+  /* ---------------- stage plumbing ---------------- */
+  function stage(n) {
+    ['1', '2', '3'].forEach(function (i) {
+      $('#stage' + i).classList.toggle('hide', i !== String(n));
+      var st = $('#st' + i);
+      st.setAttribute('aria-current', i === String(n) ? 'true' : 'false');
+      st.dataset.done = (+i < n) ? '1' : '';
+      st.dataset.clickable = (+i < n) ? '1' : '';
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  $('#st1').onclick = function () { if (S.ledger && S.bank) stage(1); };
+  $('#st2').onclick = function () { if (S.ledger && S.bank) { renderMapping(); stage(2); } };
+  $('#st3').onclick = function () { if (S.out) stage(3); };
+
+  /* ---------------- direction ---------------- */
+  function setDir(d) {
+    S.dir = d;
+    $('#dirIn').setAttribute('aria-pressed', d === 'in');
+    $('#dirOut').setAttribute('aria-pressed', d === 'out');
+    $('#h-ledger').textContent = d === 'in' ? 'Your records' : 'Your bills';
+    $('#sub-ledger').innerHTML = d === 'in'
+      ? 'Invoices or sales &mdash; exported from your accounting system as CSV.'
+      : 'Supplier bills or expected payments, as CSV.';
+    $('#sub-bank').innerHTML = d === 'in'
+      ? 'A bank statement, or a Stripe / PayPal / Square payout export, as CSV.'
+      : 'A bank statement or card statement showing money leaving, as CSV.';
+  }
+  $('#dirIn').onclick = function () { setDir('in'); };
+  $('#dirOut').onclick = function () { setDir('out'); };
+
+  /* ---------------- file slots ---------------- */
+  function slot(which) {
+    var el = $('#slot-' + which);
+    var f = S[which];
+    if (f) {
+      el.innerHTML =
+        '<div class="loaded"><div><div class="fn">' + esc(f.name) + '</div>' +
+        '<div class="meta">' + f.parsed.rows.length + ' rows &middot; ' + f.parsed.headers.length + ' columns</div></div>' +
+        '<button class="linkbtn" type="button">Replace</button></div>';
+      el.querySelector('.linkbtn').onclick = function () { S[which] = null; slot(which); sync(); };
+      return;
+    }
+    el.innerHTML =
+      '<div class="zone" tabindex="0" role="button" aria-label="Choose a CSV file">' +
+      '<div class="big">Drop a CSV here</div>' +
+      '<div class="small">or click to choose &mdash; you can also paste the rows below</div></div>' +
+      '<textarea class="paste" placeholder="&hellip;or paste CSV rows here" aria-label="Paste CSV"></textarea>';
+    var zone = el.querySelector('.zone'), ta = el.querySelector('.paste');
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = '.csv,.txt,.tsv,text/csv,text/plain'; input.className = 'hide';
+    el.appendChild(input);
+    zone.onclick = function () { input.click(); };
+    zone.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } };
+    input.onchange = function () { if (input.files[0]) readFile(which, input.files[0]); };
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.remove('over'); });
+    });
+    zone.addEventListener('drop', function (e) {
+      var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) readFile(which, file);
+    });
+    ta.addEventListener('change', function () {
+      if (ta.value.trim()) accept(which, 'pasted rows', ta.value);
+    });
+  }
+
+  function readFile(which, file) {
+    if (file.size > 25 * 1024 * 1024) { toast('That file is over 25 MB — try a narrower date range.'); return; }
+    var r = new FileReader();
+    r.onload = function () { accept(which, file.name, String(r.result)); };
+    r.onerror = function () { toast('That file could not be read.'); };
+    r.readAsText(file);
+  }
+
+  function accept(which, name, text) {
+    var parsed;
+    try { parsed = RA.parseCSV(text); } catch (e) { parsed = null; }
+    if (!parsed || !parsed.rows.length) {
+      toast('No rows found in that file — is it a CSV with a header line?');
+      return;
+    }
+    S[which] = {
+      name: name, text: text, parsed: parsed,
+      map: RA.detectColumns(parsed.headers, parsed.rows),
+      order: 'auto'
+    };
+    slot(which); sync();
+  }
+
+  function sync() { $('#toMap').disabled = !(S.ledger && S.bank); }
+
+  $('#loadDemo').onclick = function () {
+    var d = RA.demoData();
+    setDir('in');
+    accept('ledger', 'example-invoices.csv', d.ledger);
+    accept('bank', 'example-bank-statement.csv', d.bank);
+    toast('Example loaded — 20 invoices against 19 bank lines.');
+  };
+  $('#toMap').onclick = function () { renderMapping(); stage(2); };
+  $('#backTo1').onclick = function () { stage(1); };
+
+  /* ---------------- mapping ---------------- */
+  var FIELDS = [
+    { k: 'date', l: 'Date' },
+    { k: 'amount', l: 'Amount' },
+    { k: 'credit', l: 'Money in' },
+    { k: 'debit', l: 'Money out' },
+    { k: 'ref', l: 'Reference' },
+    { k: 'party', l: 'Counterparty' },
+    { k: 'desc', l: 'Description' }
+  ];
+
+  function renderMapping() {
+    ['ledger', 'bank'].forEach(function (which) {
+      var f = S[which], host = $('#map-' + which);
+      var split = !!(f.map.debit || f.map.credit);
+      var rows = FIELDS.filter(function (x) {
+        if (x.k === 'amount') return !split;
+        if (x.k === 'credit' || x.k === 'debit') return split;
+        return true;
+      });
+      var opts = function (sel) {
+        return '<option value="">— none —</option>' + f.parsed.headers.map(function (h) {
+          return '<option value="' + esc(h) + '"' + (h === sel ? ' selected' : '') + '>' + esc(h) + '</option>';
+        }).join('');
+      };
+      host.innerHTML =
+        '<h3>' + (which === 'ledger' ? (S.dir === 'in' ? 'Your records' : 'Your bills') : 'Bank or processor') + '</h3>' +
+        '<div class="file">' + esc(f.name) + '</div>' +
+        '<div class="fields">' +
+        rows.map(function (x) {
+          return '<label for="m-' + which + '-' + x.k + '">' + x.l + '</label>' +
+            '<select id="m-' + which + '-' + x.k + '" data-w="' + which + '" data-k="' + x.k + '">' + opts(f.map[x.k]) + '</select>';
+        }).join('') +
+        '<label for="m-' + which + '-order">Date format</label>' +
+        '<select id="m-' + which + '-order" data-w="' + which + '" data-k="order">' +
+        ['auto|Detect automatically', 'dmy|Day first — 31/12/2026', 'mdy|Month first — 12/31/2026'].map(function (o) {
+          var p = o.split('|');
+          return '<option value="' + p[0] + '"' + (f.order === p[0] ? ' selected' : '') + '>' + p[1] + '</option>';
+        }).join('') + '</select>' +
+        '<label for="m-' + which + '-split">Amount style</label>' +
+        '<select id="m-' + which + '-split" data-w="' + which + '" data-k="__split">' +
+        '<option value="single"' + (split ? '' : ' selected') + '>One amount column</option>' +
+        '<option value="split"' + (split ? ' selected' : '') + '>Separate in / out columns</option>' +
+        '</select>' +
+        '</div><div class="preview" id="pv-' + which + '"></div>';
+
+      host.querySelectorAll('select').forEach(function (sel) {
+        sel.onchange = function () {
+          var w = sel.dataset.w, k = sel.dataset.k;
+          if (k === 'order') { S[w].order = sel.value; }
+          else if (k === '__split') {
+            if (sel.value === 'split') { delete S[w].map.amount; S[w].map.credit = S[w].map.credit || ''; S[w].map.debit = S[w].map.debit || ''; }
+            else { delete S[w].map.credit; delete S[w].map.debit; S[w].map.amount = S[w].map.amount || ''; }
+            renderMapping(); return;
+          } else {
+            if (sel.value) S[w].map[k] = sel.value; else delete S[w].map[k];
+          }
+          preview(w);
+        };
+      });
+      preview(which);
+    });
+    $('#runNote').textContent = '';
+  }
+
+  function preview(which) {
+    var f = S[which];
+    var n = RA.normalise(f.parsed, f.map, { dateOrder: f.order });
+    f.norm = n;
+    var host = $('#pv-' + which);
+    var sample = n.items.slice(0, 4);
+    var badDates = n.items.filter(function (x) { return x.date === null; }).length;
+    var warn = '';
+    if (!n.items.length) warn = 'No usable rows — check the amount column.';
+    else if (badDates) warn = badDates + ' of ' + n.items.length + ' rows have a date this could not read; they still match on amount and reference.';
+    else if (n.inferredOrder === 'unknown') warn = 'Every date could be read either way round — showing day-first. Switch above if that is wrong.';
+    host.innerHTML =
+      '<span class="label">How the first rows are read</span>' +
+      '<table><thead><tr><th>Date</th><th>Reference</th><th>Counterparty</th><th style="text-align:right">Amount</th></tr></thead><tbody>' +
+      (sample.length ? sample.map(function (x) {
+        return '<tr><td class="num">' + esc(fmtDate(x.date)) + '</td><td class="num">' + esc(x.ref || '—') + '</td>' +
+          '<td>' + esc((x.party || '—').slice(0, 38)) + '</td><td class="r">' + esc(money(x.amount)) + '</td></tr>';
+      }).join('') : '<tr><td colspan="4">—</td></tr>') +
+      '</tbody></table>' +
+      (warn ? '<p class="warnrow">' + esc(warn) + '</p>' : '');
+  }
+
+  /* ---------------- run ---------------- */
+  $('#runBtn').onclick = function () {
+    var cfg = {
+      direction: S.dir,
+      dateWindowDays: Math.max(0, +$('#cfgWindow').value || 10),
+      tolerancePct: Math.max(0, +$('#cfgTol').value || 0),
+      agingDays: Math.max(1, +$('#cfgAging').value || 30)
+    };
+    var ln = RA.normalise(S.ledger.parsed, S.ledger.map, { dateOrder: S.ledger.order });
+    var bn = RA.normalise(S.bank.parsed, S.bank.map, { dateOrder: S.bank.order });
+    if (!ln.items.length || !bn.items.length) {
+      $('#runNote').textContent = 'One of the files produced no usable rows — check the amount column above.';
+      return;
+    }
+    var res = RA.reconcile(ln.items, bn.items, cfg);
+    S.out = { cfg: cfg, ln: ln, bn: bn, res: res, report: RA.analyse(res, cfg) };
+    renderReport();
+    stage(3);
+  };
+  $('#restart').onclick = function () {
+    S.ledger = S.bank = S.out = null;
+    slot('ledger'); slot('bank'); sync(); $('#exportBox').classList.add('hide');
+    stage(1);
+  };
+  $('#printBtn').onclick = function () { window.print(); };
+
+  /* ---------------- report ---------------- */
+  function renderReport() {
+    var T = S.out.report.totals, res = S.out.res, F = S.out.report.findings;
+    var inMode = S.out.cfg.direction === 'in';
+
+    var dates = res.records.concat(res.bank).map(function (x) { return x.date; }).filter(Boolean);
+    var lo = dates.length ? Math.min.apply(null, dates) : null;
+    var hi = dates.length ? Math.max.apply(null, dates) : null;
+    $('#period').innerHTML =
+      (lo ? 'Period ' + esc(fmtDate(lo)) + ' &ndash; ' + esc(fmtDate(hi)) + '<br>' : '') +
+      esc(T.recordCount) + ' ledger rows &middot; ' + esc(T.bankCount) + ' bank rows<br>' +
+      'All figures in <input id="curcode" class="curcode" placeholder="CUR" maxlength="4" aria-label="Currency code">';
+    var cur = $('#curcode');
+    cur.value = S.cur || '';
+    cur.oninput = function () { S.cur = cur.value.toUpperCase(); cur.value = S.cur; };
+
+    $('#headline').innerHTML = S.out.report.headline.map(function (h) {
+      return '<p>' + esc(h) + '</p>';
+    }).join('');
+
+    var kpi = [
+      {
+        k: inMode ? 'Money at risk' : 'Exposure',
+        v: money(T.moneyAtRisk),
+        s: inMode ? 'Unpaid, short-paid and duplicated' : 'Unpaid, overpaid and duplicated',
+        hero: true, zero: T.moneyAtRisk === 0
+      },
+      { k: inMode ? 'Unrecorded in the ledger' : 'Unexplained payments', v: money(T.unbooked), s: 'Bank rows with nothing behind them' },
+      { k: 'Reconciled', v: Math.round(T.matchRateCount * 100) + '%', s: T.matchedRecords + ' of ' + T.recordCount + ' rows matched' },
+      { k: 'Exceptions', v: String(T.exceptions), s: T.totalFindings + ' findings in total' },
+      {
+        k: 'Average settlement', v: T.avgSettlementDays === null ? '—' : T.avgSettlementDays + 'd',
+        s: T.avgSettlementDays === null ? 'No dated matches' : 'From ' + (inMode ? 'invoice' : 'bill') + ' to money moving'
+      }
+    ];
+    $('#kpis').innerHTML = kpi.map(function (x) {
+      return '<div class="kpi' + (x.hero ? ' hero' : '') + (x.zero ? ' zero' : '') + '">' +
+        '<div class="k">' + esc(x.k) + '</div>' +
+        '<div class="v">' + esc(x.v) + '</div>' +
+        '<div class="s">' + esc(x.s) + '</div></div>';
+    }).join('');
+
+    // coverage: clean / matched-with-a-problem / unmatched
+    var flagged = {};
+    F.forEach(function (f) {
+      if (f.type === 'short' || f.type === 'over' || f.type === 'dup_record' || f.type === 'batch_gap') {
+        f.rows.forEach(function (r) { if (r.side === 'record') flagged[r.item.i] = 1; });
+      }
+    });
+    var unmatched = res.unmatchedRecords.length;
+    var problem = Object.keys(flagged).filter(function (i) {
+      return !res.unmatchedRecords.some(function (r) { return String(r.i) === i; });
+    }).length;
+    var clean = Math.max(0, res.records.length - unmatched - problem);
+    var total = Math.max(1, res.records.length);
+    var segs = [
+      { n: clean, c: 'var(--ok)', l: 'Reconciled cleanly' },
+      { n: problem, c: 'var(--warn)', l: 'Matched, but the figures differ' },
+      { n: unmatched, c: 'var(--crit)', l: 'Nothing to match against' }
+    ];
+    $('#covBar').innerHTML = segs.map(function (s) {
+      return s.n ? '<span style="width:' + (s.n / total * 100) + '%;background:' + s.c + '" title="' + esc(s.l) + '"></span>' : '';
+    }).join('');
+    $('#covBar').setAttribute('aria-label',
+      segs.map(function (s) { return s.n + ' ' + s.l.toLowerCase(); }).join(', '));
+    $('#covLegend').innerHTML = segs.map(function (s) {
+      return '<span><i style="background:' + s.c + '"></i>' + esc(s.l) + ' <span class="n">' + s.n + '</span></span>';
+    }).join('') + (res.groups.length || res.splits.length
+      ? '<span style="color:var(--ink-3)">including ' + res.groups.length + ' batched payout' + (res.groups.length === 1 ? '' : 's') +
+        ' and ' + res.splits.length + ' split payment' + (res.splits.length === 1 ? '' : 's') + '</span>'
+      : '');
+
+    $('#matchCount').textContent = (res.matches.length + res.groups.length + res.splits.length) +
+      ' matched pairs and groups — the ledger and bank columns below should agree unless the row is also an exception';
+    renderMatched();
+    renderFindings();
+    renderMethod();
+    $('#stamp').textContent = 'Report generated ' + fmtDate(Date.now());
+  }
+
+  var ADVICE = {
+    unpaid: 'Chase it. Confirm the invoice was delivered to the right contact, then send a statement showing the open balance.',
+    unpaid_bill: 'Confirm whether this bill was actually settled outside the account you exported, or whether it is genuinely still owing.',
+    unrecorded: 'Trace it to a customer and book it. Money sitting unrecorded overstates what you are owed and understates income.',
+    unexpected_payment: 'Identify what this paid for. An outgoing payment nobody logged is the classic shape of a duplicate or an unauthorised charge.',
+    short: 'Work out who took the difference. If it is a processor fee, book it as an expense so your revenue figure stops drifting.',
+    over: 'Confirm this is not a double payment or a credit owed back to the customer.',
+    batch_gap: 'Ask the processor for the settlement breakdown for this payout and reconcile it line by line.',
+    dup_record: 'Check whether the customer was billed twice. If so, credit one before they notice it themselves.',
+    dup_bank: 'Two identical movements days apart. If this was not intentional, ask for one back — most processors will reverse a genuine duplicate.',
+    late: 'No action needed, but this counterparty is slow. Worth tighter terms or a deposit next time.'
+  };
+
+  function renderFindings() {
+    var F = S.out.report.findings.filter(function (f) {
+      if (S.sev !== 'all' && f.severity !== S.sev) return false;
+      if (!S.q) return true;
+      var hay = ((f.ref || '') + ' ' + (f.party || '') + ' ' + f.title).toLowerCase();
+      return hay.indexOf(S.q) !== -1;
+    });
+    var all = S.out.report.findings;
+    $('#excCount').textContent =
+      all.filter(function (f) { return f.severity === 'high'; }).length + ' serious · ' +
+      all.filter(function (f) { return f.severity === 'medium'; }).length + ' worth checking · ' +
+      all.filter(function (f) { return f.severity === 'low'; }).length + ' notes';
+
+    var host = $('#findings');
+    if (!F.length) {
+      host.innerHTML = all.length
+        ? '<div class="emptystate">Nothing matches that filter.</div>'
+        : '<div class="emptystate"><b>Everything reconciles.</b>Every row in your records has a matching movement in the bank data, for the right amount, in the right window.</div>';
+      return;
+    }
+    var SEVL = { high: 'Serious', medium: 'Check', low: 'Note' };
+    host.innerHTML = F.map(function (f) {
+      var amt = f.risk || f.unbooked || Math.abs(f.amount || 0);
+      return '<details class="finding sev-' + f.severity + '" data-id="' + f.id + '">' +
+        '<summary class="fhead">' +
+        '<span class="fstripe" aria-hidden="true"></span>' +
+        '<span class="fsev">' + SEVL[f.severity] + '</span>' +
+        '<span class="fmain"><span class="ftitle">' + esc(f.title) + '</span>' +
+        '<span class="fmeta">' + esc([f.ref, (f.party || '').slice(0, 40), fmtDate(f.date)].filter(Boolean).join('  ·  ')) + '</span></span>' +
+        '<span class="fmoney">' + esc(money(amt)) + '</span>' +
+        '</summary>' +
+        '<div class="fbody">' +
+        '<p class="why">' + esc(f.detail) + '</p>' +
+        (ADVICE[f.type] ? '<div class="act"><b>What to do</b>' + esc(ADVICE[f.type]) + '</div>' : '') +
+        evidence(f) +
+        '</div></details>';
+    }).join('');
+  }
+
+  function evidence(f) {
+    return '<div class="evid"><table><thead><tr>' +
+      '<th>Source</th><th>Row</th><th>Date</th><th>Reference</th><th>Counterparty / detail</th><th style="text-align:right">Amount</th>' +
+      '</tr></thead><tbody>' +
+      f.rows.map(function (r) {
+        var x = r.item;
+        return '<tr><td class="src">' + (r.side === 'record' ? 'Ledger' : 'Bank') + '</td>' +
+          '<td class="num">' + esc(x.row) + '</td>' +
+          '<td class="num">' + esc(x.dateRaw || fmtDate(x.date)) + '</td>' +
+          '<td class="num">' + esc(x.ref || '—') + '</td>' +
+          '<td>' + esc([x.party, x.desc].filter(Boolean).join(' — ').slice(0, 90) || '—') + '</td>' +
+          '<td class="r">' + esc(money(x.amount)) + '</td></tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+
+  document.querySelectorAll('.chip').forEach(function (c) {
+    c.onclick = function () {
+      S.sev = c.dataset.sev;
+      document.querySelectorAll('.chip').forEach(function (o) {
+        o.setAttribute('aria-pressed', o === c ? 'true' : 'false');
+      });
+      renderFindings();
+    };
+  });
+  $('#fsearch').addEventListener('input', function (e) {
+    S.q = e.target.value.trim().toLowerCase();
+    renderFindings();
+  });
+
+  function renderMatched() {
+    var res = S.out.res;
+    var rows = res.matches.map(function (m) {
+      return {
+        ref: m.r.ref, party: m.r.party || m.b.party, date: m.r.date,
+        amt: m.r.amount, bank: m.b.amount, how: m.kind, conf: m.confidence,
+        lag: m.dayDiff
+      };
+    }).concat(res.groups.map(function (g) {
+      return {
+        ref: g.records.map(function (r) { return r.ref; }).filter(Boolean).join(' + ') || '—',
+        party: g.bank.party || g.bank.desc, date: g.bank.date,
+        amt: g.records.reduce(function (s, r) { return s + r.amount; }, 0), bank: g.bank.amount,
+        how: g.records.length + ' records in one payout', conf: 95, lag: null
+      };
+    })).concat(res.splits.map(function (sp) {
+      return {
+        ref: sp.record.ref, party: sp.record.party, date: sp.record.date,
+        amt: sp.record.amount, bank: sp.bank.reduce(function (s, b) { return s + b.amount; }, 0),
+        how: 'paid in ' + sp.bank.length + ' instalments', conf: 95, lag: null
+      };
+    }));
+    rows.sort(function (a, b) { return (b.date || 0) - (a.date || 0); });
+
+    if (!rows.length) {
+      $('#matched').innerHTML = '<div class="emptystate">Nothing matched. Check the column mapping — especially the amount column.</div>';
+      return;
+    }
+    $('#matched').innerHTML =
+      '<table><thead><tr><th>Date</th><th>Reference</th><th>Counterparty</th>' +
+      '<th style="text-align:right">Ledger</th><th style="text-align:right">Bank</th><th>Matched on</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr><td class="num">' + esc(fmtDate(r.date)) + '</td>' +
+          '<td class="num">' + esc(r.ref || '—') + '</td>' +
+          '<td>' + esc((r.party || '—').slice(0, 40)) + '</td>' +
+          '<td class="r">' + esc(money(Math.abs(r.amt))) + '</td>' +
+          '<td class="r">' + esc(money(Math.abs(r.bank))) + '</td>' +
+          '<td class="how">' + esc(r.how) + ' · ' + r.conf + '% confidence' +
+          (r.lag !== null && r.lag !== undefined ? ' · ' + r.lag + 'd' : '') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function renderMethod() {
+    var c = S.out.cfg, T = S.out.report.totals;
+    var items = [
+      ['What was compared', T.recordCount + ' ledger rows against ' + T.bankCount + ' bank rows moving in the expected direction' +
+        (S.out.res.bankOther.length ? '. ' + S.out.res.bankOther.length + ' rows moving the other way were set aside.' : '.')],
+      ['How rows were matched', 'In order of strength: a ledger reference found inside the bank description; then an exact amount within ' +
+        c.dateWindowDays + ' days; then an amount within ' + c.tolerancePct + '% where the counterparty name also agrees. ' +
+        'Several records settling as one payout, and one record paid in instalments, are matched only when the figures add up exactly.'],
+      ['What counts as an exception', 'A ledger row with no movement behind it, a bank row with no ledger entry, a matched pair whose ' +
+        'amounts differ, and identical amounts to the same counterparty within ten days where one of them reconciles to nothing.'],
+      ['What this cannot tell you', 'Whether an invoice was correct in the first place, whether a payment was authorised, or anything ' +
+        'about accounts not included in these two files. Every exception above is a question to answer, not a verdict.'],
+      ['Where the data went', 'Nowhere. The files were read inside this browser tab, held in memory for as long as the tab is open, ' +
+        'and never sent to a server or written to storage. Closing the tab erases them.']
+    ];
+    $('#method').innerHTML = '<h4>Method</h4>' + items.map(function (x) {
+      return '<p><b>' + esc(x[0]) + '.</b> ' + esc(x[1]) + '</p>';
+    }).join('');
+  }
+
+  /* ---------------- exports ---------------- */
+  function showExport(title, csv) {
+    var box = $('#exportBox');
+    box.classList.remove('hide');
+    box.innerHTML =
+      '<span class="label">' + esc(title) + '</span>' +
+      '<div class="actions" style="margin-top:0">' +
+      '<button class="btn" id="copyCsv">Copy to clipboard</button>' +
+      '<span class="note">Paste straight into Excel, Numbers or Google Sheets. Browser downloads are blocked on this page, so copying is the way out.</span>' +
+      '</div><pre id="csvOut">' + esc(csv) + '</pre>';
+    $('#copyCsv').onclick = function () {
+      var done = function () { toast('Copied — paste into a spreadsheet.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(csv).then(done, selectFallback);
+      } else selectFallback();
+    };
+    function selectFallback() {
+      var pre = $('#csvOut'), r = document.createRange();
+      r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      toast('Selected — press Ctrl/Cmd + C to copy.');
+    }
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  $('#expExc').onclick = function () {
+    var rows = [['Finding', 'Severity', 'Type', 'What it is', 'Reference', 'Counterparty', 'Date', 'Amount', 'Money at risk', 'Detail', 'Suggested action']];
+    S.out.report.findings.forEach(function (f) {
+      rows.push([f.id, f.severity, f.type, f.title, f.ref || '', f.party || '', fmtDate(f.date),
+        (Math.abs(f.amount || 0) / 100).toFixed(2), ((f.risk || f.unbooked || 0) / 100).toFixed(2),
+        f.detail, ADVICE[f.type] || '']);
+    });
+    showExport('Exceptions — ' + (S.out.report.findings.length) + ' rows', RA.toCSV(rows));
+  };
+
+  $('#expAll').onclick = function () {
+    var res = S.out.res;
+    var rows = [['Side', 'Source row', 'Date', 'Reference', 'Counterparty / detail', 'Amount', 'Status', 'Matched to', 'Matched on', 'Difference']];
+    var lookup = {};
+    res.matches.forEach(function (m) {
+      lookup['record:' + m.r.i] = { to: m.b, how: m.kind, diff: m.b.mag - m.r.mag };
+      lookup['bank:' + m.b.i] = { to: m.r, how: m.kind, diff: m.b.mag - m.r.mag };
+    });
+    res.groups.forEach(function (g) {
+      g.records.forEach(function (r) { lookup['record:' + r.i] = { to: g.bank, how: 'batched payout', diff: 0 }; });
+      lookup['bank:' + g.bank.i] = { to: null, how: 'batched payout of ' + g.records.length, diff: g.diff };
+    });
+    res.splits.forEach(function (sp) {
+      lookup['record:' + sp.record.i] = { to: null, how: 'paid in ' + sp.bank.length + ' instalments', diff: sp.diff };
+      sp.bank.forEach(function (b) { lookup['bank:' + b.i] = { to: sp.record, how: 'instalment', diff: 0 }; });
+    });
+    var push = function (side, x) {
+      var m = lookup[side + ':' + x.i];
+      rows.push([
+        side === 'record' ? 'Ledger' : 'Bank', x.row, x.dateRaw || fmtDate(x.date), x.ref || '',
+        [x.party, x.desc].filter(Boolean).join(' — '), (x.amount / 100).toFixed(2),
+        m ? 'Matched' : 'Unmatched',
+        m && m.to ? ((m.to.ref || '') + ' ' + (m.to.party || m.to.desc || '')).trim() : '',
+        m ? m.how : '', m ? (m.diff / 100).toFixed(2) : ''
+      ]);
+    };
+    res.records.forEach(function (r) { push('record', r); });
+    res.bank.forEach(function (b) { push('bank', b); });
+    res.bankOther.forEach(function (b) {
+      rows.push(['Bank (other direction)', b.row, b.dateRaw || fmtDate(b.date), b.ref || '',
+        [b.party, b.desc].filter(Boolean).join(' — '), (b.amount / 100).toFixed(2), 'Set aside', '', '', '']);
+    });
+    showExport('Full workings — every row and what happened to it', RA.toCSV(rows));
+  };
+
+  /* ---------------- boot ---------------- */
+  slot('ledger'); slot('bank'); sync(); setDir('in');
+})();
+</script>
