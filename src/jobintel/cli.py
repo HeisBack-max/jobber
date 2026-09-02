@@ -67,9 +67,22 @@ def digest() -> None:
 
 @main.command()
 def dashboard() -> None:
-    """Launch the Streamlit dashboard."""
+    """Launch the Streamlit dashboard (localhost only)."""
     app_path = Path(__file__).resolve().parents[2] / "dashboard" / "app.py"
-    subprocess.run([sys.executable, "-m", "streamlit", "run", str(app_path)], check=False)
+    # Bind to loopback explicitly. Streamlit's default is to listen on every
+    # interface, which would expose the unauthenticated dashboard - and the CV
+    # evidence, profile and job history it renders - to the whole local network.
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            str(app_path),
+            "--server.address=127.0.0.1",
+        ],
+        check=False,
+    )
 
 
 @main.command("verify-boards")

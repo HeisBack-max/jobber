@@ -115,6 +115,11 @@ Discovered, Source Health), filters, and per-opportunity actions
 (Open Job / Interested / Applied / Not Interested / Explain Match /
 feedback reactions).
 
+The dashboard binds to `127.0.0.1` only, so it is reachable from this
+machine and nowhere else. It has no login, and it renders your CV
+evidence, profile preferences and job history, so do not expose it to a
+network, a tunnel, or a public host without adding authentication first.
+
 ## Scheduling daily runs
 
 Simplest option - a system cron entry:
