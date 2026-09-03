@@ -25,3 +25,23 @@ def test_strip_html_handles_double_escaped_entities():
 def test_strip_html_empty_input():
     assert strip_html(None) == ""
     assert strip_html("") == ""
+
+
+def test_job_title_whitespace_is_normalized_at_ingestion():
+    """Padded/doubled title whitespace leaks into the dashboard as literal
+    markdown (`**Title **`) and into the digest. Clean it once, at the source.
+
+    152 of 1761 titles collected from live Greenhouse/Lever/Ashby boards
+    carried trailing whitespace, so this is the common case, not an edge case.
+    """
+    from jobintel.models.enums import CollectionMethod
+    from jobintel.models.schemas import RawJob, RawJobDetails
+    from jobintel.normalize.normalizer import normalize_job
+
+    raw = RawJob(
+        source="fake", source_job_id="1", source_url="https://x/1",
+        company_name="Databricks", job_title="  Product Specialist -  Gen AI  (Sr. SA) ",
+        collection_method=CollectionMethod.ATS,
+    )
+    details = RawJobDetails(raw_job=raw, description_text="Remote EMEA role.")
+    assert normalize_job(details).job_title == "Product Specialist - Gen AI (Sr. SA)"

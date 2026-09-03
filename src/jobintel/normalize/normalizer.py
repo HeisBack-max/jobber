@@ -56,7 +56,11 @@ def normalize_job(details: RawJobDetails, opportunity_class: OpportunityClass = 
         source_url=raw.source_url,
         canonical_url=raw.source_url,
         company_name=raw.company_name,
-        job_title=raw.job_title,
+        # ATS feeds routinely carry padded/doubled whitespace in titles ("Sr. SA  ").
+        # Left raw it leaks into the dashboard as literal markdown (`**Title **`)
+        # and into the digest. content_hash uses normalized_title, so dedup is
+        # unaffected by cleaning the display title here.
+        job_title=" ".join(raw.job_title.split()),
         normalized_job_title=normalized_title,
         opportunity_class=opportunity_class,
         employment_type=_detect_employment_type(description_clean),

@@ -107,6 +107,13 @@ _REGION_PATTERNS: list[tuple[re.Pattern, RemoteClassification, set[str]]] = [
      RemoteClassification.REMOTE_CANADA_ONLY, CANADA_NAMES),
 ]
 
+# Location-field countries the candidate has excluded outright. Used to stop a
+# region mentioned only in the description from overriding the location.
+_EXCLUDED_OFFICE_COUNTRIES: dict[str, RemoteClassification] = {
+    "United States": RemoteClassification.REMOTE_US_ONLY,
+    "Thailand": RemoteClassification.REMOTE_THAILAND_ONLY,
+}
+
 
 def _matches(pattern: re.Pattern, text: str) -> list[str]:
     return [m.group(0) for m in pattern.finditer(text)]
@@ -202,9 +209,37 @@ def classify_geography(location_raw: str | None, description_text: str | None) -
             travel_destinations=travel_destinations,
         )
 
+    location_only = location_raw or ""
     for pattern, classification, permitted in _REGION_PATTERNS:
         hits = _matches(pattern, text)
         if hits:
+            # A region named only in the free-text description must not override a
+            # location field that contradicts it. Plenty of US-based roles merely
+            # mention serving EMEA/APAC customers; without this guard those get
+            # classified REMOTE_EMEA and marked eligible, surfacing roles in
+            # countries the candidate has explicitly excluded.
+            if not _matches(pattern, location_only):
+                office = _detect_office_country(location_only)
+                excluded = _EXCLUDED_OFFICE_COUNTRIES.get(office or "")
+                if excluded is not None:
+                    evidence.append(
+                        f"{classification.value} language appears only in the description, but the "
+                        f"location field ({location_only.strip()!r}) places the role in {office}; "
+                        f"treating the location as authoritative."
+                    )
+                    return GeographicEvidence(
+                        classification=excluded,
+                        eligible=EligibilityStatus.NO,
+                        confidence=0.8,
+                        evidence=evidence,
+                        required_residence_countries=[office],
+                        us_presence_required=office == "United States",
+                        thailand_presence_required=office == "Thailand",
+                        office_country=office,
+                        travel_required=travel_required,
+                        travel_frequency=travel_frequency,
+                        travel_destinations=travel_destinations,
+                    )
             evidence.append(f"{classification.value} language detected: \"{hits[0].strip()}\"")
             return GeographicEvidence(
                 classification=classification,
