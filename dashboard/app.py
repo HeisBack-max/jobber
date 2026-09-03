@@ -234,9 +234,20 @@ def main() -> None:
             _render_feed(vertex, strategic_names, "vertex")
 
         with tabs[4]:
-            gigs = session.query(Job, JobAnalysisRecord, Gig).join(JobAnalysisRecord, JobAnalysisRecord.job_id == Job.id).join(Gig, Gig.job_id == Job.id).order_by(Gig.gig_quality_score.desc()).limit(50).all()
+            gigs = (
+                session.query(Job, JobAnalysisRecord, Gig)
+                .join(JobAnalysisRecord, JobAnalysisRecord.job_id == Job.id)
+                .join(Gig, Gig.job_id == Job.id)
+                .order_by(Gig.gig_quality_score.desc())
+                .limit(50)
+                .all()
+            )
             if not gigs:
-                st.info("No gig/project opportunities collected yet. See IMPLEMENTATION_PLAN.md for gig-source status (e.g. Outlier AI requires ToS-compliant authenticated access, not yet implemented).")
+                st.info(
+                    "No gig/project opportunities collected yet. See IMPLEMENTATION_PLAN.md "
+                    "for gig-source status (e.g. Outlier AI requires ToS-compliant "
+                    "authenticated access, not yet implemented)."
+                )
             for job, analysis, _gig in gigs:
                 _render_card(job, analysis, False, "gig")
 

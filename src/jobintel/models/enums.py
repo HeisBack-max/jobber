@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 
-class RemoteClassification(str, enum.Enum):
+class RemoteClassification(enum.StrEnum):
     REMOTE_WORLDWIDE = "REMOTE_WORLDWIDE"
     REMOTE_ANYWHERE_WITH_MINOR_TIMEZONE_LIMIT = "REMOTE_ANYWHERE_WITH_MINOR_TIMEZONE_LIMIT"
     REMOTE_UK = "REMOTE_UK"
@@ -24,13 +24,13 @@ class RemoteClassification(str, enum.Enum):
     UNCLEAR = "UNCLEAR"
 
 
-class EligibilityStatus(str, enum.Enum):
+class EligibilityStatus(enum.StrEnum):
     YES = "YES"
     NO = "NO"
     UNCLEAR = "UNCLEAR"
 
 
-class OpportunityClass(str, enum.Enum):
+class OpportunityClass(enum.StrEnum):
     PERMANENT_EMPLOYMENT = "PERMANENT_EMPLOYMENT"
     FIXED_TERM_CONTRACT = "FIXED_TERM_CONTRACT"
     CONSULTING = "CONSULTING"
@@ -41,7 +41,7 @@ class OpportunityClass(str, enum.Enum):
     OTHER = "OTHER"
 
 
-class EmploymentType(str, enum.Enum):
+class EmploymentType(enum.StrEnum):
     FULL_TIME = "FULL_TIME"
     PART_TIME = "PART_TIME"
     CONTRACT = "CONTRACT"
@@ -50,7 +50,7 @@ class EmploymentType(str, enum.Enum):
     UNSPECIFIED = "UNSPECIFIED"
 
 
-class SeniorityLevel(str, enum.Enum):
+class SeniorityLevel(enum.StrEnum):
     INTERNSHIP = "internship"
     ENTRY = "entry"
     JUNIOR = "junior"
@@ -65,7 +65,7 @@ class SeniorityLevel(str, enum.Enum):
     UNSPECIFIED = "unspecified"
 
 
-class CollectionMethod(str, enum.Enum):
+class CollectionMethod(enum.StrEnum):
     API = "API"
     HTML = "HTML"
     RSS = "RSS"
@@ -73,7 +73,7 @@ class CollectionMethod(str, enum.Enum):
     ATS = "ATS"
 
 
-class Recommendation(str, enum.Enum):
+class Recommendation(enum.StrEnum):
     EXCEPTIONAL_MATCH = "EXCEPTIONAL_MATCH"
     STRONG_APPLY = "STRONG_APPLY"
     WORTH_REVIEWING = "WORTH_REVIEWING"
@@ -84,7 +84,7 @@ class Recommendation(str, enum.Enum):
     EXCLUDED_TRAVEL_REQUIREMENT = "EXCLUDED_TRAVEL_REQUIREMENT"
 
 
-class ApplicationReadiness(str, enum.Enum):
+class ApplicationReadiness(enum.StrEnum):
     READY = "READY"
     READY_WITH_MINOR_CV_TAILORING = "READY_WITH_MINOR_CV_TAILORING"
     NEEDS_TARGETED_COVER_LETTER = "NEEDS_TARGETED_COVER_LETTER"
@@ -92,7 +92,7 @@ class ApplicationReadiness(str, enum.Enum):
     NOT_RECOMMENDED = "NOT_RECOMMENDED"
 
 
-class ApplicationStatus(str, enum.Enum):
+class ApplicationStatus(enum.StrEnum):
     NEW = "New"
     REVIEWING = "Reviewing"
     INTERESTED = "Interested"
@@ -107,14 +107,14 @@ class ApplicationStatus(str, enum.Enum):
     ARCHIVED = "Archived"
 
 
-class FeedbackReaction(str, enum.Enum):
+class FeedbackReaction(enum.StrEnum):
     EXCELLENT_MATCH = "EXCELLENT_MATCH"
     RELEVANT = "RELEVANT"
     NOT_INTERESTED = "NOT_INTERESTED"
     NEVER_SHOW_LIKE_THIS = "NEVER_SHOW_LIKE_THIS"
 
 
-class FeedbackReason(str, enum.Enum):
+class FeedbackReason(enum.StrEnum):
     WRONG_ROLE = "wrong role"
     TOO_TECHNICAL = "too technical"
     POOR_COMPENSATION = "poor compensation"
@@ -129,7 +129,7 @@ class FeedbackReason(str, enum.Enum):
     OTHER = "other"
 
 
-class SourceHealthStatus(str, enum.Enum):
+class SourceHealthStatus(enum.StrEnum):
     HEALTHY = "HEALTHY"
     DEGRADED = "DEGRADED"
     BROKEN = "BROKEN"

@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta
 
 from jobintel.db.models import Gig, Job, JobAnalysisRecord
 from jobintel.db.session import session_scope
+from jobintel.models.enums import EligibilityStatus
 from jobintel.settings import load_profile
 
 _STRONG_RECOMMENDATIONS = {"STRONG_APPLY", "EXCEPTIONAL_MATCH"}
@@ -21,6 +22,7 @@ class DigestItem:
     recommendation: str
     remote_classification: str
     canonical_url: str
+    locations: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -48,7 +50,9 @@ class DigestResult:
         for item in self.items:
             lines.append(
                 f"{item.overall_score:.0f} - {item.recommendation} - {item.job_title} @ "
-                f"{item.company_name} ({item.remote_classification})\n  {item.canonical_url}"
+                f"{item.company_name} ({item.remote_classification})"
+                + (f"\n  also open in: {'; '.join(item.locations[1:])}" if len(item.locations) > 1 else "")
+                + f"\n  {item.canonical_url}"
             )
         return "\n".join(lines)
 
@@ -91,22 +95,37 @@ def generate_digest(since_hours: int = 24) -> DigestResult:
             .count()
         )
 
+        # The brief is "signal over volume": never spend a slot on a role the
+        # candidate is not geographically eligible for, and never spend several
+        # slots on one role that a company has posted per-location. Collapsing
+        # happens after the fetch, so the cap applies to distinct roles.
         rows = (
             session.query(Job, JobAnalysisRecord)
             .join(JobAnalysisRecord, JobAnalysisRecord.job_id == Job.id)
-            .filter(Job.first_seen_at >= cutoff, JobAnalysisRecord.overall_score >= min_score)
+            .filter(
+                Job.first_seen_at >= cutoff,
+                JobAnalysisRecord.overall_score >= min_score,
+                Job.candidate_geographically_eligible != EligibilityStatus.NO.value,
+            )
             .order_by(JobAnalysisRecord.overall_score.desc())
-            .limit(max_items)
+            .limit(max_items * 10)
             .all()
         )
-        items = [
-            DigestItem(
-                job_title=job.job_title, company_name=job.company_name,
-                overall_score=analysis.overall_score, recommendation=analysis.recommendation,
-                remote_classification=job.remote_classification, canonical_url=job.canonical_url,
-            )
-            for job, analysis in rows
-        ]
+        by_role: dict[tuple[str, str], DigestItem] = {}
+        for job, analysis in rows:
+            key = (job.job_title.strip().casefold(), job.company_name.strip().casefold())
+            existing = by_role.get(key)
+            if existing is None:
+                by_role[key] = DigestItem(
+                    job_title=job.job_title, company_name=job.company_name,
+                    overall_score=analysis.overall_score, recommendation=analysis.recommendation,
+                    remote_classification=job.remote_classification,
+                    canonical_url=job.canonical_url,
+                    locations=[job.location_raw] if job.location_raw else [],
+                )
+            elif job.location_raw and job.location_raw not in existing.locations:
+                existing.locations.append(job.location_raw)
+        items = list(by_role.values())[:max_items]
 
     return DigestResult(
         jobs_discovered=jobs_discovered,

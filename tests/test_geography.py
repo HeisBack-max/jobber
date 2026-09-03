@@ -140,3 +140,40 @@ def test_low_paid_gig_still_geographically_worldwide():
     ev = classify_geography(*fx.LOW_PAID_GENERIC_ANNOTATION_GIG)
     assert ev.classification == RemoteClassification.REMOTE_WORLDWIDE
     assert ev.eligible == EligibilityStatus.YES
+
+
+def test_description_region_mention_does_not_override_us_location():
+    """A US location field must beat an EMEA mention buried in the description.
+
+    Regression: 'San Francisco, CA' roles whose description mentioned serving
+    EMEA customers were classified REMOTE_EMEA and marked eligible, surfacing
+    roles in a country the candidate has explicitly excluded.
+    """
+    ev = classify_geography(
+        "San Francisco, CA",
+        "You will partner with our EMEA sales teams to support customers across the region.",
+    )
+    assert ev.classification is RemoteClassification.REMOTE_US_ONLY
+    assert ev.eligible is EligibilityStatus.NO
+    assert ev.us_presence_required is True
+    assert ev.office_country == "United States"
+
+
+def test_region_in_location_field_is_still_trusted():
+    """The guard must not break genuine EMEA-located remote roles."""
+    ev = classify_geography(
+        "Remote - EMEA",
+        "Work with customers across the region.",
+    )
+    assert ev.classification is RemoteClassification.REMOTE_EMEA
+    assert ev.eligible is EligibilityStatus.YES
+
+
+def test_non_excluded_location_keeps_description_region():
+    """A non-excluded location (e.g. Germany) leaves existing behaviour intact."""
+    ev = classify_geography(
+        "Munich, Germany",
+        "Supporting our EMEA customer base.",
+    )
+    assert ev.classification is RemoteClassification.REMOTE_EMEA
+    assert ev.eligible is EligibilityStatus.YES
